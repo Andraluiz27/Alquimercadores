@@ -366,22 +366,33 @@
         /**
          * Cria o objeto de estado inicial do jogo.
          */
+        /**
+         * Cria o objeto de estado inicial do jogo.
+         */
         function createInitialGameState(player1Name, player1UID) {
+            // --- INÍCIO DA MODIFICAÇÃO ---
+            
+            // Sorteia quem será o primeiro jogador
+            const startingPlayer = Math.random() < 0.5 ? 'player1' : 'player2';
+            
+            // --- FIM DA MODIFICAÇÃO ---
+            
             // NOTA: gameId é definido globalmente antes de chamar esta função
             return {
                 gameId: gameId,
                 status: 'waiting', // 'waiting', 'active', 'finished'
-                phase: 'PREPARATION', // PREPARATION, PRODUCTION_P1, PRODUCTION_P2, ACTION_P1, ACTION_P2, GAME_OVER
-                currentPlayer: 'player1',
+                // Define a fase e o jogador atual baseado no sorteio
+                phase: 'PREPARATION', // A fase mudará para PRODUCTION assim que o P2 entrar
+                currentPlayer: startingPlayer, 
                 players: {
                     player1: {
                         uid: player1UID,
                         name: player1Name,
                         coins: 0,
-                        shelf: [], // Array de nomes de ingredientes
+                        shelf: [], 
                         shelfLimit: 2,
-                        potionsReady: [], // Poções prontas para Vender/Usar
-                        activePotions: {} // Poções permanentes ativas, ex: { "Infusão de Foco": true }
+                        potionsReady: [], 
+                        activePotions: {} 
                     },
                     player2: {
                         uid: null,
@@ -400,7 +411,7 @@
                     generateClient('Nobre')
                 ],
                 clientsServed: 0,
-                currentPull: [], // Ingredientes no balcão
+                currentPull: [], 
                 log: ["Jogo criado. Aguardando oponente..."]
             };
         }
@@ -1491,6 +1502,15 @@
                 initialState.status = 'active';
                 // logMessage(`${localPlayerName} aceitou o convite!`); // <-- BUG: Isso quebra, localGameState.log é undefined
                 initialState.log.unshift(`${localPlayerName} aceitou o convite!`); // <-- CORREÇÃO: Adiciona a mensagem ao log do novo estado
+
+                // --- INÍCIO DA MODIFICAÇÃO ---
+
+                // Inicia a fase de produção para o jogador que foi sorteado
+                initialState.phase = `PRODUCTION_${initialState.currentPlayer.toUpperCase()}`;
+                const startingPlayerName = initialState.players[initialState.currentPlayer].name;
+                initialState.log.unshift(`${localPlayerName} aceitou o convite! ${startingPlayerName} começa a partida!`);
+
+                // --- FIM DA MODIFICAÇÃO ---
                 
                 // 2. Salvar o jogo no DB
                 await setDoc(doc(db, gamesCollectionPath, gameId), initialState);
@@ -2070,6 +2090,7 @@
     
 </body>
 </html>
+
 
 
 
