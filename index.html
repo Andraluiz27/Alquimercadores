@@ -1441,7 +1441,8 @@
                 initialState.players.player2.name = localPlayerName;
                 initialState.players.player2.uid = localUserId;
                 initialState.status = 'active';
-                logMessage(`${localPlayerName} aceitou o convite!`);
+                // logMessage(`${localPlayerName} aceitou o convite!`); // <-- BUG: Isso quebra, localGameState.log é undefined
+                initialState.log.unshift(`${localPlayerName} aceitou o convite!`); // <-- CORREÇÃO: Adiciona a mensagem ao log do novo estado
                 
                 // 2. Salvar o jogo no DB
                 await setDoc(doc(db, gamesCollectionPath, gameId), initialState);
@@ -1954,6 +1955,7 @@
     
 </body>
 </html>
+
 
 
 
