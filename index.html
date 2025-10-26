@@ -243,6 +243,11 @@
         let unsubscribeLobbyList = null; // Para o listener do onSnapshot da LISTA do lobby
         let unsubscribeLobbyUser = null; // Para o listener do onSnapshot do USUÁRIO no lobby
 
+        // ADICIONE ESTAS VARIÁVEIS AQUI
+        let recipeCurrentPage = 0;
+        const recipesPerPage = 2; // Mostra 2 receitas por página (1 em cada lado)
+        let allPotionNames = [];
+
         // ==========================================================
         // ELEMENTOS DA DOM (Telas)
         // ==========================================================
@@ -361,6 +366,49 @@
                 price: basePrice + bonus,
                 contract: null // 'player1' ou 'player2' se tiver contrato
             };
+        }
+
+        function renderRecipeBookPage() {
+            const paginaEsquerdaEl = document.getElementById('pagina-esquerda');
+            const paginaDireitaEl = document.getElementById('pagina-direita');
+            paginaEsquerdaEl.innerHTML = '';
+            paginaDireitaEl.innerHTML = '';
+        
+            const startIndex = recipeCurrentPage * recipesPerPage;
+            const endIndex = startIndex + recipesPerPage;
+            const pagePotions = allPotionNames.slice(startIndex, endIndex);
+        
+            // Renderiza a poção da esquerda (se existir)
+            if (pagePotions[0]) {
+                const potion = ARCANO_POTIONUM[pagePotions[0]];
+                const ingredientsText = Object.entries(potion.ingredientes)
+                    .map(([name, count]) => `${name} (x${count})`).join(', ');
+                paginaEsquerdaEl.innerHTML = `
+                    <div class="receita-item">
+                        <h4 class="text-xl font-bold">${potion.nome} [${potion.tipo}]</h4>
+                        <p class="text-sm"><strong>Ingredientes:</strong> ${ingredientsText}</p>
+                        <p class="text-sm mt-1"><strong>Efeito:</strong> ${potion.descricao}</p>
+                    </div>
+                `;
+            }
+        
+            // Renderiza a poção da direita (se existir)
+            if (pagePotions[1]) {
+                const potion = ARCANO_POTIONUM[pagePotions[1]];
+                const ingredientsText = Object.entries(potion.ingredientes)
+                    .map(([name, count]) => `${name} (x${count})`).join(', ');
+                paginaDireitaEl.innerHTML = `
+                    <div class="receita-item">
+                        <h4 class="text-xl font-bold">${potion.nome} [${potion.tipo}]</h4>
+                        <p class="text-sm"><strong>Ingredientes:</strong> ${ingredientsText}</p>
+                        <p class="text-sm mt-1"><strong>Efeito:</strong> ${potion.descricao}</p>
+                    </div>
+                `;
+            }
+        
+            // Atualiza o estado dos botões de navegação
+            document.getElementById('prev-page-btn').disabled = recipeCurrentPage === 0;
+            document.getElementById('next-page-btn').disabled = endIndex >= allPotionNames.length;
         }
 
         /**
@@ -756,24 +804,12 @@
         // ==========================================================
         
         /**
-         * Abre o Arcano Potionum (livro de receitas completo).
+         * Abre o Arcano Potionum (livro de receitas completo) com paginação.
          */
         function handleBookClick() {
-            recipeListEl.innerHTML = '';
-            for (const potionName in ARCANO_POTIONUM) {
-                const potion = ARCANO_POTIONUM[potionName];
-                const ingredientsText = Object.entries(potion.ingredientes)
-                    .map(([name, count]) => `${name} (x${count})`)
-                    .join(', ');
-                
-                recipeListEl.innerHTML += `
-                    <div class="mb-4 p-3 border border-yellow-700/50 rounded bg-yellow-50/50">
-                        <h4 class="text-xl font-bold text-gray-800">${potion.nome} [${potion.tipo}]</h4>
-                        <p class="text-sm text-gray-700"><strong>Ingredientes:</strong> ${ingredientsText}</p>
-                        <p class="text-sm text-gray-700 mt-1"><strong>Efeito:</strong> ${potion.descricao}</p>
-                    </div>
-                `;
-            }
+            recipeCurrentPage = 0; // Sempre começa na primeira página
+            allPotionNames = Object.keys(ARCANO_POTIONUM);
+            renderRecipeBookPage(); // Renderiza a primeira página
             recipeModal.classList.remove('hidden');
         }
 
@@ -1562,7 +1598,23 @@
         stopPullingBtn.onclick = handleStopPullingClick;
         finishProductionBtn.onclick = handleFinishProductionClick;
         finishActionBtn.onclick = handleFinishActionClick;
-        bookBtn.onclick = handleBookClick; // Função padrão, será sobrescrita
+        // ADICIONE ESTAS NOVAS LINHAS
+        document.getElementById('mesa-book-btn').onclick = handleBookClick;
+        
+        document.getElementById('next-page-btn').onclick = () => {
+            const maxPages = Math.ceil(allPotionNames.length / recipesPerPage);
+            if (recipeCurrentPage < maxPages - 1) {
+                recipeCurrentPage++;
+                renderRecipeBookPage();
+            }
+        };
+        
+        document.getElementById('prev-page-btn').onclick = () => {
+            if (recipeCurrentPage > 0) {
+                recipeCurrentPage--;
+                renderRecipeBookPage();
+            }
+        };
         
         closeRecipeModalBtn.onclick = () => recipeModal.classList.add('hidden');
         closeCreatePotionModalBtn.onclick = () => createPotionModal.classList.add('hidden');
@@ -1804,6 +1856,18 @@
             background-size: cover;
             background-position: center center;
         }
+
+        /* ADICIONE ESTE NOVO ESTILO */
+        #livro-container {
+            background-image: url('imagens/livro_aberto.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+        }
+
+        /* Estilo para a receita dentro da página, para ficar legível */
+        .receita-item {
+            color: #3d2a1a; /* Cor de texto escura, boa para fundo claro */
+        }
         
         /* Cor de fonte padrão para melhor legibilidade */
         .text-shadow {
@@ -2006,9 +2070,7 @@
             </div>
 
         <div id="cauldron-btn" class="absolute top-[60%] right-[15%] w-[20%] h-[35%] cursor-pointer rounded-full" title="Puxar Ingrediente"></div>
-        <div id="book-btn" class="absolute top-[62%] left-[4%] w-[10%] h-[20%] cursor-pointer" title="Ver Arcano Potionum">
-             <img src="imagens/Livro.png" alt="Arcano Potionum" class="w-full h-full object-contain">
-        </div>
+        <div id="mesa-book-btn" class="absolute top-[65%] left-[30%] w-[15%] h-[18%] cursor-pointer rounded-lg" title="Abrir Arcano Potionum"></div>
         
         <div id="action-buttons-container" class="absolute bottom-4 left-4 flex flex-col gap-2 z-10">
             <button id="stop-pulling-btn" class="btn btn-red hidden">Parar de Puxar</button>
@@ -2034,10 +2096,16 @@
 
         <!-- MODAIS (Ocultados para brevidade, são os mesmos de antes) -->
         <div id="recipe-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
-            <div class="pergaminho-bg p-8 rounded-lg w-full max-w-4xl h-[80vh] overflow-y-auto relative">
-                <h2 class="text-5xl font-bold text-center text-[#3d2a1a] mb-6">Arcano Potionum</h2>
-                <div id="recipe-list" class="space-y-4">
+            <div id="livro-container" class="relative w-full max-w-5xl aspect-[16/9]"> 
+        
+                <div id="pagina-esquerda" class="absolute top-[10%] left-[5%] w-[42%] h-[80%] p-4 overflow-y-auto">
                     </div>
+                <div id="pagina-direita" class="absolute top-[10%] right-[5%] w-[42%] h-[80%] p-4 overflow-y-auto">
+                    </div>
+        
+                <button id="prev-page-btn" class="absolute bottom-[5%] left-[3%] text-5xl text-[#5c3d20] hover:text-black">‹</button>
+                <button id="next-page-btn" class="absolute bottom-[5%] right-[3%] text-5xl text-[#5c3d20] hover:text-black">›</button>
+        
                 <button id="close-recipe-modal-btn" class="absolute top-4 right-6 text-5xl text-[#5c3d20] hover:text-red-700">&times;</button>
             </div>
         </div>
@@ -2091,6 +2159,7 @@
     
 </body>
 </html>
+
 
 
 
