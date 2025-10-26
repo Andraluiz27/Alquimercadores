@@ -1631,16 +1631,32 @@
     </script>
     
     <style>
-        /* Define a imagem de fundo principal */
+        /* Estilos globais do body */
         body {
-            background-image: url('imagens/Fundo.png');
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
+            /* background-image: url('imagens/Fundo.png'); -- Removido */
+            /* background-size: cover; */
+            /* background-position: center center; */
+            /* background-repeat: no-repeat; */
             height: 100vh;
             width: 100vw;
             overflow: hidden;
             font-family: 'Times New Roman', Times, serif;
+        }
+
+        /* Fundo da tela de Jogo (O fundo original) */
+        #game-screen {
+            background-image: url('imagens/Fundo.png');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+        }
+
+        /* Fundo das telas de Lobby e Lista de Jogadores (Fundo de pergaminho) */
+        #lobby-screen, #player-list-screen {
+            /* Usando o pergaminho como fundo do lobby, diferente do jogo */
+            background-image: url('imagens/pergaminho_fundo.jpg');
+            background-size: cover;
+            background-position: center center;
         }
         
         /* Cor de fonte padrão para melhor legibilidade */
@@ -1746,8 +1762,8 @@
     <div id="lobby-screen" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
         <div class="pergaminho-bg p-8 rounded-lg w-full max-w-md text-center">
             
-            <!-- Logo (Círculo do seu rascunho) -->
-            <div class="w-48 h-48 bg-transparent border-4 border-[#3d2a1a] rounded-full mx-auto mb-6 flex items-center justify-center">
+            <!-- Logo (Círculo do seu rascunho) - Borda removida -->
+            <div class="w-48 h-48 bg-transparent rounded-full mx-auto mb-6 flex items-center justify-center">
                  <img src="imagens/Logo.png" alt="Logo Alquimercadores" class="w-40 h-40">
             </div>
             
@@ -1915,3 +1931,4 @@
     
 </body>
 </html>
+
