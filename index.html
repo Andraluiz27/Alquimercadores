@@ -288,7 +288,8 @@
         const player1ShelfEl = document.getElementById('player1-shelf');
         const player2ShelfEl = document.getElementById('player2-shelf');
         const counterAreaEl = document.getElementById('counter-area');
-        const potionsReadyAreaEl = document.getElementById('potions-ready-area');
+        const readyPotionsBoardListEl = document.getElementById('ready-potions-board-list');
+        const closePotionsBoardBtn = document.getElementById('close-potions-board-btn');
         const cauldronBtn = document.getElementById('cauldron-btn');
         const bookBtn = document.getElementById('book-btn');
         const stopPullingBtn = document.getElementById('stop-pulling-btn');
@@ -1311,13 +1312,20 @@
             });
         }
 
+        // SUBSTITUA A FUNÇÃO ANTIGA POR ESTA
         function renderReadyPotions() {
-            potionsReadyAreaEl.innerHTML = '';
+            // Agora o alvo é a nova lista dentro do painel
+            readyPotionsBoardListEl.innerHTML = ''; 
             const playerPotions = localGameState.players[localPlayerId]?.potionsReady || [];
-            playerPotions.forEach(potionName => {
-                const img = createPotionImage(potionName);
-                potionsReadyAreaEl.appendChild(img);
-            });
+        
+            if (playerPotions.length === 0) {
+                readyPotionsBoardListEl.innerHTML = `<p class="text-gray-400 text-sm">Nenhuma poção pronta.</p>`;
+            } else {
+                playerPotions.forEach(potionName => {
+                    const img = createPotionImage(potionName);
+                    readyPotionsBoardListEl.appendChild(img);
+                });
+            }
         }
         
         function renderActivePotions(listEl, activePotions, ownerId) {
@@ -1654,7 +1662,13 @@
             }
         };
         
-        activePotionsToggleBtn.onclick = () => activePotionsBoard.classList.toggle('translate-x-full');
+        // SUBSTITUA-A POR ESTAS TRÊS LINHAS:
+
+        // Este botão SEMPRE abre o painel
+        activePotionsToggleBtn.onclick = () => activePotionsBoard.classList.remove('translate-x-full');
+        
+        // O novo botão 'X' SEMPRE fecha o painel
+        closePotionsBoardBtn.onclick = () => activePotionsBoard.classList.add('translate-x-full');
         
         // --- Listener Principal do JOGO ---
         function listenToGameChanges(id) {
@@ -2065,12 +2079,9 @@
 
         <div id="counter-area" class="absolute top-[78%] left-[13%] w-[50%] h-[15%] flex justify-center items-center gap-2 p-2 bg-black/10 rounded">
             </div>
-        
-        <div id="potions-ready-area" class="absolute top-[60%] left-[15%] w-[50%] h-[15%] flex justify-center items-center gap-2 p-2">
-            </div>
 
         <div id="cauldron-btn" class="absolute top-[64%] right-[21%] w-[20%] h-[35%] cursor-pointer rounded-full" title="Puxar Ingrediente"></div>
-        <div id="mesa-book-btn" class="absolute top-[73%] left-[5%] w-[15%] h-[18%] cursor-pointer rounded-lg" title="Abrir Arcano Potionum"></div>
+        <div id="mesa-book-btn" class="absolute top-[73%] left-[3%] w-[8%] h-[18%] cursor-pointer rounded-lg" title="Abrir Arcano Potionum"></div>
         
         <div id="action-buttons-container" class="absolute bottom-4 left-4 flex flex-col gap-2 z-10">
             <button id="stop-pulling-btn" class="btn btn-red hidden">Parar de Puxar</button>
@@ -2083,15 +2094,29 @@
         </div>
 
         <div id="active-potions-board" class="absolute top-0 right-0 w-80 h-full bg-black/80 backdrop-blur-sm p-4 border-l-4 border-[#5c3d20] z-30 translate-x-full">
-            <h3 class="text-2xl font-bold text-yellow-300 mb-4 border-b-2 border-yellow-400 pb-2">Poções Ativas</h3>
-            <div id="player1-active-potions" class="mb-4">
-                <h4 id="player1-active-potions-title" class="text-lg font-semibold text-blue-300">Jogador 1:</h4>
-                <ul id="player1-active-potions-list" class="flex flex-col gap-2 mt-2"></ul>
+
+            <button id="close-potions-board-btn" class="absolute top-2 right-3 text-4xl text-yellow-300 hover:text-white">&times;</button>
+        
+            <h3 class="text-2xl font-bold text-yellow-300 mb-4 border-b-2 border-yellow-400 pb-2">Poções</h3>
+        
+            <div class="mb-6">
+                <h4 class="text-xl font-semibold text-yellow-500">Prontas para Uso:</h4>
+                <div id="ready-potions-board-list" class="flex flex-wrap gap-2 mt-2 min-h-[70px] bg-black/20 p-2 rounded">
+                    </div>
             </div>
-            <div id="player2-active-potions">
-                <h4 id="player2-active-potions-title" class="text-lg font-semibold text-red-300">Jogador 2:</h4>
-                <ul id="player2-active-potions-list" class="flex flex-col gap-2 mt-2"></ul>
+        
+            <div>
+                <h4 class="text-xl font-semibold text-gray-300">Efeitos Ativos:</h4>
+                <div id="player1-active-potions" class="mt-2">
+                    <h5 id="player1-active-potions-title" class="text-lg font-semibold text-blue-300">Jogador 1:</h5>
+                    <ul id="player1-active-potions-list" class="flex flex-col gap-2 mt-1"></ul>
+                </div>
+                <div id="player2-active-potions" class="mt-4">
+                    <h5 id="player2-active-potions-title" class="text-lg font-semibold text-red-300">Jogador 2:</h5>
+                    <ul id="player2-active-potions-list" class="flex flex-col gap-2 mt-1"></ul>
+                </div>
             </div>
+        
         </div>
 
         <!-- MODAIS (Ocultados para brevidade, são os mesmos de antes) -->
@@ -2159,6 +2184,7 @@
     
 </body>
 </html>
+
 
 
 
