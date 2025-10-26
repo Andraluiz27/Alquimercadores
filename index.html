@@ -313,6 +313,7 @@
         const decisionModal = document.getElementById('decision-modal');
         const decisionTitleEl = document.getElementById('decision-title');
         const decisionOptionsEl = document.getElementById('decision-options');
+        const quitGameBtn = document.getElementById('quit-game-btn');
         
         // ==========================================================
         // FUNÇÕES DE LÓGICA DO JOGO (CORE)
@@ -524,16 +525,24 @@
          */
         function endGame() {
             localGameState.phase = 'GAME_OVER';
+            localGameState.status = 'finished'; // Marca o status como finalizado
             const p1Coins = localGameState.players.player1.coins;
             const p2Coins = localGameState.players.player2.coins;
             
             let winnerMsg = "";
-            if (p1Coins > p2Coins) {
+        
+            // NOVO: Verifica se o jogo acabou por desistência
+            if (localGameState.winner) {
+                const winnerName = localGameState.players[localGameState.winner].name;
+                winnerMsg = `${winnerName} venceu por desistência do oponente!`;
+            } 
+            // Lógica antiga de contagem de moedas
+            else if (p1Coins > p2Coins) {
                 winnerMsg = `${localGameState.players.player1.name} vence com ${p1Coins} moedas!`;
             } else if (p2Coins > p1Coins) {
                 winnerMsg = `${localGameState.players.player2.name} vence com ${p2Coins} moedas!`;
             } else {
-                winnerMsg = "Empate! Ambos os alquimistas terminam com ${p1Coins} moedas!";
+                winnerMsg = `Empate! Ambos os alquimistas terminam com ${p1Coins} moedas!`;
             }
             
             winnerTextEl.textContent = winnerMsg;
@@ -1109,7 +1118,46 @@
             // Por enquanto, vamos apenas logar e pular a interação
             logMessage(`${localGameState.players[playerId].name} está decidindo sobre ${title}`);
         }
+
+        // CÓDIGO PARA ADICIONAR
+
+        /**
+         * Lida com a desistência de um jogador.
+         */
+        async function handleForfeit() {
+            if (!gameId || !localPlayerId) return;
         
+            // Desabilita o botão para evitar cliques duplos
+            quitGameBtn.disabled = true; 
+            
+            const opponentId = getOpponentId(localPlayerId);
+            const quittingPlayerName = localGameState.players[localPlayerId].name;
+            
+            // Atualiza o estado do jogo para refletir a desistência
+            const finalState = {
+                ...localGameState,
+                status: 'finished',
+                phase: 'GAME_OVER',
+                winner: opponentId, // Guarda quem venceu
+                log: [
+                    ...localGameState.log, 
+                    `${quittingPlayerName} desistiu da partida.`
+                ].sort((a, b) => b.timestamp - a.timestamp) // Reordena se usar timestamp
+            };
+            
+            // Remove a referência ao jogo do lobby do jogador que desistiu
+            const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
+            await updateDoc(lobbyDocRef, { status: "online", invitedBy: null, inviteTo: null });
+            
+            // Atualiza o estado do jogo e o listener onSnapshot cuidará do resto
+            await updateFirestoreState(finalState);
+            
+            // Força o jogador que desistiu a voltar para a tela de lobby
+            gameScreen.classList.add('hidden');
+            playerListScreen.classList.remove('hidden');
+            listenToLobbyList();
+            listenToLobbyUser();
+        }
 
         // ==========================================================
         // FUNÇÕES DE UI (RENDERIZAÇÃO)
@@ -1498,22 +1546,38 @@
         closeRecipeModalBtn.onclick = () => recipeModal.classList.add('hidden');
         closeCreatePotionModalBtn.onclick = () => createPotionModal.classList.add('hidden');
         closeMessageModalBtn.onclick = () => messageModal.classList.add('hidden');
-        restartGameBtn.onclick = () => {
-            // Apenas o Host (player1) pode reiniciar
+        // CÓDIGO PARA SUBSTITUIR O ANTIGO restartGameBtn.onclick
+
+        // Adicione a declaração do novo botão no topo, junto com os outros
+        const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
+        
+        backToLobbyBtn.onclick = async () => {
+            endGameModal.classList.add('hidden');
+            gameScreen.classList.add('hidden');
+            playerListScreen.classList.remove('hidden');
+        
+            // Limpa o status do jogador no lobby para que ele possa jogar novamente
+            const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
+            await setDoc(lobbyDocRef, { 
+                name: localPlayerName, 
+                status: "online", 
+                invitedBy: null, 
+                inviteTo: null 
+            });
+        
+            // Se o jogador era o host (player1), ele deve deletar o jogo antigo
             if (localPlayerId === 'player1') {
-                const p1Name = localGameState.players.player1.name;
-                const p2Name = localGameState.players.player2.name;
-                const p1UID = localGameState.players.player1.uid;
-                const p2UID = localGameState.players.player2.uid;
-                
-                gameId = p1UID; // Garante que o gameId está correto
-                let initialState = createInitialGameState(p1Name, p1UID);
-                initialState.players.player2.name = p2Name;
-                initialState.players.player2.uid = p2UID;
-                initialState.status = 'active';
-                
-                endGameModal.classList.add('hidden');
-                updateFirestoreState(initialState);
+                await deleteDoc(doc(db, gamesCollectionPath, gameId));
+            }
+            
+            gameId = null; // Limpa o ID do jogo localmente
+            listenToLobbyList();
+            listenToLobbyUser();
+        };
+
+        quitGameBtn.onclick = () => {
+            if (confirm("Você tem certeza que deseja desistir? Seu oponente será declarado o vencedor.")) {
+                handleForfeit();
             }
         };
         
@@ -1584,23 +1648,62 @@
                     playerNameInput.value = localPlayerName; // Preenche o nome no lobby
                     
                     if (lobbyData.status === 'ingame') {
-                        // Tenta reconectar ao jogo
+                        // Tenta encontrar o ID do jogo para reconectar
                         let gameIdToFind = null;
                         if (lobbyData.inviteTo) { // Eu era P1/Host
                             gameIdToFind = localUserId;
                         } else if (lobbyData.invitedBy) { // Eu era P2/Convidado
                             gameIdToFind = lobbyData.invitedBy;
                         }
-
+                
                         if (gameIdToFind) {
                             const gameDoc = await getDoc(doc(db, gamesCollectionPath, gameIdToFind));
-                            if (gameDoc.exists()) {
-                                // Jogo encontrado, reconecta
+                            
+                            // NOVO: A condição agora também verifica se o jogo já não foi finalizado
+                            if (gameDoc.exists() && gameDoc.data().status !== 'finished') {
+                                
+                                // Jogo encontrado, AGORA MOSTRA A TELA DE ESCOLHA
                                 gameId = gameIdToFind;
-                                listenToGameChanges(gameId);
-                                gameScreen.classList.remove('hidden');
+                
+                                // Esconde todas as outras telas para garantir
+                                lobbyScreen.classList.add('hidden');
+                                playerListScreen.classList.add('hidden');
+                                gameScreen.classList.add('hidden');
+                
+                                // Mostra a tela de reconexão
+                                const reconnectScreen = document.getElementById('reconnect-screen');
+                                reconnectScreen.classList.remove('hidden');
+                
+                                // Lógica do botão "Sim": faz o que o código antigo fazia
+                                document.getElementById('reconnect-yes-btn').onclick = () => {
+                                    reconnectScreen.classList.add('hidden');
+                                    listenToGameChanges(gameId); // Reconecta ao jogo
+                                };
+                
+                                // Lógica do botão "Não": abandona a partida
+                                document.getElementById('reconnect-no-btn').onclick = async () => {
+                                    // Finaliza o jogo, dando a vitória para o oponente
+                                    const gameData = gameDoc.data();
+                                    const myPlayerId = gameData.players.player1.uid === localUserId ? 'player1' : 'player2';
+                                    const opponentId = myPlayerId === 'player1' ? 'player2' : 'player1';
+                
+                                    gameData.status = 'finished';
+                                    gameData.phase = 'GAME_OVER';
+                                    gameData.winner = opponentId; // Oponente vence
+                                    gameData.log.unshift(`${gameData.players[myPlayerId].name} abandonou a partida.`);
+                                    
+                                    await setDoc(doc(db, gamesCollectionPath, gameId), gameData); // Atualiza o jogo
+                
+                                    // Reseta o jogador para o lobby
+                                    reconnectScreen.classList.add('hidden');
+                                    await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
+                                    playerListScreen.classList.remove('hidden');
+                                    listenToLobbyList();
+                                    listenToLobbyUser();
+                                };
+                
                             } else {
-                                // Jogo não existe mais (host saiu), reseta para o lobby
+                                // Jogo não existe mais ou já acabou, reseta para o lobby
                                 await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
                                 playerListScreen.classList.remove('hidden');
                                 listenToLobbyList();
@@ -1613,7 +1716,6 @@
                             listenToLobbyList();
                             listenToLobbyUser();
                         }
-                        
                     } else {
                         // Estava no lobby (online ou invited), apenas reabre o lobby
                         lobbyScreen.classList.add('hidden');
@@ -1824,6 +1926,17 @@
             </div>
         </div>
     </div>
+
+    <div id="reconnect-screen" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-40 p-4">
+    <div class="pergaminho-bg p-8 rounded-lg w-full max-w-md text-center">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Partida em Andamento Detectada!</h2>
+        <p class="text-lg text-gray-700 mb-6">Você quer voltar para a sua partida anterior?</p>
+        <div class="flex gap-4">
+            <button id="reconnect-yes-btn" class="btn btn-green w-1/2">Sim, reconectar</button>
+            <button id="reconnect-no-btn" class="btn btn-red w-1/2">Não, abandonar</button>
+        </div>
+    </div>
+</div>
     
     <!-- TELA 3: JOGO (Oculta, sem modificações de layout) -->
     <div id="game-screen" class="hidden relative w-full h-screen max-w-[1920px] mx-auto">
@@ -1833,7 +1946,9 @@
             <div id="player1-score" class="text-lg text-white">Jogador 1: 0 💰</div>
             <div id="player2-score" class="text-lg text-white">Jogador 2: 0 💰</div>
         </div>
-
+        
+        <button id="quit-game-btn" class="absolute top-4 right-4 btn btn-red z-20">Sair da Partida</button>
+        
         <div id="client-area" class="absolute top-[18%] left-[15%] w-[45%] h-[25%]">
             <div id="client-1" class="absolute left-[0%] top-0 w-48">
                 <div id="client-1-bubble" class="speech-bubble text-center text-black">
@@ -1947,7 +2062,7 @@
             <div class="pergaminho-bg p-12 rounded-lg w-full max-w-lg text-center">
                 <h2 class="text-4xl font-bold text-gray-800 mb-6">O Mercado Fechou!</h2>
                 <p id="winner-text" class="text-2xl font-semibold text-green-700 mb-8">...</p>
-                <button id="restart-game-btn" class="btn btn-green w-full">Jogar Novamente (Host)</button>
+                <button id="back-to-lobby-btn" class="btn btn-blue w-full">Voltar ao Lobby</button>
             </div>
         </div>
 
@@ -1955,6 +2070,7 @@
     
 </body>
 </html>
+
 
 
 
