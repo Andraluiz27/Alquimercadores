@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alquimercadores</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Importação das bibliotecas do Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -175,23 +174,23 @@
 
         const INGREDIENT_DATA = {
             // Vermelhos
-            "Beterraba Brava": { cor: "vermelho", img: "imagens/Beterraba.jpg" },
-            "Cogumelo de Sangue": { cor: "vermelho", img: "imagens/Cogumelo.jpg" },
-            "Pena de Fênix": { cor: "vermelho", img: "imagens/Pena_de_Fenix.jpg" }, // Assumindo nome do arquivo
+            "Beterraba Brava": { cor: "vermelho", img: "imagens/Beterraba.png" },
+            "Cogumelo de Sangue": { cor: "vermelho", img: "imagens/Cogumelo.png" },
+            "Pena de Fênix": { cor: "vermelho", img: "imagens/Pena.png" },
             // Verdes
-            "Musgo Venenoso": { cor: "verde", img: "imagens/Musgo_Venenoso.jpg" }, // Assumindo nome do arquivo
-            "Olhos de Jiboia": { cor: "verde", img: "imagens/Olhos_de_Jiboia.jpg" }, // Assumindo nome do arquivo
-            "Perna de Sapo": { cor: "verde", img: "imagens/Perna_de_Sapo.jpg" }, // Assumindo nome do arquivo
+            "Musgo Venenoso": { cor: "verde", img: "imagens/Musgo.png" },
+            "Olhos de Jiboia": { cor: "verde", img: "imagens/Olho.png" },
+            "Perna de Sapo": { cor: "verde", img: "imagens/Sapo.png" },
             // Azuis
-            "Asa de Fada": { cor: "azul", img: "imagens/Asa.jpg" },
-            "Belladonna": { cor: "azul", img: "imagens/Belladonna.jpg" },
-            "Suor de Sereia": { cor: "azul", img: "imagens/Suor_de_Sereia.jpg" }, // Assumindo nome do arquivo
+            "Asa de Fada": { cor: "azul", img: "imagens/Asa.png" },
+            "Belladonna": { cor: "azul", img: "imagens/Belladonna.png" },
+            "Suor de Sereia": { cor: "azul", img: "imagens/Suor.png" },
             // Amarelos
-            "Cera de Ogro": { cor: "amarelo", img: "imagens/Cera.jpg" },
-            "Chifre de Unicórnio": { cor: "amarelo", img: "imagens/Chifre.jpg" },
-            "Unha de Bruxa": { cor: "amarelo", img: "imagens/Unha_de_Bruxa.jpg" }, // Assumindo nome do arquivo
+            "Cera de Ogro": { cor: "amarelo", img: "imagens/Cera.png" },
+            "Chifre de Unicórnio": { cor: "amarelo", img: "imagens/Chifre.png" },
+            "Unha de Bruxa": { cor: "amarelo", img: "imagens/Unha.png" },
             // Coringa
-            "Sal Negro": { cor: "coringa", img: "imagens/Sal_Negro.jpg" } // Assumindo nome do arquivo
+            "Sal Negro": { cor: "coringa", img: "imagens/Sal.png" }
         };
         
         const POTION_PRICES = { "Fácil": 3, "Médio": 5, "Difícil": 8 };
@@ -1230,7 +1229,7 @@
                     const li = document.createElement('li');
                     li.className = 'flex items-center gap-2 p-2 bg-gray-800 rounded';
                     li.innerHTML = `
-                        <img src="imagens/pocao_placeholder.png" class="w-8 h-8">
+                        <img src="imagens/Poção.png" class="w-8 h-8">
                         <span class="potion-tooltip relative">
                             ${potion.nome}
                             <span class="tooltip-text">${potion.descricao}</span>
@@ -1251,7 +1250,7 @@
 
         function createPotionImage(potionName) {
             const img = document.createElement('img');
-            img.src = 'imagens/pocao_placeholder.png'; // Usando o placeholder
+            img.src = 'imagens/Poção.png'; // Usando a imagem correta
             img.title = potionName;
             img.className = 'w-16 h-16';
             return img;
@@ -1433,7 +1432,7 @@
     <style>
         /* Define a imagem de fundo principal */
         body {
-            background-image: url('imagens/Alquimercadores (11).jpg');
+            background-image: url('imagens/Fundo.png');
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
@@ -1542,10 +1541,10 @@
 </head>
 <body class="bg-gray-900 text-white">
 
-    <!-- ===== TELA DE LOBBY ===== -->
     <div id="lobby-screen" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
         <div class="pergaminho-bg p-8 rounded-lg w-full max-w-md">
-            <h1 class="text-5xl font-bold text-center mb-6">Alquimercadores</h1>
+            
+            <img src="imagens/Logo.png" alt="Logo Alquimercadores" class="mx-auto mb-6 w-48">
             
             <div class="mb-4">
                 <label for="player-name-input" class="block text-sm font-bold mb-2">Seu Nome:</label>
@@ -1567,33 +1566,27 @@
         </div>
     </div>
     
-    <!-- ===== TELA PRINCIPAL DO JOGO ===== -->
     <div id="game-screen" class="hidden relative w-full h-screen max-w-[1920px] mx-auto">
         
-        <!-- 1. Placar de Moedas (Canto Superior Esquerdo) -->
         <div id="score-display" class="absolute top-4 left-4 bg-black/50 p-4 rounded-lg border-2 border-[#5c3d20] text-shadow">
             <h3 class="text-xl font-bold text-yellow-300 mb-2">Tesouro</h3>
             <div id="player1-score" class="text-lg text-white">Jogador 1: 0 💰</div>
             <div id="player2-score" class="text-lg text-white">Jogador 2: 0 💰</div>
         </div>
 
-        <!-- 2. Clientes e Seus Pedidos (Posicionados sobre cada cliente) -->
         <div id="client-area" class="absolute top-[18%] left-[15%] w-[45%] h-[25%]">
-            <!-- Cliente 1 (Comum) -->
             <div id="client-1" class="absolute left-[0%] top-0 w-48">
                 <div id="client-1-bubble" class="speech-bubble text-center text-black">
                     <p class="potion-name font-bold">...</p>
                     <p class="potion-price text-lg font-bold">💰 ...</p>
                 </div>
             </div>
-            <!-- Cliente 2 (Rico) -->
             <div id="client-2" class="absolute left-[33%] top-[-20%] w-48">
                 <div id="client-2-bubble" class="speech-bubble text-center text-black">
                     <p class="potion-name font-bold">...</p>
                     <p class="potion-price text-lg font-bold">💰 ...</p>
                 </div>
             </div>
-            <!-- Cliente 3 (Nobre) -->
             <div id="client-3" class="absolute left-[66%] top-0 w-48">
                 <div id="client-3-bubble" class="speech-bubble text-center text-black">
                     <p class="potion-name font-bold">...</p>
@@ -1602,47 +1595,35 @@
             </div>
         </div>
 
-        <!-- 3. Nomes dos Jogadores (Acima das Prateleiras) -->
         <div id="player1-name-display" class="absolute top-[12%] right-[5%] text-2xl font-bold text-blue-300 text-shadow">Jogador 1</div>
         <div id="player2-name-display" class="absolute top-[32%] right-[5%] text-2xl font-bold text-red-300 text-shadow">Jogador 2</div>
 
-        <!-- 4. Prateleiras dos Jogadores -->
         <div id="player1-shelf" class="absolute top-[18%] right-[5%] w-[20%] h-[10%] flex justify-center items-center gap-2 p-2">
-            <!-- Ingredientes do Jogador 1 virão aqui -->
-        </div>
+            </div>
         <div id="player2-shelf" class="absolute top-[38%] right-[5%] w-[20%] h-[10%] flex justify-center items-center gap-2 p-2">
-            <!-- Ingredientes do Jogador 2 virão aqui -->
-        </div>
+            </div>
 
-        <!-- 5. Balcão (Ingredientes puxados) -->
         <div id="counter-area" class="absolute top-[75%] left-[15%] w-[50%] h-[15%] flex justify-center items-center gap-2 p-2 bg-black/10 rounded">
-            <!-- Ingredientes puxados do caldeirão virão aqui -->
-        </div>
+            </div>
         
-        <!-- 5b. Poções Prontas (no balcão) -->
         <div id="potions-ready-area" class="absolute top-[60%] left-[15%] w-[50%] h-[15%] flex justify-center items-center gap-2 p-2">
-            <!-- Poções prontas para Vender/Usar virão aqui -->
-        </div>
+            </div>
 
-        <!-- 6. Zonas Clicáveis (Caldeirão e Livro) -->
         <div id="cauldron-btn" class="absolute top-[60%] right-[15%] w-[20%] h-[35%] cursor-pointer rounded-full" title="Puxar Ingrediente"></div>
-        <div id="book-btn" class="absolute top-[62%] left-[4%] w-[10%] h-[20%] cursor-pointer" title="Ver Arcano Potionum"></div>
+        <div id="book-btn" class="absolute top-[62%] left-[4%] w-[10%] h-[20%] cursor-pointer" title="Ver Arcano Potionum">
+             <img src="imagens/Livro.png" alt="Arcano Potionum" class="w-full h-full object-contain">
+        </div>
         
-        <!-- 7. Botões de Ação do Jogo -->
         <div id="action-buttons-container" class="absolute bottom-4 left-4 flex flex-col gap-2 z-10">
             <button id="stop-pulling-btn" class="btn btn-red hidden">Parar de Puxar</button>
             <button id="finish-production-btn" class="btn btn-yellow hidden">Finalizar Produção</button>
             <button id="finish-action-btn" class="btn btn-green hidden">Finalizar Ações</button>
         </div>
 
-        <!-- 8. Botão para Poções Ativas (Canto Inferior Direito) -->
         <div id="active-potions-toggle" class="absolute bottom-5 right-5 bg-[#5c3d20] p-3 rounded-full cursor-pointer border-2 border-yellow-300 hover:bg-[#7a5532] z-20">
-            <img src="imagens/pocao_placeholder.png" alt="Poções Ativas" class="w-10 h-10">
+            <img src="imagens/Poção.png" alt="Poções Ativas" class="w-10 h-10">
         </div>
 
-        <!-- ===== ELEMENTOS FLUTUANTES (MODAIS E PAINÉIS) ===== -->
-
-        <!-- 9. Painel Lateral de Poções Ativas (Oculto) -->
         <div id="active-potions-board" class="absolute top-0 right-0 w-80 h-full bg-black/80 backdrop-blur-sm p-4 border-l-4 border-[#5c3d20] z-30 translate-x-full">
             <h3 class="text-2xl font-bold text-yellow-300 mb-4 border-b-2 border-yellow-400 pb-2">Poções Ativas</h3>
             <div id="player1-active-potions" class="mb-4">
@@ -1655,30 +1636,25 @@
             </div>
         </div>
 
-        <!-- 10. Modal do Livro de Receitas (Arcano Potionum) -->
         <div id="recipe-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
             <div class="pergaminho-bg p-8 rounded-lg w-full max-w-4xl h-[80vh] overflow-y-auto relative">
                 <h2 class="text-5xl font-bold text-center text-[#3d2a1a] mb-6">Arcano Potionum</h2>
                 <div id="recipe-list" class="space-y-4">
-                    <!-- A lista de receitas será injetada aqui -->
-                </div>
+                    </div>
                 <button id="close-recipe-modal-btn" class="absolute top-4 right-6 text-5xl text-[#5c3d20] hover:text-red-700">&times;</button>
             </div>
         </div>
         
-        <!-- 11. Modal de Criação de Poções -->
         <div id="create-potion-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
             <div class="pergaminho-bg p-8 rounded-lg w-full max-w-2xl h-auto max-h-[80vh] overflow-y-auto relative">
                 <h2 class="text-3xl font-bold text-center text-[#3d2a1a] mb-6">Criar Poções</h2>
                 <p class="text-center text-lg text-[#3d2a1a] mb-4">Poções que você pode criar com os ingredientes do balcão:</p>
                 <div id="create-potion-list" class="space-y-4">
-                    <!-- Lista de poções criáveis -->
-                </div>
+                    </div>
                 <button id="close-create-potion-modal-btn" class="absolute top-4 right-6 text-5xl text-[#5c3d20] hover:text-red-700">&times;</button>
             </div>
         </div>
         
-        <!-- 12. Modal de Ação (Vender/Usar) -->
         <div id="action-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
             <div class="pergaminho-bg p-8 rounded-lg w-full max-w-lg text-center">
                 <h2 class="text-3xl font-bold text-center text-[#3d2a1a] mb-2">Sua Poção Pronta:</h2>
@@ -1691,7 +1667,6 @@
             </div>
         </div>
         
-        <!-- 13. Modal de Mensagem/Alerta -->
         <div id="message-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-50">
             <div class="pergaminho-bg p-8 rounded-lg w-full max-w-md text-center">
                 <h2 id="message-text" class="text-2xl font-bold text-gray-800 mb-6">...</h2>
@@ -1699,17 +1674,14 @@
             </div>
         </div>
         
-        <!-- 14. Modal de Decisão (para efeitos de poções) -->
         <div id="decision-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-50">
             <div class="pergaminho-bg p-8 rounded-lg w-full max-w-lg text-center">
                 <h2 id="decision-title" class="text-2xl font-bold text-gray-800 mb-4">...</h2>
                 <div id="decision-options" class="space-y-2">
-                    <!-- Opções de decisão (botões) -->
-                </div>
+                    </div>
             </div>
         </div>
 
-        <!-- 15. Modal de Fim de Jogo -->
         <div id="end-game-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-50">
             <div class="pergaminho-bg p-12 rounded-lg w-full max-w-lg text-center">
                 <h2 class="text-4xl font-bold text-gray-800 mb-6">O Mercado Fechou!</h2>
@@ -1722,4 +1694,3 @@
     
 </body>
 </html>
-
