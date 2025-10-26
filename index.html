@@ -233,7 +233,9 @@
         // ==========================================================
         // VARIÁVEIS DE ESTADO GLOBAIS
         // ==========================================================
-        
+
+        // ADICIONE ESTA LINHA
+        let selectedPotion = null;
         let localGameState = {};
         let localPlayerId = null; // 'player1' ou 'player2'
         let localUserId = null; // UID do Firebase Auth
@@ -291,7 +293,7 @@
         const readyPotionsBoardListEl = document.getElementById('ready-potions-board-list');
         const closePotionsBoardBtn = document.getElementById('close-potions-board-btn');
         const cauldronBtn = document.getElementById('cauldron-btn');
-        const bookBtn = document.getElementById('book-btn');
+        
         const stopPullingBtn = document.getElementById('stop-pulling-btn');
         const finishProductionBtn = document.getElementById('finish-production-btn');
         const finishActionBtn = document.getElementById('finish-action-btn');
@@ -574,11 +576,18 @@
         /**
          * Prepara uma nova rodada (novos clientes, se necessário).
          */
+        // SUBSTITUA a função startNewRound antiga por esta
         function startNewRound() {
             logMessage("Uma nova rodada começa!");
-            // Os clientes só são repostos quando atendidos, então só precisamos
-            // voltar para a fase de produção do Jogador 1.
-            startProductionPhase('player1');
+        
+            // Repõe os clientes que foram atendidos na rodada anterior
+            localGameState.clients.forEach((client, index) => {
+                if (client.served) {
+                    localGameState.clients[index] = generateClient(CLIENT_TYPES[index]);
+                }
+            });
+        
+            startProductionPhase('player1'); // O updateFirestoreState já está aqui dentro
         }
         
         /**
@@ -616,6 +625,62 @@
         // MANIPULADORES DE EVENTOS (HANDLERS)
         // (Ocultadas para brevidade, são as mesmas de antes)
         // ==========================================================
+
+        // ADICIONE ESTA FUNÇÃO NOVA
+        /**
+         * Lida com o clique em um balão de cliente para vender uma poção.
+         */
+        function handleClientClick(clientIndex) {
+            if (!selectedPotion) {
+                showMessage("Selecione uma poção para vender primeiro (clique em 'Vender' no painel de poções).");
+                return;
+            }
+        
+            const client = localGameState.clients[clientIndex];
+            const playerState = localGameState.players[localPlayerId];
+        
+            if (client.wants !== selectedPotion) {
+                showMessage("Este cliente não quer esta poção!");
+                return;
+            }
+        
+            if (client.contract && client.contract !== localPlayerId) {
+                showMessage("Este cliente tem um contrato de exclusividade com seu oponente!");
+                return;
+            }
+        
+            // --- Venda bem-sucedida ---
+            const potionPrice = client.price;
+        
+            // Remove a poção da lista de prontas
+            const potionIndex = playerState.potionsReady.indexOf(selectedPotion);
+            if (potionIndex > -1) {
+                playerState.potionsReady.splice(potionIndex, 1);
+            }
+        
+            // Adiciona moedas (reutilizando a lógica anterior)
+            let finalPrice = potionPrice;
+            if (playerState.activePotions["Amuleto do Colecionador"]) finalPrice++;
+            const opponentState = localGameState.players[getOpponentId()];
+            if (opponentState.activePotions["Parasita Mortífero"]) {
+                const halfPrice = Math.ceil(finalPrice / 2);
+                playerState.coins += (finalPrice - halfPrice);
+                opponentState.coins += halfPrice;
+                logMessage(`${opponentState.name} usou Parasita Mortífero e roubou ${halfPrice} moedas!`);
+                opponentState.activePotions["Parasita Mortífero"] = false;
+            } else {
+                playerState.coins += finalPrice;
+            }
+        
+            logMessage(`${playerState.name} vendeu ${selectedPotion} por ${finalPrice} moedas!`);
+        
+            // MARCA o cliente como atendido, mas NÃO o substitui ainda
+            localGameState.clients[clientIndex].served = true;
+            localGameState.clientsServed++;
+        
+            selectedPotion = null; // Reseta a poção selecionada
+            updateFirestoreState(localGameState);
+        }
         
         /**
          * Lida com o clique no Caldeirão para puxar ingredientes.
@@ -934,89 +999,6 @@
         /**
          * Mostra o modal de Ação (Vender/Usar) para a próxima poção pronta.
          */
-        function showActionModal() {
-            const playerState = localGameState.players[localPlayerId];
-            if (playerState.potionsReady.length === 0) {
-                actionModal.classList.add('hidden');
-                // Nenhuma poção restante, termina a fase de ação
-                endActionPhase();
-                return;
-            }
-            
-            const potionName = playerState.potionsReady[0]; // Pega a primeira poção da fila
-            const potion = ARCANO_POTIONUM[potionName];
-            
-            actionPotionNameEl.textContent = potion.nome;
-            actionPotionDescEl.textContent = potion.descricao;
-            
-            // Verifica se a poção pode ser vendida
-            let canSell = false;
-            let sellPrice = 0;
-            let clientIndexToSell = -1;
-            
-            for (let i = 0; i < localGameState.clients.length; i++) {
-                const client = localGameState.clients[i];
-                if (client.wants === potionName && client.contract !== getOpponentId()) {
-                    canSell = true;
-                    sellPrice = client.price;
-                    clientIndexToSell = i;
-                    break;
-                }
-            }
-            
-            if (canSell) {
-                sellBtn.disabled = false;
-                sellBtn.textContent = `Vender por ${sellPrice} Moedas`;
-                sellBtn.onclick = () => handleSellPotion(potionName, clientIndexToSell, sellPrice);
-            } else {
-                sellBtn.disabled = true;
-                sellBtn.textContent = "Nenhum cliente quer esta poção";
-                sellBtn.onclick = null;
-            }
-            
-            useBtn.onclick = () => handleUsePotion(potionName);
-            
-            actionModal.classList.remove('hidden');
-        }
-
-        /**
-         * Lógica para Vender uma poção.
-         */
-        function handleSellPotion(potionName, clientIndex, price) {
-            const playerState = localGameState.players[localPlayerId];
-            
-            // Remove a poção da fila
-            playerState.potionsReady.shift();
-            
-            // Adiciona moedas (considerando Amuleto do Colecionador)
-            let finalPrice = price;
-            if (playerState.activePotions["Amuleto do Colecionador"]) {
-                finalPrice += 1;
-            }
-            // Adiciona bônus do Sal Negro (se tivéssemos rastreado)
-            
-            // Lógica do Parasita Mortífero
-            const opponentState = localGameState.players[getOpponentId()];
-            if (opponentState.activePotions["Parasita Mortífero"]) {
-                const halfPrice = Math.ceil(finalPrice / 2);
-                playerState.coins += (finalPrice - halfPrice);
-                opponentState.coins += halfPrice;
-                logMessage(`${opponentState.name} usou Parasita Mortífero e roubou ${halfPrice} moedas!`);
-                opponentState.activePotions["Parasita Mortífero"] = false; // Consome
-            } else {
-                playerState.coins += finalPrice;
-            }
-
-            logMessage(`${playerState.name} vendeu ${potionName} por ${finalPrice} moedas!`);
-            
-            // Remove o cliente e adiciona um novo
-            localGameState.clients[clientIndex] = generateClient(CLIENT_TYPES[clientIndex]);
-            localGameState.clientsServed++;
-            
-            // Mostra o próximo modal de ação ou termina a fase
-            showActionModal(); 
-            updateFirestoreState(localGameState);
-        }
 
         /**
          * Lógica para Usar uma poção.
@@ -1231,13 +1213,18 @@
             player1NameDisplay.textContent = p1.name + (amIPlayer1 ? " (Você)" : "");
             player2NameDisplay.textContent = p2.name + (!amIPlayer1 ? " (Você)" : "");
 
-            // Atualiza clientes
+            // SUBSTITUA O BLOCO "clientBubbles.forEach" DENTRO DE updateUI POR ESTE
             clientBubbles.forEach((bubble, index) => {
                 const client = localGameState.clients[index];
-                if (client) {
+                bubble.style.cursor = 'default'; // Reset cursor
+                bubble.onclick = null; // Reset click handler
+            
+                if (client && !client.served) { // Só mostra e adiciona lógica se o cliente não foi atendido
+                    bubble.style.visibility = 'visible';
                     bubble.querySelector('.potion-name').textContent = client.wants;
                     bubble.querySelector('.potion-price').textContent = `💰 ${client.price}`;
-                    // Adiciona indicador de contrato
+                    
+                    // Lógica de Contrato
                     if (client.contract === 'player1') {
                         bubble.classList.add('border-4', 'border-blue-500');
                     } else if (client.contract === 'player2') {
@@ -1245,6 +1232,16 @@
                     } else {
                         bubble.classList.remove('border-4', 'border-blue-500', 'border-red-500');
                     }
+            
+                    // Torna o balão clicável APENAS na fase de ação
+                    if (myActionPhase) {
+                        bubble.style.cursor = 'pointer';
+                        bubble.onclick = () => handleClientClick(index);
+                    }
+            
+                } else {
+                    // Esconde o balão se o cliente já foi atendido nesta rodada
+                    bubble.style.visibility = 'hidden';
                 }
             });
 
@@ -1274,12 +1271,16 @@
             // O botão do livro de receitas agora tem duas funções:
             // 1. Mostrar todas as receitas (sempre)
             // 2. Abrir o modal de *criação* (só na fase POST_PRODUCTION)
+            // SUBSTITUA PELO BLOCO ABAIXO
+            const mesaBook = document.getElementById('mesa-book-btn');
             if (myPostProdPhase) {
-                bookBtn.onclick = openCreatePotionModal;
-                bookBtn.title = "Criar Poções";
+                // Na fase de produção, o livro abre o modal de CRIAÇÃO
+                mesaBook.onclick = openCreatePotionModal;
+                mesaBook.title = "Criar Poções com Ingredientes do Balcão";
             } else {
-                bookBtn.onclick = handleBookClick;
-                bookBtn.title = "Ver Arcano Potionum";
+                // Fora da fase de produção, o livro abre o manual de TODAS as receitas
+                mesaBook.onclick = handleBookClick;
+                mesaBook.title = "Ver Arcano Potionum";
             }
             
             finishProductionBtn.classList.toggle('hidden', !myPostProdPhase);
@@ -1313,19 +1314,63 @@
         }
 
         // SUBSTITUA A FUNÇÃO ANTIGA POR ESTA
+        // SUBSTITUA A FUNÇÃO renderReadyPotions ANTIGA POR ESTA
         function renderReadyPotions() {
-            // Agora o alvo é a nova lista dentro do painel
-            readyPotionsBoardListEl.innerHTML = ''; 
+            readyPotionsBoardListEl.innerHTML = '';
             const playerPotions = localGameState.players[localPlayerId]?.potionsReady || [];
+            const myActionPhase = localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`;
         
             if (playerPotions.length === 0) {
                 readyPotionsBoardListEl.innerHTML = `<p class="text-gray-400 text-sm">Nenhuma poção pronta.</p>`;
-            } else {
-                playerPotions.forEach(potionName => {
-                    const img = createPotionImage(potionName);
-                    readyPotionsBoardListEl.appendChild(img);
-                });
+                return;
             }
+        
+            playerPotions.forEach(potionName => {
+                // Cria um container para a poção e seus botões
+                const potionContainer = document.createElement('div');
+                potionContainer.className = 'relative w-16 h-16 mb-8'; // Adiciona margem inferior para os botões
+        
+                const img = createPotionImage(potionName);
+                
+                // Adiciona borda se a poção estiver selecionada
+                if (selectedPotion === potionName) {
+                    img.classList.add('border-4', 'border-yellow-400', 'rounded-lg');
+                }
+        
+                potionContainer.appendChild(img);
+        
+                // Só adiciona botões de ação se estiver na fase de Ação
+                if (myActionPhase) {
+                    const actionsWrapper = document.createElement('div');
+                    actionsWrapper.className = 'absolute bottom-[-30px] left-0 w-full flex justify-center gap-1';
+        
+                    // Botão de Vender
+                    const sellBtn = document.createElement('button');
+                    sellBtn.className = 'text-xs bg-green-600 text-white rounded px-1 py-0.5 hover:bg-green-500';
+                    sellBtn.textContent = 'Vender';
+                    sellBtn.onclick = (e) => {
+                        e.stopPropagation(); // Evita que o clique se propague
+                        selectedPotion = potionName;
+                        showMessage(`Poção "${potionName}" selecionada. Agora, clique no balão de um cliente que a deseje.`);
+                        updateUI(); // Re-renderiza para mostrar a borda amarela
+                    };
+        
+                    // Botão de Usar
+                    const useBtn = document.createElement('button');
+                    useBtn.className = 'text-xs bg-blue-600 text-white rounded px-1 py-0.5 hover:bg-blue-500';
+                    useBtn.textContent = 'Usar';
+                    useBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        handleUsePotion(potionName); // Reutiliza a função de usar poção
+                    };
+                    
+                    actionsWrapper.appendChild(sellBtn);
+                    actionsWrapper.appendChild(useBtn);
+                    potionContainer.appendChild(actionsWrapper);
+                }
+                
+                readyPotionsBoardListEl.appendChild(potionContainer);
+            });
         }
         
         function renderActivePotions(listEl, activePotions, ownerId) {
@@ -2184,6 +2229,7 @@
     
 </body>
 </html>
+
 
 
 
