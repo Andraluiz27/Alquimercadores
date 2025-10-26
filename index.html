@@ -8,7 +8,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, deleteDoc, collection, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // ==========================================================
         // DADOS GLOBAIS DO JOGO (ARCANO POTIONUM E INGREDIENTES)
@@ -201,21 +201,21 @@
         // CONFIGURAÇÃO DO FIREBASE
         // ==========================================================
 
-        // Use a configuração do Firebase dos seus jogos anteriores
-        const firebaseConfig = {
-          apiKey: "AIzaSyCIU0t65eZqQc2Cm7DVtksktCYW90vpEEA",
-          authDomain: "alquimercadores.firebaseapp.com",
-          projectId: "alquimercadores",
-          storageBucket: "alquimercadores.firebasestorage.app",
-          messagingSenderId: "739483168667",
-          appId: "1:739483168667:web:a44e28f4d346f1ad72fb3e"
-        };
+        // Use a config global se disponível, senão a local.
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "AIzaSyCIU0t65eZqQc2Cm7DVtksktCYW90vpEEA",
+                authDomain: "alquimercadores.firebaseapp.com",
+                projectId: "alquimercadores",
+                storageBucket: "alquimercadores.firebasestorage.app",
+                messagingSenderId: "739483168667",
+                appId: "1:739483168667:web:a44e28f4d346f1ad72fb3e"
+            };
 
         let app, db, auth;
         try {
-            // Tenta inicializar o Firebase. Use a config global se disponível, senão a local.
-            const effectiveConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
-            app = initializeApp(effectiveConfig);
+            app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
         } catch (e) {
@@ -226,6 +226,7 @@
         // Pega o App ID do ambiente ou usa um padrão
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'alquimercadores-default';
         const gamesCollectionPath = `/artifacts/${appId}/public/data/alquimercadores_games`;
+        const lobbyCollectionPath = `/artifacts/${appId}/public/data/alquimercadores_lobby`;
         
         // ==========================================================
         // VARIÁVEIS DE ESTADO GLOBAIS
@@ -233,92 +234,87 @@
         
         let localGameState = {};
         let localPlayerId = null; // 'player1' ou 'player2'
+        let localUserId = null; // UID do Firebase Auth
+        let localPlayerName = "";
         let gameId = null;
-        let unsubscribe = null; // Para o listener do onSnapshot
+        let unsubscribeGame = null; // Para o listener do onSnapshot do JOGO
+        let unsubscribeLobbyList = null; // Para o listener do onSnapshot da LISTA do lobby
+        let unsubscribeLobbyUser = null; // Para o listener do onSnapshot do USUÁRIO no lobby
+
+        // ==========================================================
+        // ELEMENTOS DA DOM (Telas)
+        // ==========================================================
+        const lobbyScreen = document.getElementById('lobby-screen');
+        const playerListScreen = document.getElementById('player-list-screen');
+        const gameScreen = document.getElementById('game-screen');
 
         // ==========================================================
         // ELEMENTOS DA DOM (Lobby)
         // ==========================================================
-
-        const lobbyScreen = document.getElementById('lobby-screen');
-        const gameScreen = document.getElementById('game-screen');
         const playerNameInput = document.getElementById('player-name-input');
-        const createGameBtn = document.getElementById('create-game-btn');
-        const gameIdDisplay = document.getElementById('game-id-display');
-        const joinGameInput = document.getElementById('join-game-input');
-        const joinGameBtn = document.getElementById('join-game-btn');
+        const startLobbyBtn = document.getElementById('start-lobby-btn');
         const lobbyStatus = document.getElementById('lobby-status');
+
+        // ==========================================================
+        // ELEMENTOS DA DOM (Lista de Jogadores)
+        // ==========================================================
+        const playerListEl = document.getElementById('player-list');
+        const playerListStatus = document.getElementById('player-list-status');
+        const invitationPopup = document.getElementById('invitation-popup');
+        const invitationText = document.getElementById('invitation-text');
+        const acceptInviteBtn = document.getElementById('accept-invite-btn');
+        const declineInviteBtn = document.getElementById('decline-invite-btn');
 
         // ==========================================================
         // ELEMENTOS DA DOM (Jogo)
         // ==========================================================
         
-        // Placares
+        // (Ocultado para brevidade, são os mesmos de antes)
         const player1ScoreEl = document.getElementById('player1-score');
         const player2ScoreEl = document.getElementById('player2-score');
-
-        // Clientes
         const client1Bubble = document.getElementById('client-1-bubble');
         const client2Bubble = document.getElementById('client-2-bubble');
         const client3Bubble = document.getElementById('client-3-bubble');
         const clientBubbles = [client1Bubble, client2Bubble, client3Bubble];
-
-        // Nomes nas Prateleiras
         const player1NameDisplay = document.getElementById('player1-name-display');
         const player2NameDisplay = document.getElementById('player2-name-display');
-        
-        // Prateleiras
         const player1ShelfEl = document.getElementById('player1-shelf');
         const player2ShelfEl = document.getElementById('player2-shelf');
-        
-        // Áreas de Jogo
         const counterAreaEl = document.getElementById('counter-area');
         const potionsReadyAreaEl = document.getElementById('potions-ready-area');
-        
-        // Botões Clicáveis
         const cauldronBtn = document.getElementById('cauldron-btn');
         const bookBtn = document.getElementById('book-btn');
-        
-        // Botões de Ação
         const stopPullingBtn = document.getElementById('stop-pulling-btn');
         const finishProductionBtn = document.getElementById('finish-production-btn');
         const finishActionBtn = document.getElementById('finish-action-btn');
-        
-        // Painel de Poções Ativas
         const activePotionsToggleBtn = document.getElementById('active-potions-toggle');
         const activePotionsBoard = document.getElementById('active-potions-board');
         const player1ActivePotionsEl = document.getElementById('player1-active-potions-list');
         const player2ActivePotionsEl = document.getElementById('player2-active-potions-list');
-        
-        // Modais
         const recipeModal = document.getElementById('recipe-modal');
         const closeRecipeModalBtn = document.getElementById('close-recipe-modal-btn');
         const recipeListEl = document.getElementById('recipe-list');
-        
         const createPotionModal = document.getElementById('create-potion-modal');
         const createPotionListEl = document.getElementById('create-potion-list');
         const closeCreatePotionModalBtn = document.getElementById('close-create-potion-modal-btn');
-        
         const actionModal = document.getElementById('action-modal');
         const actionPotionNameEl = document.getElementById('action-potion-name');
         const actionPotionDescEl = document.getElementById('action-potion-desc');
         const sellBtn = document.getElementById('sell-btn');
         const useBtn = document.getElementById('use-btn');
-        
         const messageModal = document.getElementById('message-modal');
         const messageTextEl = document.getElementById('message-text');
         const closeMessageModalBtn = document.getElementById('close-message-modal-btn');
-        
         const endGameModal = document.getElementById('end-game-modal');
         const winnerTextEl = document.getElementById('winner-text');
         const restartGameBtn = document.getElementById('restart-game-btn');
-        
         const decisionModal = document.getElementById('decision-modal');
         const decisionTitleEl = document.getElementById('decision-title');
         const decisionOptionsEl = document.getElementById('decision-options');
         
         // ==========================================================
         // FUNÇÕES DE LÓGICA DO JOGO (CORE)
+        // (Ocultadas para brevidade, são as mesmas de antes)
         // ==========================================================
         
         /**
@@ -368,6 +364,7 @@
          * Cria o objeto de estado inicial do jogo.
          */
         function createInitialGameState(player1Name, player1UID) {
+            // NOTA: gameId é definido globalmente antes de chamar esta função
             return {
                 gameId: gameId,
                 status: 'waiting', // 'waiting', 'active', 'finished'
@@ -431,6 +428,7 @@
 
         // ==========================================================
         // FUNÇÕES DE TRANSIÇÃO DE FASE
+        // (Ocultadas para brevidade, são as mesmas de antes)
         // ==========================================================
 
         /**
@@ -544,6 +542,7 @@
 
         // ==========================================================
         // MANIPULADORES DE EVENTOS (HANDLERS)
+        // (Ocultadas para brevidade, são as mesmas de antes)
         // ==========================================================
         
         /**
@@ -730,6 +729,7 @@
 
         // ==========================================================
         // MANIPULADORES DE MODAIS (LIVRO, CRIAÇÃO, AÇÃO)
+        // (Ocultadas para brevidade, são as mesmas de antes)
         // ==========================================================
         
         /**
@@ -1111,6 +1111,7 @@
 
         // ==========================================================
         // FUNÇÕES DE UI (RENDERIZAÇÃO)
+        // (Ocultadas para brevidade, são as mesmas de antes)
         // ==========================================================
         
         /**
@@ -1274,65 +1275,217 @@
         }
         
         // ==========================================================
-        // INICIALIZAÇÃO E LISTENERS
+        // INICIALIZAÇÃO E LISTENERS (NOVOS E MODIFICADOS)
         // ==========================================================
         
-        // --- Listeners do Lobby ---
-        createGameBtn.onclick = async () => {
+        // --- Listener do Botão "Iniciar Jogo" (Novo) ---
+        startLobbyBtn.onclick = async () => {
             const playerName = playerNameInput.value.trim();
             if (!playerName) {
                 lobbyStatus.textContent = "Por favor, digite seu nome.";
                 return;
             }
-            lobbyStatus.textContent = "Criando sala...";
-            
-            gameId = Math.random().toString(36).substring(2, 6).toUpperCase();
-            localPlayerId = 'player1';
-            
-            const initialState = createInitialGameState(playerName, auth.currentUser.uid);
-            await updateFirestoreState(initialState);
-            
-            gameIdDisplay.textContent = `ID da Sala: ${gameId}`;
-            lobbyStatus.textContent = "Aguardando oponente...";
-            listenToGameChanges(gameId);
-        };
-        
-        joinGameBtn.onclick = async () => {
-            const joinId = joinGameInput.value.trim().toUpperCase();
-            const playerName = playerNameInput.value.trim();
-            
-            if (!joinId || !playerName) {
-                lobbyStatus.textContent = "Preencha seu nome e o ID da sala.";
+            if (!localUserId) {
+                lobbyStatus.textContent = "Aguardando autenticação...";
                 return;
             }
+
+            localPlayerName = playerName;
+            lobbyStatus.textContent = "Entrando no lobby...";
             
-            lobbyStatus.textContent = "Entrando na sala...";
-            const gameRef = doc(db, gamesCollectionPath, joinId);
-            const gameSnap = await getDoc(gameRef);
-            
-            if (gameSnap.exists()) {
-                let state = gameSnap.data();
-                if (state.players.player2.uid) {
-                    lobbyStatus.textContent = "Esta sala está cheia.";
-                    return;
-                }
+            const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
+            try {
+                await setDoc(lobbyDocRef, {
+                    name: localPlayerName,
+                    status: "online", // 'online', 'invited', 'ingame'
+                    invitedBy: null, // UID de quem convidou
+                    inviteTo: null   // UID de para quem enviou convite
+                });
                 
-                gameId = joinId;
-                localPlayerId = 'player2';
-                state.players.player2.name = playerName;
-                state.players.player2.uid = auth.currentUser.uid;
-                state.status = 'active';
-                logMessage(`${playerName} entrou no jogo!`);
+                lobbyScreen.classList.add('hidden');
+                playerListScreen.classList.remove('hidden');
                 
-                await updateFirestoreState(state);
-                listenToGameChanges(gameId);
+                // Inicia os listeners do lobby
+                listenToLobbyList();
+                listenToLobbyUser();
                 
-            } else {
-                lobbyStatus.textContent = "Sala não encontrada.";
+            } catch (e) {
+                console.error("Erro ao entrar no lobby:", e);
+                lobbyStatus.textContent = "Erro ao conectar. Tente novamente.";
             }
         };
 
-        // --- Listeners do Jogo ---
+        // --- Listener da Lista de Jogadores no Lobby (Novo) ---
+        function listenToLobbyList() {
+            if (unsubscribeLobbyList) unsubscribeLobbyList();
+            
+            const q = query(collection(db, lobbyCollectionPath));
+            unsubscribeLobbyList = onSnapshot(q, (snapshot) => {
+                playerListEl.innerHTML = '';
+                let playersFound = false;
+                snapshot.forEach((doc) => {
+                    const player = doc.data();
+                    const playerId = doc.id;
+                    
+                    // Não mostra o próprio jogador na lista
+                    if (playerId === localUserId) return;
+                    
+                    playersFound = true;
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-left p-4 bg-yellow-50/50 border border-yellow-700/50 rounded-lg hover:bg-yellow-100 disabled:opacity-50 disabled:cursor-not-allowed";
+                    
+                    let statusText = "";
+                    if (player.status === 'online') {
+                        statusText = "Online";
+                        btn.onclick = () => handleInvitePlayer(playerId, player.name);
+                    } else if (player.status === 'ingame') {
+                        statusText = "Em Jogo";
+                        btn.disabled = true;
+                    } else if (player.status === 'invited') {
+                        statusText = "Recebendo convite...";
+                        btn.disabled = true;
+                    }
+
+                    btn.innerHTML = `
+                        <span class="font-bold text-lg">${player.name}</span>
+                        <span class="text-sm float-right">${statusText}</span>
+                    `;
+                    playerListEl.appendChild(btn);
+                });
+                
+                if (!playersFound) {
+                    playerListEl.innerHTML = `<p class="text-center text-gray-700">Nenhum outro jogador online no momento.</p>`;
+                }
+            });
+        }
+        
+        // --- Listener do Próprio Jogador no Lobby (Novo) ---
+        async function listenToLobbyUser() {
+            if (unsubscribeLobbyUser) unsubscribeLobbyUser();
+            
+            unsubscribeLobbyUser = onSnapshot(doc(db, lobbyCollectionPath, localUserId), async (docSnap) => {
+                if (!docSnap.exists()) {
+                    // O documento foi deletado (ex: saiu do lobby)
+                    return;
+                }
+                
+                const lobbyData = docSnap.data();
+                
+                // 1. Foi convidado?
+                if (lobbyData.status === 'invited' && lobbyData.invitedBy) {
+                    const inviterId = lobbyData.invitedBy;
+                    const inviterDoc = await getDoc(doc(db, lobbyCollectionPath, inviterId));
+                    if (inviterDoc.exists()) {
+                        invitationText.textContent = `${inviterDoc.data().name} convidou você para jogar!`;
+                        invitationPopup.classList.remove('hidden');
+                        
+                        acceptInviteBtn.onclick = () => handleAcceptInvite(inviterId, inviterDoc.data().name);
+                        declineInviteBtn.onclick = () => handleDeclineInvite(inviterId);
+                    }
+                } 
+                // 2. Convite foi aceito? (O status mudou para 'ingame' por outra pessoa)
+                else if (lobbyData.status === 'ingame' && lobbyData.inviteTo) {
+                    // O jogador para quem eu enviei o convite aceitou
+                    gameId = localUserId; // O ID do jogo é o meu ID (invitador)
+                    localPlayerId = 'player1';
+                    
+                    stopLobbyListeners();
+                    listenToGameChanges(gameId);
+                    
+                    playerListScreen.classList.add('hidden');
+                    gameScreen.classList.remove('hidden');
+                }
+                // 3. Convite foi recusado ou cancelado
+                else if (lobbyData.status === 'online') {
+                    invitationPopup.classList.add('hidden');
+                    playerListStatus.textContent = "Aguardando convites...";
+                }
+                // 4. Enviou um convite
+                else if (lobbyData.status === 'invited' && lobbyData.inviteTo) {
+                    playerListStatus.textContent = "Convite enviado. Aguardando resposta...";
+                }
+            });
+        }
+        
+        // --- Ações de Convite (Novas) ---
+        async function handleInvitePlayer(otherPlayerId, otherPlayerName) {
+            try {
+                playerListStatus.textContent = `Convidando ${otherPlayerName}...`;
+                
+                const batch = writeBatch(db);
+                
+                // Marca o outro jogador como convidado por mim
+                const otherPlayerRef = doc(db, lobbyCollectionPath, otherPlayerId);
+                batch.update(otherPlayerRef, { status: "invited", invitedBy: localUserId });
+                
+                // Marca a si mesmo como "convidando" o outro jogador
+                const selfRef = doc(db, lobbyCollectionPath, localUserId);
+                batch.update(selfRef, { status: "invited", inviteTo: otherPlayerId });
+                
+                await batch.commit();
+            } catch (e) {
+                console.error("Erro ao convidar:", e);
+                playerListStatus.textContent = "Erro ao enviar convite.";
+            }
+        }
+        
+        async function handleAcceptInvite(inviterId, inviterName) {
+            try {
+                gameId = inviterId; // O ID do jogo é o ID de quem convidou
+                localPlayerId = 'player2';
+                
+                // 1. Criar o estado inicial do jogo
+                const initialState = createInitialGameState(inviterName, inviterId);
+                initialState.players.player2.name = localPlayerName;
+                initialState.players.player2.uid = localUserId;
+                initialState.status = 'active';
+                logMessage(`${localPlayerName} aceitou o convite!`);
+                
+                // 2. Salvar o jogo no DB
+                await setDoc(doc(db, gamesCollectionPath, gameId), initialState);
+                
+                // 3. Atualizar o status de ambos no lobby para 'ingame'
+                const batch = writeBatch(db);
+                batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "ingame" });
+                batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "ingame" });
+                await batch.commit();
+                
+                // 4. Parar listeners do lobby e iniciar listener do jogo
+                stopLobbyListeners();
+                listenToGameChanges(gameId);
+                
+                // 5. Mudar de tela
+                playerListScreen.classList.add('hidden');
+                gameScreen.classList.remove('hidden');
+                
+            } catch (e) {
+                console.error("Erro ao aceitar convite:", e);
+            }
+        }
+        
+        async function handleDeclineInvite(inviterId) {
+            try {
+                // 1. Reseta o status de ambos no lobby para 'online'
+                const batch = writeBatch(db);
+                batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "online", invitedBy: null });
+                batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "online", inviteTo: null });
+                await batch.commit();
+                
+                // 2. Esconde o popup
+                invitationPopup.classList.add('hidden');
+            } catch (e) {
+                console.error("Erro ao recusar convite:", e);
+            }
+        }
+        
+        function stopLobbyListeners() {
+            if (unsubscribeLobbyList) unsubscribeLobbyList();
+            if (unsubscribeLobbyUser) unsubscribeLobbyUser();
+            unsubscribeLobbyList = null;
+            unsubscribeLobbyUser = null;
+        }
+
+        // --- Listeners do Jogo (Antigos, mas agora chamados em novos locais) ---
         cauldronBtn.onclick = handleCauldronClick;
         stopPullingBtn.onclick = handleStopPullingClick;
         finishProductionBtn.onclick = handleFinishProductionClick;
@@ -1350,6 +1503,7 @@
                 const p1UID = localGameState.players.player1.uid;
                 const p2UID = localGameState.players.player2.uid;
                 
+                gameId = p1UID; // Garante que o gameId está correto
                 let initialState = createInitialGameState(p1Name, p1UID);
                 initialState.players.player2.name = p2Name;
                 initialState.players.player2.uid = p2UID;
@@ -1362,13 +1516,15 @@
         
         activePotionsToggleBtn.onclick = () => activePotionsBoard.classList.toggle('translate-x-full');
         
-        // --- Listener Principal do Firebase ---
+        // --- Listener Principal do JOGO ---
         function listenToGameChanges(id) {
-            if (unsubscribe) unsubscribe();
+            if (unsubscribeGame) unsubscribeGame();
             
-            unsubscribe = onSnapshot(doc(db, gamesCollectionPath, id), (doc) => {
+            unsubscribeGame = onSnapshot(doc(db, gamesCollectionPath, id), (doc) => {
                 if (!doc.exists()) {
                     showMessage("O jogo foi encerrado pelo host.");
+                    // Limpa o lobby local e recarrega
+                    if(localUserId) deleteDoc(doc(db, lobbyCollectionPath, localUserId));
                     setTimeout(() => window.location.reload(), 3000);
                     return;
                 }
@@ -1378,6 +1534,7 @@
                 
                 if (localGameState.status === 'active') {
                     lobbyScreen.classList.add('hidden');
+                    playerListScreen.classList.add('hidden');
                     gameScreen.classList.remove('hidden');
                 }
                 
@@ -1400,11 +1557,50 @@
             });
         }
         
-        // --- Inicialização da Autenticação ---
+        // --- Inicialização da Autenticação (Modificado) ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 // Usuário já está logado (anônimo ou não)
                 console.log("Usuário autenticado:", user.uid);
+                localUserId = user.uid;
+                
+                // Verifica se o usuário já está em um jogo ou lobby (ex: F5 na página)
+                const lobbyDoc = await getDoc(doc(db, lobbyCollectionPath, localUserId));
+                if (lobbyDoc.exists()) {
+                    const lobbyData = lobbyDoc.data();
+                    localPlayerName = lobbyData.name;
+                    
+                    if (lobbyData.status === 'ingame') {
+                        // Tenta reconectar ao jogo
+                        // Precisamos saber se ele era player1 ou player2
+                        // Vamos assumir que se ele é 'ingame', o jogo existe
+                        // Se ele convidou, gameId = localUserId
+                        // Se ele foi convidado, precisamos achar o jogo
+                        // Esta parte é complexa, por enquanto, vamos apenas mandá-lo para o lobby
+                        
+                        // Simplificação: se der F5, volta para o lobby
+                        await setDoc(doc(db, lobbyCollectionPath, localUserId), {
+                            name: localPlayerName,
+                            status: "online",
+                            invitedBy: null,
+                            inviteTo: null
+                        });
+                        
+                        lobbyScreen.classList.add('hidden');
+                        playerListScreen.classList.remove('hidden');
+                        listenToLobbyList();
+                        listenToLobbyUser();
+                        
+                    } else {
+                        // Estava no lobby, apenas reabre
+                        lobbyScreen.classList.add('hidden');
+                        playerListScreen.classList.remove('hidden');
+                        listenToLobbyList();
+                        listenToLobbyUser();
+                    }
+                }
+                // Se não está no lobby, espera na tela de login
+                
             } else {
                 // Tenta logar
                 try {
@@ -1420,8 +1616,13 @@
             }
         });
 
-        // --- Limpeza ao fechar a aba (Host deleta o jogo) ---
+        // --- Limpeza ao fechar a aba (Modificado) ---
         window.addEventListener('beforeunload', () => {
+            if (localUserId) {
+                // Remove o jogador do lobby ao fechar
+                deleteDoc(doc(db, lobbyCollectionPath, localUserId));
+            }
+            // O host (player1) de um jogo ATIVO ainda deve deletar o jogo
             if (gameId && localPlayerId === 'player1' && localGameState.status !== 'finished') {
                 deleteDoc(doc(db, gamesCollectionPath, gameId));
             }
@@ -1541,31 +1742,50 @@
 </head>
 <body class="bg-gray-900 text-white">
 
+    <!-- TELA 1: LOGIN (Modificada) -->
     <div id="lobby-screen" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-        <div class="pergaminho-bg p-8 rounded-lg w-full max-w-md">
+        <div class="pergaminho-bg p-8 rounded-lg w-full max-w-md text-center">
             
-            <img src="imagens/Logo.png" alt="Logo Alquimercadores" class="mx-auto mb-6 w-48">
+            <!-- Logo (Círculo do seu rascunho) -->
+            <div class="w-48 h-48 bg-transparent border-4 border-[#3d2a1a] rounded-full mx-auto mb-6 flex items-center justify-center">
+                 <img src="imagens/Logo.png" alt="Logo Alquimercadores" class="w-40 h-40">
+            </div>
             
             <div class="mb-4">
-                <label for="player-name-input" class="block text-sm font-bold mb-2">Seu Nome:</label>
+                <label for="player-name-input" class="block text-sm font-bold mb-2 text-left">Insira seu nome:</label>
                 <input type="text" id="player-name-input" placeholder="Ex: Paracelso" class="w-full p-2 rounded border-2 border-[#5c3d20] bg-white/50">
             </div>
             
-            <button id="create-game-btn" class="btn btn-green w-full mb-4">Criar Nova Sala</button>
-            
-            <div id="game-id-display" class="text-center font-bold text-lg my-2"></div>
-            
-            <hr class="border-[#5c3d20] my-4">
-            
-            <div class="flex gap-2">
-                <input type="text" id="join-game-input" placeholder="ID da Sala" class="w-2/3 p-2 rounded border-2 border-[#5c3d20] bg-white/50">
-                <button id="join-game-btn" class="btn btn-blue w-1/3">Entrar</button>
-            </div>
+            <button id="start-lobby-btn" class="btn btn-green w-full mb-4">Iniciar Jogo</button>
             
             <p id="lobby-status" class="text-center text-red-700 h-6 mt-4"></p>
         </div>
     </div>
     
+    <!-- TELA 2: LISTA DE JOGADORES (Nova) -->
+    <div id="player-list-screen" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-40 p-4">
+        <div class="pergaminho-bg p-8 rounded-lg w-full max-w-lg h-[80vh] flex flex-col">
+            <h2 class="text-3xl font-bold text-center text-[#3d2a1a] mb-6">Jogadores Online</h2>
+            
+            <p id="player-list-status" class="text-center text-gray-700 h-6 mb-4">Aguardando convites...</p>
+
+            <div id="player-list" class="flex-grow overflow-y-auto space-y-2 bg-black/5 p-2 rounded border border-yellow-700/30">
+                <!-- A lista de jogadores será preenchida pelo JS -->
+                <p class="text-center text-gray-700">Carregando jogadores...</p>
+            </div>
+            
+            <!-- Popup de Convite (Inicialmente oculto) -->
+            <div id="invitation-popup" class="hidden absolute bottom-8 left-8 right-8 bg-yellow-100 p-6 rounded-lg border-4 border-green-600 shadow-2xl">
+                <p id="invitation-text" class="text-center text-xl font-bold mb-4">...</p>
+                <div class="flex gap-4">
+                    <button id="accept-invite-btn" class="btn btn-green w-1/2">Aceitar</button>
+                    <button id="decline-invite-btn" class="btn btn-red w-1/2">Recusar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TELA 3: JOGO (Oculta, sem modificações de layout) -->
     <div id="game-screen" class="hidden relative w-full h-screen max-w-[1920px] mx-auto">
         
         <div id="score-display" class="absolute top-4 left-4 bg-black/50 p-4 rounded-lg border-2 border-[#5c3d20] text-shadow">
@@ -1636,6 +1856,7 @@
             </div>
         </div>
 
+        <!-- MODAIS (Ocultados para brevidade, são os mesmos de antes) -->
         <div id="recipe-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
             <div class="pergaminho-bg p-8 rounded-lg w-full max-w-4xl h-[80vh] overflow-y-auto relative">
                 <h2 class="text-5xl font-bold text-center text-[#3d2a1a] mb-6">Arcano Potionum</h2>
