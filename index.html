@@ -464,6 +464,7 @@
             
             // Devolve ingredientes não guardados ao caldeirão
             localGameState.cauldron.push(...localGameState.currentPull);
+            localGameState.cauldron = shuffle(localGameState.cauldron);
             localGameState.currentPull = [];
             
             if (playerId === 'player1') {
@@ -2090,6 +2091,7 @@
     
 </body>
 </html>
+
 
 
 
