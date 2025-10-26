@@ -8,7 +8,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, deleteDoc, collection, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, deleteDoc, collection, query, where, writeBatch, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // ==========================================================
         // DADOS GLOBAIS DO JOGO (ARCANO POTIONUM E INGREDIENTES)
@@ -218,6 +218,8 @@
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
+            // Adiciona log de debug para o console
+            setLogLevel('debug');
         } catch (e) {
             console.error("Erro ao inicializar o Firebase:", e);
             document.body.innerHTML = "<h1>Erro ao conectar ao Firebase. Verifique sua configuração.</h1>";
@@ -1532,6 +1534,13 @@
                 const oldState = localGameState;
                 localGameState = doc.data();
                 
+                // Define o localPlayerId com base no UID (necessário para reconexão)
+                if (localUserId === localGameState.players.player1.uid) {
+                    localPlayerId = 'player1';
+                } else if (localUserId === localGameState.players.player2.uid) {
+                    localPlayerId = 'player2';
+                }
+
                 if (localGameState.status === 'active') {
                     lobbyScreen.classList.add('hidden');
                     playerListScreen.classList.add('hidden');
@@ -1565,41 +1574,54 @@
                 localUserId = user.uid;
                 
                 // Verifica se o usuário já está em um jogo ou lobby (ex: F5 na página)
-                const lobbyDoc = await getDoc(doc(db, lobbyCollectionPath, localUserId));
+                const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
+                const lobbyDoc = await getDoc(lobbyDocRef);
+                
                 if (lobbyDoc.exists()) {
                     const lobbyData = lobbyDoc.data();
                     localPlayerName = lobbyData.name;
+                    playerNameInput.value = localPlayerName; // Preenche o nome no lobby
                     
                     if (lobbyData.status === 'ingame') {
                         // Tenta reconectar ao jogo
-                        // Precisamos saber se ele era player1 ou player2
-                        // Vamos assumir que se ele é 'ingame', o jogo existe
-                        // Se ele convidou, gameId = localUserId
-                        // Se ele foi convidado, precisamos achar o jogo
-                        // Esta parte é complexa, por enquanto, vamos apenas mandá-lo para o lobby
-                        
-                        // Simplificação: se der F5, volta para o lobby
-                        await setDoc(doc(db, lobbyCollectionPath, localUserId), {
-                            name: localPlayerName,
-                            status: "online",
-                            invitedBy: null,
-                            inviteTo: null
-                        });
-                        
-                        lobbyScreen.classList.add('hidden');
-                        playerListScreen.classList.remove('hidden');
-                        listenToLobbyList();
-                        listenToLobbyUser();
+                        let gameIdToFind = null;
+                        if (lobbyData.inviteTo) { // Eu era P1/Host
+                            gameIdToFind = localUserId;
+                        } else if (lobbyData.invitedBy) { // Eu era P2/Convidado
+                            gameIdToFind = lobbyData.invitedBy;
+                        }
+
+                        if (gameIdToFind) {
+                            const gameDoc = await getDoc(doc(db, gamesCollectionPath, gameIdToFind));
+                            if (gameDoc.exists()) {
+                                // Jogo encontrado, reconecta
+                                gameId = gameIdToFind;
+                                listenToGameChanges(gameId);
+                                gameScreen.classList.remove('hidden');
+                            } else {
+                                // Jogo não existe mais (host saiu), reseta para o lobby
+                                await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
+                                playerListScreen.classList.remove('hidden');
+                                listenToLobbyList();
+                                listenToLobbyUser();
+                            }
+                        } else {
+                            // Estado 'ingame' inconsistente, reseta para o lobby
+                            await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
+                            playerListScreen.classList.remove('hidden');
+                            listenToLobbyList();
+                            listenToLobbyUser();
+                        }
                         
                     } else {
-                        // Estava no lobby, apenas reabre
+                        // Estava no lobby (online ou invited), apenas reabre o lobby
                         lobbyScreen.classList.add('hidden');
                         playerListScreen.classList.remove('hidden');
                         listenToLobbyList();
                         listenToLobbyUser();
                     }
                 }
-                // Se não está no lobby, espera na tela de login
+                // Se não está no lobby, espera na tela de login (lobbyScreen)
                 
             } else {
                 // Tenta logar
@@ -1763,16 +1785,17 @@
         <div class="p-8 rounded-lg w-full max-w-md text-center text-[#3d2a1a]">
             
             <!-- Logo (Círculo do seu rascunho) - Borda removida e tamanho aumentado -->
-            <div class="w-80 h-80 bg-transparent rounded-full mx-auto mb-6 flex items-center justify-center">
-                 <img src="imagens/Logo.png" alt="Logo Alquimercadores" class="w-72 h-72">
+            <div class="w-[400px] h-[400px] bg-transparent rounded-full mx-auto mb-6 flex items-center justify-center">
+                 <img src="imagens/Logo.png" alt="Logo Alquimercadores" class="w-[350px] h-[350px]">
             </div>
             
             <div class="mb-4">
-                <label for="player-name-input" class="block text-sm font-bold mb-2 text-left">Insira seu nome:</label>
-                <input type="text" id="player-name-input" placeholder="Ex: Paracelso" class="w-full p-2 rounded border-2 border-[#5c3d20] bg-white/50">
+                <!-- Label removida, texto movido para o placeholder -->
+                <input type="text" id="player-name-input" placeholder="Insira seu nome" class="w-full p-3 rounded border-2 bg-purple-600 text-white placeholder-purple-200 border-purple-800">
             </div>
             
-            <button id="start-lobby-btn" class="btn btn-green w-full mb-4">Iniciar Jogo</button>
+            <!-- Botão modificado para roxo e menor -->
+            <button id="start-lobby-btn" class="btn w-1/2 mx-auto mb-4 bg-purple-600 border-purple-800 hover:bg-purple-500">Iniciar Jogo</button>
             
             <p id="lobby-status" class="text-center text-red-700 h-6 mt-4"></p>
         </div>
@@ -1931,5 +1954,7 @@
     
 </body>
 </html>
+
+
 
 
