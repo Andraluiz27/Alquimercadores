@@ -14,7 +14,6 @@
         // DADOS GLOBAIS DO JOGO (ARCANO POTIONUM E INGREDIENTES)
         // ==========================================================
         
-        // Baseado no seu arquivo Arcano Potionum (5).docx
         const ARCANO_POTIONUM = {
             "Barreira de Bolhas": {
                 nome: "Barreira de Bolhas",
@@ -201,10 +200,12 @@
         // CONFIGURAÇÃO DO FIREBASE
         // ==========================================================
 
-        // Use a config global se disponível, senão a local.
+        // Usa a config global se disponível (ambiente de desenvolvimento), senão a local (GitHub Pages)
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
             : {
+                // Cole aqui a configuração do seu Firebase (apiKey, authDomain, etc.)
+                // Esta configuração é pública e segura para ser usada no lado do cliente.
                 apiKey: "AIzaSyCIU0t65eZqQc2Cm7DVtksktCYW90vpEEA",
                 authDomain: "alquimercadores.firebaseapp.com",
                 projectId: "alquimercadores",
@@ -218,25 +219,19 @@
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            // Adiciona log de debug para o console
+            // Habilita logs detalhados do Firestore no console
             setLogLevel('debug');
 
-            // --- CORREÇÃO INÍCIO ---
-            // Pega o App ID do ambiente ou usa um padrão (REMOVIDO, não é mais necessário para o path)
-            // const appId = typeof __app_id !== 'undefined' ? __app_id : 'alquimercadores-default';
-            
-            // CORREÇÃO: Aponta para as coleções na raiz do Firestore, como esperado no GitHub Pages
+            // Caminhos diretos para as coleções na raiz do Firestore
             const gamesCollectionPath = `alquimercadores_games`;
             const lobbyCollectionPath = `alquimercadores_lobby`;
-            // --- CORREÇÃO FIM ---
             
             // ==========================================================
-            // VARIÁVEIS de ESTADO GLOBAIS
+            // VARIÁVEIS DE ESTADO GLOBAIS
             // ==========================================================
     
-            // ADICIONE ESTA LINHA
-            let selectedPotion = null;
-            let localGameState = {};
+            let selectedPotion = null; // Armazena a poção que o jogador quer vender
+            let localGameState = {}; // Cópia local do estado do jogo
             let localPlayerId = null; // 'player1' ou 'player2'
             let localUserId = null; // UID do Firebase Auth
             let localPlayerName = "";
@@ -245,9 +240,8 @@
             let unsubscribeLobbyList = null; // Para o listener do onSnapshot da LISTA do lobby
             let unsubscribeLobbyUser = null; // Para o listener do onSnapshot do USUÁRIO no lobby
     
-            // ADICIONE ESTAS VARIÁVEIS AQUI
             let recipeCurrentPage = 0;
-            const recipesPerPage = 2; // Mostra 2 receitas por página (1 em cada lado)
+            const recipesPerPage = 2; 
             let allPotionNames = [];
     
             // ==========================================================
@@ -263,11 +257,9 @@
             const playerNameInput = document.getElementById('player-name-input');
             const startLobbyBtn = document.getElementById('start-lobby-btn');
             const lobbyStatus = document.getElementById('lobby-status');
-            
-            // --- CORREÇÃO INÍCIO (Race Condition) ---
-            startLobbyBtn.disabled = true; // Desabilita até o auth estar pronto
-            lobbyStatus.textContent = "Autenticando..."; // Informa o usuário
-            // --- CORREÇÃO FIM ---
+            // Desabilita o botão até a autenticação estar pronta
+            startLobbyBtn.disabled = true; 
+            lobbyStatus.textContent = "Autenticando...";
     
             // ==========================================================
             // ELEMENTOS DA DOM (Lista de Jogadores)
@@ -282,8 +274,6 @@
             // ==========================================================
             // ELEMENTOS DA DOM (Jogo)
             // ==========================================================
-            
-            // (Ocultado para brevidade, são os mesmos de antes)
             const player1ScoreEl = document.getElementById('player1-score');
             const player2ScoreEl = document.getElementById('player2-score');
             const client1Bubble = document.getElementById('client-1-bubble');
@@ -298,7 +288,6 @@
             const readyPotionsBoardListEl = document.getElementById('ready-potions-board-list');
             const closePotionsBoardBtn = document.getElementById('close-potions-board-btn');
             const cauldronBtn = document.getElementById('cauldron-btn');
-            
             const stopPullingBtn = document.getElementById('stop-pulling-btn');
             const finishProductionBtn = document.getElementById('finish-production-btn');
             const finishActionBtn = document.getElementById('finish-action-btn');
@@ -308,9 +297,7 @@
             const player2ActivePotionsEl = document.getElementById('player2-active-potions-list');
             const recipeModal = document.getElementById('recipe-modal');
             const closeRecipeModalBtn = document.getElementById('close-recipe-modal-btn');
-            const recipeListEl = document.getElementById('recipe-list');
             const createPotionModal = document.getElementById('create-potion-modal');
-            const createPotionListEl = document.getElementById('create-potion-list');
             const closeCreatePotionModalBtn = document.getElementById('close-create-potion-modal-btn');
             const actionModal = document.getElementById('action-modal');
             const actionPotionNameEl = document.getElementById('action-potion-name');
@@ -322,7 +309,7 @@
             const closeMessageModalBtn = document.getElementById('close-message-modal-btn');
             const endGameModal = document.getElementById('end-game-modal');
             const winnerTextEl = document.getElementById('winner-text');
-            const restartGameBtn = document.getElementById('restart-game-btn');
+            // const restartGameBtn = document.getElementById('restart-game-btn'); // Este botão foi substituído por backToLobbyBtn
             const decisionModal = document.getElementById('decision-modal');
             const decisionTitleEl = document.getElementById('decision-title');
             const decisionOptionsEl = document.getElementById('decision-options');
@@ -330,16 +317,13 @@
             
             // ==========================================================
             // FUNÇÕES DE LÓGICA DO JOGO (CORE)
-            // (Ocultadas para brevidade, são as mesmas de antes)
             // ==========================================================
             
-            /**
-             * Gera o caldeirão inicial com 65 fichas.
-             */
+            /** Gera o caldeirão inicial com 65 fichas. */
             function generateCauldron() {
                 const cauldron = [];
                 for (const ingredient in INGREDIENT_DATA) {
-                    const count = (ingredient === "Sal Negro") ? 5 : 5;
+                    const count = (ingredient === "Sal Negro") ? 5 : 5; // 5 de cada ingrediente
                     for (let i = 0; i < count; i++) {
                         cauldron.push(ingredient);
                     }
@@ -347,9 +331,7 @@
                 return shuffle(cauldron);
             }
     
-            /**
-             * Embaralha um array (algoritmo Fisher-Yates).
-             */
+            /** Embaralha um array (algoritmo Fisher-Yates). */
             function shuffle(array) {
                 for (let i = array.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
@@ -358,9 +340,7 @@
                 return array;
             }
     
-            /**
-             * Gera um novo cliente com um pedido aleatório.
-             */
+            /** Gera um novo cliente com um pedido aleatório. */
             function generateClient(clientType) {
                 const allPotionNames = Object.keys(ARCANO_POTIONUM);
                 const randomPotionName = allPotionNames[Math.floor(Math.random() * allPotionNames.length)];
@@ -376,6 +356,7 @@
                 };
             }
     
+            /** Renderiza as páginas do livro de receitas. */
             function renderRecipeBookPage() {
                 const paginaEsquerdaEl = document.getElementById('pagina-esquerda');
                 const paginaDireitaEl = document.getElementById('pagina-direita');
@@ -419,25 +400,14 @@
                 document.getElementById('next-page-btn').disabled = endIndex >= allPotionNames.length;
             }
     
-            /**
-             * Cria o objeto de estado inicial do jogo.
-             */
-            /**
-             * Cria o objeto de estado inicial do jogo.
-             */
+            /** Cria o objeto de estado inicial do jogo. */
             function createInitialGameState(player1Name, player1UID) {
-                // --- INÍCIO DA MODIFICAÇÃO ---
-                
                 // Sorteia quem será o primeiro jogador
                 const startingPlayer = Math.random() < 0.5 ? 'player1' : 'player2';
                 
-                // --- FIM DA MODIFICAÇÃO ---
-                
-                // NOTA: gameId é definido globalmente antes de chamar esta função
                 return {
                     gameId: gameId,
                     status: 'waiting', // 'waiting', 'active', 'finished'
-                    // Define a fase e o jogador atual baseado no sorteio
                     phase: 'PREPARATION', // A fase mudará para PRODUCTION assim que o P2 entrar
                     currentPlayer: startingPlayer, 
                     players: {
@@ -472,12 +442,13 @@
                 };
             }
             
-            /**
-             * Atualiza o estado do jogo no Firestore.
-             */
+            /** Atualiza o estado do jogo no Firestore. */
             async function updateFirestoreState(newState) {
                 if (gameId) {
                     try {
+                        // Usamos setDoc com merge: true para evitar sobrescrever dados
+                        // se houver uma condição de corrida, embora setDoc sem merge seja o
+                        // comportamento padrão de "sobrescrever" que queremos aqui.
                         await setDoc(doc(db, gamesCollectionPath, gameId), newState);
                     } catch (e) {
                         console.error("Erro ao sincronizar com o Firebase:", e);
@@ -486,24 +457,19 @@
                 }
             }
             
-            /**
-             * Adiciona uma mensagem ao log do jogo.
-             */
+            /** Adiciona uma mensagem ao log do jogo. */
             function logMessage(message) {
-                localGameState.log.unshift(message);
+                localGameState.log.unshift(message); // Adiciona no início
                 if (localGameState.log.length > 20) {
-                    localGameState.log.pop();
+                    localGameState.log.pop(); // Remove o mais antigo
                 }
             }
     
             // ==========================================================
             // FUNÇÕES DE TRANSIÇÃO DE FASE
-            // (Ocultadas para brevidade, são as mesmas de antes)
             // ==========================================================
     
-            /**
-             * Inicia o turno de Produção para o jogador atual.
-             */
+            /** Inicia o turno de Produção para o jogador atual. */
             function startProductionPhase(playerId) {
                 localGameState.phase = `PRODUCTION_${playerId.toUpperCase()}`;
                 localGameState.currentPlayer = playerId;
@@ -512,9 +478,7 @@
                 updateFirestoreState(localGameState);
             }
             
-            /**
-             * Termina a fase de produção e armazenamento do jogador.
-             */
+            /** Termina a fase de produção e armazenamento do jogador. */
             function endProductionPhase() {
                 const playerId = localGameState.currentPlayer;
                 
@@ -532,27 +496,22 @@
                 }
             }
             
-            /**
-             * Inicia a Fase de Ação para um jogador.
-             */
+            /** Inicia a Fase de Ação para um jogador. */
             function startActionPhase(playerId) {
                 localGameState.phase = `ACTION_${playerId.toUpperCase()}`;
                 localGameState.currentPlayer = playerId;
+                selectedPotion = null; // Limpa qualquer poção selecionada da fase anterior
+                logMessage(`${localGameState.players[playerId].name}, sua vez de agir!`);
                 
-                if (localGameState.players[playerId].potionsReady.length > 0) {
-                    // Se o jogador tem poções para resolver, mostra o modal
-                    showActionModal();
-                } else {
-                    // Se não tem poções, pula direto para o fim da fase de ação
-                    logMessage(`${localGameState.players[playerId].name} não tem poções para usar ou vender.`);
-                    endActionPhase();
-                }
-                updateFirestoreState(localGameState);
+                // Atualiza o estado ANTES de mostrar o modal
+                updateFirestoreState(localGameState).then(() => {
+                    // A função showActionModal agora controla o fluxo da fase de ação
+                    // Ela será chamada pelo listener onSnapshot quando detectar a mudança de fase
+                    // (ver listenToGameChanges)
+                });
             }
     
-            /**
-             * Termina a Fase de Ação de um jogador.
-             */
+            /** Termina a Fase de Ação de um jogador. */
             function endActionPhase() {
                 const playerId = localGameState.currentPlayer;
     
@@ -575,10 +534,9 @@
                         startNewRound();
                     }
                 }
-                // O estado é atualizado dentro de startActionPhase ou endGame ou startNewRound
             }
             
-            // SUBSTITUA A FUNÇÃO startNewRound ANTIGA POR ESTA
+            /** Inicia uma nova rodada de jogo. */
             function startNewRound() {
                 logMessage("Uma nova rodada começa!");
                 
@@ -590,16 +548,13 @@
                     }
                 });
             
-                // Zera a poção selecionada para o novo turno
                 selectedPotion = null; 
             
                 // O jogo continua, passando para a produção do Jogador 1
                 startProductionPhase('player1');
             }
             
-            /**
-             * Finaliza o jogo e declara o vencedor.
-             */
+            /** Finaliza o jogo e declara o vencedor. */
             function endGame() {
                 localGameState.phase = 'GAME_OVER';
                 localGameState.status = 'finished'; // Marca o status como finalizado
@@ -608,12 +563,12 @@
                 
                 let winnerMsg = "";
             
-                // NOVO: Verifica se o jogo acabou por desistência
+                // Verifica se o jogo acabou por desistência
                 if (localGameState.winner) {
                     const winnerName = localGameState.players[localGameState.winner].name;
                     winnerMsg = `${winnerName} venceu por desistência do oponente!`;
                 } 
-                // Lógica antiga de contagem de moedas
+                // Lógica de contagem de moedas
                 else if (p1Coins > p2Coins) {
                     winnerMsg = `${localGameState.players.player1.name} vence com ${p1Coins} moedas!`;
                 } else if (p2Coins > p1Coins) {
@@ -630,16 +585,16 @@
     
             // ==========================================================
             // MANIPULADORES DE EVENTOS (HANDLERS)
-            // (Ocultadas para brevidade, são as mesmas de antes)
             // ==========================================================
-    
-            // ADICIONE ESTA FUNÇÃO NOVA
-            /**
-             * Lida com o clique em um balão de cliente para vender uma poção.
-             */
+            
+            /** Lida com o clique em um balão de cliente para vender uma poção. */
             function handleClientClick(clientIndex) {
+                // Só funciona na fase de ação
+                if (localGameState.phase !== `ACTION_${localPlayerId.toUpperCase()}`) return;
+                
+                // Precisa ter uma poção selecionada
                 if (!selectedPotion) {
-                    showMessage("Selecione uma poção para vender primeiro (clique em 'Vender' no painel de poções).");
+                    showMessage("Selecione uma poção para vender primeiro (Use o painel de Ações).");
                     return;
                 }
             
@@ -658,14 +613,15 @@
             
                 // --- Venda bem-sucedida ---
                 const potionPrice = client.price;
+                const potionName = selectedPotion; // Guarda o nome antes de limpar
             
                 // Remove a poção da lista de prontas
-                const potionIndex = playerState.potionsReady.indexOf(selectedPotion);
+                const potionIndex = playerState.potionsReady.indexOf(potionName);
                 if (potionIndex > -1) {
                     playerState.potionsReady.splice(potionIndex, 1);
                 }
             
-                // Adiciona moedas (reutilizando a lógica anterior)
+                // Adiciona moedas (lógica de bônus)
                 let finalPrice = potionPrice;
                 if (playerState.activePotions["Amuleto do Colecionador"]) finalPrice++;
                 const opponentState = localGameState.players[getOpponentId()];
@@ -674,36 +630,32 @@
                     playerState.coins += (finalPrice - halfPrice);
                     opponentState.coins += halfPrice;
                     logMessage(`${opponentState.name} usou Parasita Mortífero e roubou ${halfPrice} moedas!`);
-                    opponentState.activePotions["Parasita Mortífero"] = false;
+                    opponentState.activePotions["Parasita Mortífero"] = false; // Efeito consumido
                 } else {
                     playerState.coins += finalPrice;
                 }
             
-                logMessage(`${playerState.name} vendeu ${selectedPotion} por ${finalPrice} moedas!`);
+                logMessage(`${playerState.name} vendeu ${potionName} por ${finalPrice} moedas!`);
             
-                // MARCA o cliente como atendido, mas NÃO o substitui ainda
+                // MARCA o cliente como atendido
                 localGameState.clients[clientIndex].served = true;
                 localGameState.clientsServed++;
             
                 selectedPotion = null; // Reseta a poção selecionada
-                updateFirestoreState(localGameState);
+                actionModal.classList.add('hidden'); // Esconde o modal de ação
+                
+                // Atualiza o estado e então processa a próxima poção
+                updateFirestoreState(localGameState).then(() => {
+                    showActionModal(); // Chama para processar a próxima poção ou finalizar
+                });
             }
             
-            /**
-             * Lida com o clique no Caldeirão para puxar ingredientes.
-             */
+            /** Lida com o clique no Caldeirão para puxar ingredientes. */
             function handleCauldronClick() {
                 if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
                 
                 const playerState = localGameState.players[localPlayerId];
                 
-                // Lógica de "Unguento de Musgo"
-                if (playerState.activePotions["Unguento de Musgo"]) {
-                    playerState.activePotions["Unguento de Musgo"] = false; // Consome o efeito
-                    logMessage(`${playerState.name} usa o Unguento de Musgo!`);
-                    // Não precisa fazer mais nada aqui, a lógica de explosão vai checar
-                }
-    
                 if (localGameState.cauldron.length === 0) {
                     showMessage("O Caldeirão está vazio!");
                     return;
@@ -719,7 +671,6 @@
                     // Verificação de "Resiliência do Farsante"
                     if (playerState.activePotions["Resiliência do Farsante"]) {
                         logMessage("BOOM! Mas a Resiliência do Farsante salvou um ingrediente!");
-                        // Permite ao jogador salvar 1 ingrediente
                         handleExplosionWithResilience();
                     } else {
                         logMessage("BOOM! O caldeirão explodiu!");
@@ -730,9 +681,7 @@
                 updateFirestoreState(localGameState);
             }
             
-            /**
-             * Verifica se o caldeirão explodiu.
-             */
+            /** Verifica se o caldeirão explodiu. */
             function checkExplosion(currentPull, playerState) {
                 const counts = {};
                 let salNegroCount = 0;
@@ -754,13 +703,8 @@
                     if (counts[color] >= colorLimit) {
                         // Exceção: "Unguento de Musgo"
                         if (playerState.activePotions["Unguento de Musgo"]) {
-                            playerState.activePotions["Unguento de Musgo"] = "consumed"; // Marca como usado
+                            playerState.activePotions["Unguento de Musgo"] = false; // Consome o efeito
                             logMessage("O caldeirão iria explodir, mas o Unguento de Musgo o salvou!");
-                            // Remove o ingrediente que causou a explosão e o devolve
-                            const lastIngredientIndex = currentPull.lastIndexOf(currentPull.find(ing => INGREDIENT_DATA[ing].cor === color));
-                            const savedIngredient = currentPull.splice(lastIngredientIndex, 1)[0];
-                            localGameState.cauldron.push(savedIngredient);
-                            
                             return false; // Não explodiu
                         }
                         return true; // Explodiu
@@ -775,21 +719,17 @@
                 return false;
             }
     
-            /**
-             * Lida com uma explosão normal.
-             */
+            /** Lida com uma explosão normal. */
             function handleExplosion() {
                 // Devolve os ingredientes ao caldeirão
                 localGameState.cauldron.push(...localGameState.currentPull);
                 localGameState.currentPull = [];
                 showMessage("EXPLOSÃO! Você perdeu todos os ingredientes deste turno.");
-                // Avança para a próxima fase (armazenamento está vazio, poções prontas tbm)
+                // Avança para a próxima fase
                 endProductionPhase();
             }
     
-            /**
-             * Lida com uma explosão quando o jogador tem Resiliência do Farsante.
-             */
+            /** Lida com uma explosão quando o jogador tem Resiliência do Farsante. */
             function handleExplosionWithResilience() {
                 // Mostra um modal para o jogador escolher 1 ingrediente para salvar
                 decisionTitleEl.textContent = "EXPLOSÃO! Resiliência do Farsante ativada!";
@@ -835,57 +775,106 @@
                 decisionOptionsEl.appendChild(btnNone);
                 
                 decisionModal.classList.remove('hidden');
-                // O estado é atualizado dentro dos botões de clique
             }
             
-            /**
-             * O jogador clica em "Parar de Puxar".
-             */
+            /** O jogador clica em "Parar de Puxar". */
             function handleStopPullingClick() {
                 if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
                 
-                // Avança para a fase de criação/armazenamento
                 localGameState.phase = `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
                 logMessage(`${localGameState.players[localPlayerId].name} parou de puxar.`);
                 updateFirestoreState(localGameState);
             }
     
-            /**
-             * O jogador clica em "Finalizar Produção" (depois de criar/armazenar).
-             */
+            /** O jogador clica em "Finalizar Produção" (depois de criar/armazenar). */
             function handleFinishProductionClick() {
                 if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) return;
                 endProductionPhase();
             }
     
-            /**
-             * O jogador clica em "Finalizar Ações".
-             */
+            /** O jogador clica em "Finalizar Ações". */
             function handleFinishActionClick() {
                 if (localGameState.phase !== `ACTION_${localPlayerId.toUpperCase()}`) return;
                 
+                // Verifica se ainda há poções
                 if (localGameState.players[localPlayerId].potionsReady.length > 0) {
-                    showMessage("Você deve Usar ou Vender todas as poções prontas!");
+                    showMessage("Você ainda tem poções para resolver. Use ou Venda-as.");
+                    // Re-abre o modal caso o jogador o tenha fechado
+                    showActionModal();
                     return;
                 }
+
+                // Esconde o modal de ação (caso esteja aberto, embora não devesse)
+                actionModal.classList.add('hidden');
+                // Termina a fase de ação
                 endActionPhase();
             }
     
-            // ADICIONE ESTA FUNÇÃO NOVA (handleClientClick já existe acima, esta está duplicada)
-            /*
-            function handleClientClick(clientIndex) {
-                // ... (código duplicado removido)
-            }
-            */
-    
             // ==========================================================
-            // MANIPULADORES DE MODAIS (LIVRO, CRIAÇÃO, AÇÃO)
-            // (Ocultadas para brevidade, são as mesmas de antes)
+            // MANIPULADORES DE MODAIS E AÇÕES
             // ==========================================================
             
-            /**
-             * Abre o Arcano Potionum (livro de receitas completo) com paginação.
-             */
+            /** Mostra o modal de Ação (Vender/Usar) para a próxima poção pronta. */
+            function showActionModal() {
+                const playerState = localGameState.players[localPlayerId];
+                
+                // Se não há mais poções para resolver, o jogador pode finalizar o turno.
+                if (!playerState.potionsReady || playerState.potionsReady.length === 0) {
+                    actionModal.classList.add('hidden');
+                    logMessage(`${playerState.name}, você não tem mais poções para resolver. Finalize suas ações.`);
+                    // A UI já mostra o botão "Finalizar Ações"
+                    return;
+                }
+            
+                // Pega a PRIMEIRA poção da fila para ser resolvida.
+                const potionName = playerState.potionsReady[0];
+                const potionData = ARCANO_POTIONUM[potionName];
+            
+                actionPotionNameEl.textContent = potionData.nome;
+                actionPotionDescEl.textContent = potionData.descricao;
+            
+                // Configura os botões do modal para a poção atual
+                sellBtn.onclick = () => handleSellPotion(potionName);
+                useBtn.onclick = () => handleUsePotion(potionName);
+            
+                actionModal.classList.remove('hidden');
+            }
+            
+            /** Lida com o clique no botão "Vender" do modal de ação. */
+            function handleSellPotion(potionName) {
+                selectedPotion = potionName;
+                actionModal.classList.add('hidden'); // Esconde o modal de escolha
+                showMessage(`Poção "${potionName}" selecionada! Agora, clique no cliente que a deseja.`);
+                updateUI(); // Atualiza a UI para tornar os clientes clicáveis
+            }
+
+            /** Lida com o clique no botão "Usar" do modal de ação. */
+            function handleUsePotion(potionName) {
+                const playerState = localGameState.players[localPlayerId];
+                
+                // Remove a poção da fila
+                const potionIndex = playerState.potionsReady.indexOf(potionName);
+                if (potionIndex > -1) {
+                    playerState.potionsReady.splice(potionIndex, 1);
+                } else {
+                    console.error("Tentei usar uma poção que não estava na lista:", potionName);
+                    return;
+                }
+            
+                logMessage(`${playerState.name} usou: ${potionName}!`);
+                
+                // Executa o efeito
+                executePotionEffect(potionName, localPlayerId);
+                
+                actionModal.classList.add('hidden');
+
+                // Atualiza o estado e então processa a próxima poção
+                updateFirestoreState(localGameState).then(() => {
+                    showActionModal(); // Chama para processar a próxima poção ou finalizar
+                });
+            }
+
+            /** Abre o Arcano Potionum (livro de receitas completo). */
             function handleBookClick() {
                 recipeCurrentPage = 0; // Sempre começa na primeira página
                 allPotionNames = Object.keys(ARCANO_POTIONUM);
@@ -893,9 +882,7 @@
                 recipeModal.classList.remove('hidden');
             }
     
-            /**
-             * Abre o modal para criar poções com os ingredientes do balcão.
-             */
+            /** Abre o modal para criar poções com os ingredientes do balcão. */
             function openCreatePotionModal() {
                 if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) return;
                 
@@ -925,9 +912,7 @@
                 createPotionModal.classList.remove('hidden');
             }
             
-            /**
-             * Lógica para encontrar poções criáveis.
-             */
+            /** Lógica para encontrar poções criáveis. */
             function findCreatablePotions(currentPull) {
                 const pullCounts = getIngredientCounts(currentPull);
                 const creatable = [];
@@ -950,9 +935,7 @@
                 return creatable;
             }
     
-            /**
-             * Lógica para criar uma poção.
-             */
+            /** Lógica para criar uma poção. */
             function handleCreatePotion(potionName) {
                 const recipe = ARCANO_POTIONUM[potionName];
                 const pull = localGameState.currentPull;
@@ -977,9 +960,7 @@
                 updateFirestoreState(localGameState);
             }
     
-            /**
-             * Lida com o clique em um ingrediente no balcão (para armazenar).
-             */
+            /** Lida com o clique em um ingrediente no balcão (para armazenar). */
             function handleIngredientClick(ingredientName, index) {
                 if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) return;
                 
@@ -997,9 +978,7 @@
                 }
             }
             
-            /**
-             * Lida com o clique em um ingrediente na prateleira (para devolver ao balcão).
-             */
+            /** Lida com o clique em um ingrediente na prateleira (para devolver ao balcão). */
             function handleShelfIngredientClick(ingredientName, index) {
                 if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) return;
     
@@ -1010,126 +989,24 @@
                 updateFirestoreState(localGameState);
             }
             
-            /**
-             * Mostra o modal de Ação (Vender/Usar) para a próxima poção pronta.
-             */
-            // (Função showActionModal() parece estar faltando, mas a lógica de renderReadyPotions a substitui)
-    
-            /**
-             * Lógica para Usar uma poção.
-             */
-            function handleUsePotion(potionName) {
-                const playerState = localGameState.players[localPlayerId];
-                
-                // Remove a poção da fila (ATENÇÃO: isso assume ordem. Se clicar em qualquer uma, precisa de índice)
-                // Vamos mudar para remover a poção específica
-                const potionIndex = playerState.potionsReady.indexOf(potionName);
-                if (potionIndex > -1) {
-                    playerState.potionsReady.splice(potionIndex, 1);
-                } else {
-                    console.error("Tentei usar uma poção que não estava na lista:", potionName);
-                    return;
-                }
-                
-                logMessage(`${playerState.name} usou: ${potionName}!`);
-                
-                // Executa o efeito
-                executePotionEffect(potionName, localPlayerId);
-                
-                // (Não mostra mais o modal, a UI é atualizada)
-                updateFirestoreState(localGameState);
-            }
-            
-            /**
-             * Onde a mágica (e a maldade) acontece. Um grande switch para todos os efeitos.
-             */
+            /** Executa o efeito de uma poção. */
             function executePotionEffect(potionName, playerId) {
                 const playerState = localGameState.players[playerId];
                 const opponentId = getOpponentId(playerId);
                 const opponentState = localGameState.players[opponentId];
     
                 switch (potionName) {
-                    // FÁCEIS
-                    case "Barreira de Bolhas":
-                        playerState.activePotions["Barreira de Bolhas"] = true;
-                        break;
-                    case "Unguento de Musgo":
-                        playerState.activePotions["Unguento de Musgo"] = true;
-                        break;
-                    case "Infusão de Foco":
-                        playerState.shelfLimit++;
-                        playerState.activePotions["Infusão de Foco"] = true; // Marca como "comprado"
-                        break;
-                    case "Pó da Corrosão":
-                        // Precisa de interação do oponente
-                        if (opponentState.shelf.length > 0) {
-                            localGameState.decision = {
-                                player: opponentId,
-                                type: 'discard_ingredient',
-                                title: `Pó da Corrosão! ${playerState.name} te forçou a descartar 1 ingrediente.`
-                            };
-                        } else {
-                            logMessage("Pó da Corrosão falhou, a prateleira do oponente está vazia.");
-                        }
-                        break;
-                    case "Elixir do Mercador":
-                        // Precisa de interação do jogador
-                        showDecisionModal(playerId, 'discard_client', 'Elixir do Mercador', 'Escolha um cliente para descartar:');
-                        break;
-                    case "Tônico Dourado":
-                        playerState.coins += 2;
-                        break;
-                    case "Soro da Clarividência":
-                        // Precisa de interação do jogador
-                        showDecisionModal(playerId, 'pick_ingredient', 'Soro da Clarividência', 'Escolha um ingrediente do caldeirão:');
-                        break;
-                        
-                    // MÉDIAS
-                    case "Amuleto do Colecionador":
-                        playerState.activePotions["Amuleto do Colecionador"] = true;
-                        break;
-                    case "Mão do Mago":
-                        // Precisa de interação do jogador
-                        if (opponentState.shelf.length > 0) {
-                            showDecisionModal(playerId, 'steal_ingredient', 'Mão do Mago', 'Escolha um ingrediente para roubar:');
-                        } else {
-                            logMessage("Mão do Mago falhou, a prateleira do oponente está vazia.");
-                        }
-                        break;
-                    case "Parasita Mortífero":
-                        playerState.activePotions["Parasita Mortífero"] = true;
-                        break;
-                    case "Caldeirão Expansivo":
-                        playerState.shelfLimit++;
-                        playerState.activePotions["Caldeirão Expansivo"] = true;
-                        break;
-                    case "Resiliência do Farsante":
-                        playerState.activePotions["Resiliência do Farsante"] = true;
-                        break;
-                    case "Ingrediente Contaminado":
-                        // Precisa de interação do jogador
-                        if (playerState.shelf.length > 0) {
-                            showDecisionModal(playerId, 'give_ingredient', 'Ingrediente Contaminado', 'Escolha um ingrediente para dar ao oponente:');
-                        } else {
-                            logMessage("Ingrediente Contaminado falhou, sua prateleira está vazia.");
-                        }
-                        break;
-                    case "Contrato de Exclusividade":
-                        // Precisa de interação do jogador
-                        showDecisionModal(playerId, 'contract_client', 'Contrato de Exclusividade', 'Escolha um cliente para reservar:');
-                        break;
-                        
-                    // DIFÍCEIS
-                    case "Estabilizador Cromático":
-                        playerState.activePotions["Estabilizador Cromático"] = true;
-                        break;
-                    case "Pedra Filosofal (Falsa)":
-                        playerState.coins += 7;
-                        break;
-                    case "Ferrugem Alquímica":
-                        // Precisa de interação do jogador
-                        showDecisionModal(playerId, 'disable_potion', 'Ferrugem Alquímica', 'Escolha uma poção permanente do oponente para desativar por 1 rodada:');
-                        break;
+                    // Efeitos diretos
+                    case "Barreira de Bolhas": playerState.activePotions["Barreira de Bolhas"] = true; break;
+                    case "Unguento de Musgo": playerState.activePotions["Unguento de Musgo"] = true; break;
+                    case "Infusão de Foco": playerState.shelfLimit++; playerState.activePotions["Infusão de Foco"] = true; break;
+                    case "Tônico Dourado": playerState.coins += 2; break;
+                    case "Amuleto do Colecionador": playerState.activePotions["Amuleto do Colecionador"] = true; break;
+                    case "Parasita Mortífero": playerState.activePotions["Parasita Mortífero"] = true; break;
+                    case "Caldeirão Expansivo": playerState.shelfLimit++; playerState.activePotions["Caldeirão Expansivo"] = true; break;
+                    case "Resiliência do Farsante": playerState.activePotions["Resiliência do Farsante"] = true; break;
+                    case "Estabilizador Cromático": playerState.activePotions["Estabilizador Cromático"] = true; break;
+                    case "Pedra Filosofal (Falsa)": playerState.coins += 7; break;
                     case "Poção da Usurpação":
                         const coinsToSteal = Math.min(opponentState.coins, 5);
                         opponentState.coins -= coinsToSteal;
@@ -1145,42 +1022,33 @@
                             logMessage("Solvente Universal falhou, a prateleira do oponente já estava vazia.");
                         }
                         break;
-                    case "Maldição do Caldeirão Trincado":
-                        opponentState.activePotions["Maldição do Caldeirão Trincado"] = true;
+                    case "Maldição do Caldeirão Trincado": opponentState.activePotions["Maldição do Caldeirão Trincado"] = true; break;
+                    case "Pasta Prismática": playerState.activePotions["Pasta Prismática"] = true; break;
+                    case "Fervor do Ousado": playerState.activePotions["Fervor do Ousado"] = true; break;
+                    
+                    // Poções que exigem decisão
+                    case "Pó da Corrosão":
+                    case "Elixir do Mercador":
+                    case "Soro da Clarividência":
+                    case "Mão do Mago":
+                    case "Ingrediente Contaminado":
+                    case "Contrato de Exclusividade":
+                    case "Ferrugem Alquímica":
+                        // Implementação futura do modal de decisão
+                        console.warn(`Ação interativa para ${potionName} precisa ser implementada.`);
+                        showMessage(`Ação para ${potionName} ainda não implementada.`);
                         break;
-                    case "Pasta Prismática":
-                        playerState.activePotions["Pasta Prismática"] = true;
-                        break;
-                    case "Fervor do Ousado":
-                        playerState.activePotions["Fervor do Ousado"] = true;
+                    default:
+                        console.error(`Efeito desconhecido para a poção: ${potionName}`);
                         break;
                 }
             }
-            
-            /**
-             * Mostra um modal de decisão para poções interativas.
-             */
-            function showDecisionModal(playerId, type, title, text) {
-                // Esta é uma função complexa que precisa ser implementada
-                // Ela preencheria o #decision-modal com opções (botões)
-                // e o clique nesses botões executaria a lógica e atualizaria o firestore.
-                // Ex: para 'discard_client', mostraria 3 botões com os nomes dos clientes.
-                console.warn(`Ação interativa ${type} precisa ser implementada.`);
-                showMessage(`Ação: ${title}. ${text}`);
-                // Por enquanto, vamos apenas logar e pular a interação
-                logMessage(`${localGameState.players[playerId].name} está decidindo sobre ${title}`);
-            }
     
-            // CÓDIGO PARA ADICIONAR
-    
-            /**
-             * Lida com a desistência de um jogador.
-             */
+            /** Lida com a desistência de um jogador. */
             async function handleForfeit() {
                 if (!gameId || !localPlayerId) return;
             
-                // Desabilita o botão para evitar cliques duplos
-                quitGameBtn.disabled = true; 
+                quitGameBtn.disabled = true; // Evita cliques duplos
                 
                 const opponentId = getOpponentId(localPlayerId);
                 const quittingPlayerName = localGameState.players[localPlayerId].name;
@@ -1191,17 +1059,14 @@
                     status: 'finished',
                     phase: 'GAME_OVER',
                     winner: opponentId, // Guarda quem venceu
-                    log: [
-                        ...localGameState.log, 
-                        `${quittingPlayerName} desistiu da partida.`
-                    ].sort((a, b) => b.timestamp - a.timestamp) // Reordena se usar timestamp
+                    log: [...localGameState.log, `${quittingPlayerName} desistiu da partida.`]
                 };
                 
                 // Remove a referência ao jogo do lobby do jogador que desistiu
                 const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
                 await updateDoc(lobbyDocRef, { status: "online", invitedBy: null, inviteTo: null });
                 
-                // Atualiza o estado do jogo e o listener onSnapshot cuidará do resto
+                // Atualiza o estado do jogo
                 await updateFirestoreState(finalState);
                 
                 // Força o jogador que desistiu a voltar para a tela de lobby
@@ -1213,12 +1078,9 @@
     
             // ==========================================================
             // FUNÇÕES DE UI (RENDERIZAÇÃO)
-            // (Ocultadas para brevidade, são as mesmas de antes)
             // ==========================================================
             
-            /**
-             * Função mestra que atualiza toda a tela com base no localGameState.
-             */
+            /** Função mestra que atualiza toda a tela com base no localGameState. */
             function updateUI() {
                 if (!localGameState || !localGameState.players) return;
                 
@@ -1236,7 +1098,7 @@
     
                 const myActionPhase = localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`;
     
-                // SUBSTITUA O BLOCO "clientBubbles.forEach" POR ESTE
+                // Atualiza balões de clientes
                 clientBubbles.forEach((bubble, index) => {
                     const client = localGameState.clients[index];
                     bubble.style.cursor = 'default';
@@ -1244,16 +1106,16 @@
                 
                     // A nova condição: só mostra se o cliente existe E não foi atendido
                     if (client && !client.served) {
-                        bubble.style.visibility = 'visible'; // Garante que o balão está visível
+                        bubble.style.visibility = 'visible';
                         bubble.querySelector('.potion-name').textContent = client.wants;
                         bubble.querySelector('.potion-price').textContent = `💰 ${client.price}`;
                 
+                        // Remove classes de borda antes de adicionar a correta
+                        bubble.classList.remove('border-4', 'border-blue-500', 'border-red-500');
                         if (client.contract === 'player1') {
                             bubble.classList.add('border-4', 'border-blue-500');
                         } else if (client.contract === 'player2') {
                             bubble.classList.add('border-4', 'border-red-500');
-                        } else {
-                            bubble.classList.remove('border-4', 'border-blue-500', 'border-red-500');
                         }
                 
                         // Torna o balão clicável apenas na sua fase de ação E se você tiver uma poção selecionada
@@ -1274,7 +1136,7 @@
                 // Renderiza balcão
                 renderCounter();
                 
-                // Renderiza poções prontas
+                // Renderiza poções prontas (no painel lateral)
                 renderReadyPotions();
                 
                 // Renderiza poções ativas no painel
@@ -1285,22 +1147,21 @@
                 const myTurn = localGameState.currentPlayer === localPlayerId;
                 const myProdPhase = localGameState.phase === `PRODUCTION_${localPlayerId.toUpperCase()}`;
                 const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
-                // const myActionPhase = localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`; // Já definido acima
     
-                // SUBSTITUA PELO CÓDIGO ABAIXO
                 // Desabilita/habilita o caldeirão
                 cauldronBtn.disabled = !myProdPhase;
+                cauldronBtn.style.cursor = myProdPhase ? 'pointer' : 'default'; // Feedback visual
                 
-                // Mostra o botão "Parar de Puxar" apenas na fase de puxar
+                // Mostra o botão "Parar de Puxar"
                 stopPullingBtn.classList.toggle('hidden', !myProdPhase);
                 
-                // Mostra o botão "Finalizar Produção" apenas na fase de organizar/criar
+                // Mostra o botão "Finalizar Produção"
                 finishProductionBtn.classList.toggle('hidden', !myPostProdPhase);
                 
-                // Mostra o botão "Finalizar Ações" apenas na sua fase de ação
+                // Mostra o botão "Finalizar Ações"
                 finishActionBtn.classList.toggle('hidden', !myActionPhase);
                 
-                // Lógica do botão do Livro (que você já tinha, mas vamos garantir que está correta)
+                // Lógica do botão do Livro (Mesa)
                 const mesaBook = document.getElementById('mesa-book-btn');
                 if (myPostProdPhase) {
                     mesaBook.onclick = openCreatePotionModal;
@@ -1309,8 +1170,9 @@
                     mesaBook.onclick = handleBookClick;
                     mesaBook.title = "Ver Arcano Potionum";
                 }
-            } // Fim da função updateUI()
+            }
             
+            /** Renderiza os itens na prateleira de um jogador. */
             function renderShelf(shelfEl, shelfItems, ownerId) {
                 shelfEl.innerHTML = '';
                 shelfItems.forEach((ingredientName, index) => {
@@ -1324,6 +1186,7 @@
                 });
             }
             
+            /** Renderiza os ingredientes no balcão. */
             function renderCounter() {
                 counterAreaEl.innerHTML = '';
                 localGameState.currentPull.forEach((ingredientName, index) => {
@@ -1337,11 +1200,10 @@
                 });
             }
     
-            // SUBSTITUA A FUNÇÃO renderReadyPotions ANTIGA POR ESTA
+            /** Renderiza as poções prontas no painel lateral. */
             function renderReadyPotions() {
                 readyPotionsBoardListEl.innerHTML = '';
                 const playerPotions = localGameState.players[localPlayerId]?.potionsReady || [];
-                const myActionPhase = localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`;
             
                 if (playerPotions.length === 0) {
                     readyPotionsBoardListEl.innerHTML = `<p class="text-gray-400 text-sm">Nenhuma poção pronta.</p>`;
@@ -1354,43 +1216,24 @@
             
                     const img = createPotionImage(potionName);
                     img.className += ' w-16 h-16';
-            
-                    // Adiciona borda se a poção for a selecionada
+                    
+                    // Adiciona borda se a poção for a selecionada para VENDER
                     if (selectedPotion === potionName) {
                         img.classList.add('border-4', 'border-yellow-400', 'rounded-lg');
                     }
-            
-                    // Se estiver na fase de Ação, torna a imagem clicável para selecionar/desselecionar
-                    if (myActionPhase) {
-                        img.classList.add('cursor-pointer');
-                        img.onclick = () => {
-                            if (selectedPotion === potionName) {
-                                selectedPotion = null; // Clicar de novo desmarca
-                            } else {
-                                selectedPotion = potionName; // Seleciona a poção para vender
-                            }
-                            updateUI(); // Re-renderiza para mostrar/remover a borda
-                        };
-                    }
-            
                     potionContainer.appendChild(img);
                     
-                    // Botão de Usar Efeito (sempre disponível na fase de ação)
-                    if (myActionPhase) {
-                        const useBtn = document.createElement('button');
-                        useBtn.textContent = 'Usar';
-                        useBtn.className = 'mt-1 text-xs bg-blue-600 text-white rounded px-2 py-0.5 hover:bg-blue-500';
-                        useBtn.onclick = () => {
-                            selectedPotion = null; // Garante que desmarcou antes de usar
-                            handleUsePotion(potionName);
-                        };
-                        potionContainer.appendChild(useBtn);
-                    }
-                    
+                    // Adiciona o nome da poção abaixo da imagem
+                    const nameEl = document.createElement('p');
+                    nameEl.className = 'text-xs text-white truncate w-16';
+                    nameEl.textContent = potionName;
+                    potionContainer.appendChild(nameEl);
+
                     readyPotionsBoardListEl.appendChild(potionContainer);
                 });
             }
             
+            /** Renderiza os efeitos permanentes ativos no painel lateral. */
             function renderActivePotions(listEl, activePotions, ownerId) {
                 listEl.innerHTML = '';
                 for (const potionName in activePotions) {
@@ -1410,6 +1253,7 @@
                 }
             }
             
+            /** Cria um elemento de imagem para um ingrediente. */
             function createIngredientImage(ingredientName, tooltipText) {
                 const img = document.createElement('img');
                 img.src = INGREDIENT_DATA[ingredientName]?.img || 'imagens/placeholder.jpg';
@@ -1418,23 +1262,27 @@
                 return img;
             }
     
+            /** Cria um elemento de imagem para uma poção. */
             function createPotionImage(potionName) {
                 const img = document.createElement('img');
-                img.src = 'imagens/Poção.png'; // Usando a imagem correta
+                img.src = 'imagens/Poção.png';
                 img.title = potionName;
                 img.className = 'w-16 h-16';
                 return img;
             }
     
+            /** Mostra um modal de mensagem simples. */
             function showMessage(message) {
                 messageTextEl.textContent = message;
                 messageModal.classList.remove('hidden');
             }
     
+            /** Retorna o ID do oponente. */
             function getOpponentId(playerId = localPlayerId) {
                 return playerId === 'player1' ? 'player2' : 'player1';
             }
     
+            /** Retorna a contagem de cada ingrediente em uma lista. */
             function getIngredientCounts(ingredientList) {
                 const counts = {};
                 for (const ingredient of ingredientList) {
@@ -1444,12 +1292,10 @@
             }
             
             // ==========================================================
-            // INICIALIZAÇÃO E LISTENERS (NOVOS E MODIFICADOS)
+            // INICIALIZAÇÃO E LISTENERS (LOBBY E JOGO)
             // ==========================================================
             
-            // SUBSTITUA TODA A SUA FUNÇÃO startLobbyBtn.onclick POR ESTA
-    
-            // Garanta que sua função startLobbyBtn.onclick esteja exatamente como esta
+            /** Lida com o clique no botão "Iniciar Jogo". */
             startLobbyBtn.onclick = async () => {
                 const playerName = playerNameInput.value.trim();
                 if (!playerName) {
@@ -1469,8 +1315,8 @@
                     await setDoc(lobbyDocRef, {
                         name: localPlayerName,
                         status: "online", // 'online', 'invited', 'ingame'
-                        invitedBy: null, // UID de quem convidou
-                        inviteTo: null   // UID de para quem enviou convite
+                        invitedBy: null,
+                        inviteTo: null
                     });
                     
                     lobbyScreen.classList.add('hidden');
@@ -1486,7 +1332,7 @@
                 }
             };
     
-            // --- Listener da Lista de Jogadores no Lobby (Novo) ---
+            /** Ouve a lista de jogadores no lobby. */
             function listenToLobbyList() {
                 if (unsubscribeLobbyList) unsubscribeLobbyList();
                 
@@ -1509,11 +1355,8 @@
                         if (player.status === 'online') {
                             statusText = "Online";
                             btn.onclick = () => handleInvitePlayer(playerId, player.name);
-                        } else if (player.status === 'ingame') {
-                            statusText = "Em Jogo";
-                            btn.disabled = true;
-                        } else if (player.status === 'invited') {
-                            statusText = "Recebendo convite...";
+                        } else {
+                            statusText = player.status === 'ingame' ? "Em Jogo" : "Recebendo convite...";
                             btn.disabled = true;
                         }
     
@@ -1530,42 +1373,33 @@
                 });
             }
             
-            // --- Listener do Próprio Jogador no Lobby (Novo) ---
+            /** Ouve o documento do próprio jogador no lobby. */
             async function listenToLobbyUser() {
                 if (unsubscribeLobbyUser) unsubscribeLobbyUser();
                 
                 unsubscribeLobbyUser = onSnapshot(doc(db, lobbyCollectionPath, localUserId), async (docSnap) => {
-                    if (!docSnap.exists()) {
-                        // O documento foi deletado (ex: saiu do lobby)
-                        return;
-                    }
+                    if (!docSnap.exists()) return; // Documento foi deletado (ex: saiu do lobby)
                     
                     const lobbyData = docSnap.data();
                     
                     // 1. Foi convidado?
                     if (lobbyData.status === 'invited' && lobbyData.invitedBy) {
                         const inviterId = lobbyData.invitedBy;
-                        // --- CORREÇÃO: Adiciona verificação se inviterId não é nulo ---
-                        if (!inviterId) return; 
-                        // --- FIM CORREÇÃO ---
+                        if (!inviterId) return; // Segurança contra dados nulos
                         const inviterDoc = await getDoc(doc(db, lobbyCollectionPath, inviterId));
                         if (inviterDoc.exists()) {
                             invitationText.textContent = `${inviterDoc.data().name} convidou você para jogar!`;
                             invitationPopup.classList.remove('hidden');
-                            
                             acceptInviteBtn.onclick = () => handleAcceptInvite(inviterId, inviterDoc.data().name);
                             declineInviteBtn.onclick = () => handleDeclineInvite(inviterId);
                         }
                     } 
-                    // 2. Convite foi aceito? (O status mudou para 'ingame' por outra pessoa)
+                    // 2. Convite foi aceito? (O P2 aceitou meu convite)
                     else if (lobbyData.status === 'ingame' && lobbyData.inviteTo) {
-                        // O jogador para quem eu enviei o convite aceitou
                         gameId = localUserId; // O ID do jogo é o meu ID (invitador)
                         localPlayerId = 'player1';
-                        
                         stopLobbyListeners();
                         listenToGameChanges(gameId);
-                        
                         playerListScreen.classList.add('hidden');
                         gameScreen.classList.remove('hidden');
                     }
@@ -1581,21 +1415,15 @@
                 });
             }
             
-            // --- Ações de Convite (Novas) ---
+            /** Envia um convite para outro jogador. */
             async function handleInvitePlayer(otherPlayerId, otherPlayerName) {
                 try {
                     playerListStatus.textContent = `Convidando ${otherPlayerName}...`;
-                    
                     const batch = writeBatch(db);
-                    
                     // Marca o outro jogador como convidado por mim
-                    const otherPlayerRef = doc(db, lobbyCollectionPath, otherPlayerId);
-                    batch.update(otherPlayerRef, { status: "invited", invitedBy: localUserId });
-                    
-                    // Marca a si mesmo como "convidando" o outro jogador
-                    const selfRef = doc(db, lobbyCollectionPath, localUserId);
-                    batch.update(selfRef, { status: "invited", inviteTo: otherPlayerId });
-                    
+                    batch.update(doc(db, lobbyCollectionPath, otherPlayerId), { status: "invited", invitedBy: localUserId });
+                    // Marca a mim mesmo como "convidando" o outro jogador
+                    batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "invited", inviteTo: otherPlayerId });
                     await batch.commit();
                 } catch (e) {
                     console.error("Erro ao convidar:", e);
@@ -1603,42 +1431,35 @@
                 }
             }
             
+            /** Aceita um convite para jogar. */
             async function handleAcceptInvite(inviterId, inviterName) {
                 try {
                     gameId = inviterId; // O ID do jogo é o ID de quem convidou
                     localPlayerId = 'player2';
                     
-                    // 1. Criar o estado inicial do jogo
+                    // Cria o estado inicial do jogo
                     const initialState = createInitialGameState(inviterName, inviterId);
                     initialState.players.player2.name = localPlayerName;
                     initialState.players.player2.uid = localUserId;
                     initialState.status = 'active';
-                    // logMessage(`${localPlayerName} aceitou o convite!`); // <-- BUG: Isso quebra, localGameState.log é undefined
-                    initialState.log.unshift(`${localPlayerName} aceitou o convite!`); // <-- CORREÇÃO: Adiciona a mensagem ao log do novo estado
     
-                    // --- INÍCIO DA MODIFICAÇÃO ---
-    
-                    // Inicia a fase de produção para o jogador que foi sorteado
+                    // Define a fase inicial para o jogador sorteado
                     initialState.phase = `PRODUCTION_${initialState.currentPlayer.toUpperCase()}`;
                     const startingPlayerName = initialState.players[initialState.currentPlayer].name;
                     initialState.log.unshift(`${localPlayerName} aceitou o convite! ${startingPlayerName} começa a partida!`);
     
-                    // --- FIM DA MODIFICAÇÃO ---
-                    
-                    // 2. Salvar o jogo no DB
+                    // Salva o jogo no DB
                     await setDoc(doc(db, gamesCollectionPath, gameId), initialState);
                     
-                    // 3. Atualizar o status de ambos no lobby para 'ingame'
+                    // Atualiza o status de ambos no lobby para 'ingame'
                     const batch = writeBatch(db);
                     batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "ingame" });
                     batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "ingame" });
                     await batch.commit();
                     
-                    // 4. Parar listeners do lobby e iniciar listener do jogo
                     stopLobbyListeners();
                     listenToGameChanges(gameId);
                     
-                    // 5. Mudar de tela
                     playerListScreen.classList.add('hidden');
                     gameScreen.classList.remove('hidden');
                     
@@ -1647,21 +1468,21 @@
                 }
             }
             
+            /** Recusa um convite para jogar. */
             async function handleDeclineInvite(inviterId) {
                 try {
-                    // 1. Reseta o status de ambos no lobby para 'online'
+                    // Reseta o status de ambos no lobby para 'online'
                     const batch = writeBatch(db);
                     batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "online", invitedBy: null });
                     batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "online", inviteTo: null });
                     await batch.commit();
-                    
-                    // 2. Esconde o popup
                     invitationPopup.classList.add('hidden');
                 } catch (e) {
                     console.error("Erro ao recusar convite:", e);
                 }
             }
             
+            /** Para todos os listeners do lobby. */
             function stopLobbyListeners() {
                 if (unsubscribeLobbyList) unsubscribeLobbyList();
                 if (unsubscribeLobbyUser) unsubscribeLobbyUser();
@@ -1669,14 +1490,14 @@
                 unsubscribeLobbyUser = null;
             }
     
-            // --- Listeners do Jogo (Antigos, mas agora chamados em novos locais) ---
+            // --- Listeners de Botões do Jogo ---
             cauldronBtn.onclick = handleCauldronClick;
             stopPullingBtn.onclick = handleStopPullingClick;
             finishProductionBtn.onclick = handleFinishProductionClick;
             finishActionBtn.onclick = handleFinishActionClick;
-            // ADICIONE ESTAS NOVAS LINHAS
             document.getElementById('mesa-book-btn').onclick = handleBookClick;
             
+            // Navegação do livro de receitas
             document.getElementById('next-page-btn').onclick = () => {
                 const maxPages = Math.ceil(allPotionNames.length / recipesPerPage);
                 if (recipeCurrentPage < maxPages - 1) {
@@ -1684,7 +1505,6 @@
                     renderRecipeBookPage();
                 }
             };
-            
             document.getElementById('prev-page-btn').onclick = () => {
                 if (recipeCurrentPage > 0) {
                     recipeCurrentPage--;
@@ -1692,20 +1512,19 @@
                 }
             };
             
+            // Botões de fechar modais
             closeRecipeModalBtn.onclick = () => recipeModal.classList.add('hidden');
             closeCreatePotionModalBtn.onclick = () => createPotionModal.classList.add('hidden');
             closeMessageModalBtn.onclick = () => messageModal.classList.add('hidden');
-            // CÓDIGO PARA SUBSTITUIR O ANTIGO restartGameBtn.onclick
-    
-            // Adicione a declaração do novo botão no topo, junto com os outros
-            const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
             
+            // Botão de voltar ao lobby (fim de jogo)
+            const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
             backToLobbyBtn.onclick = async () => {
                 endGameModal.classList.add('hidden');
                 gameScreen.classList.add('hidden');
                 playerListScreen.classList.remove('hidden');
             
-                // Limpa o status do jogador no lobby para que ele possa jogar novamente
+                // Limpa o status do jogador no lobby
                 const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
                 await setDoc(lobbyDocRef, { 
                     name: localPlayerName, 
@@ -1714,7 +1533,7 @@
                     inviteTo: null 
                 });
             
-                // Se o jogador era o host (player1), ele deve deletar o jogo antigo
+                // Se o jogador era o host (player1), ele deleta o jogo antigo
                 if (localPlayerId === 'player1') {
                     await deleteDoc(doc(db, gamesCollectionPath, gameId));
                 }
@@ -1724,8 +1543,9 @@
                 listenToLobbyUser();
             };
     
+            // Botão de desistir
             quitGameBtn.onclick = () => {
-                // CORREÇÃO: Substitui o 'confirm' por um modal de decisão
+                // Substitui o `confirm()` por um modal de decisão
                 decisionTitleEl.textContent = "Desistir da Partida?";
                 decisionOptionsEl.innerHTML = `
                     <p class="mb-4">Você tem certeza que deseja desistir? Seu oponente será declarado o vencedor.</p>
@@ -1743,54 +1563,38 @@
                 };
             };
             
-            // SUBSTITUA-A POR ESTAS TRÊS LINHAS:
-    
-            // Este botão SEMPRE abre o painel
+            // Painel lateral de poções
             activePotionsToggleBtn.onclick = () => activePotionsBoard.classList.remove('translate-x-full');
-            
-            // O novo botão 'X' SEMPRE fecha o painel
             closePotionsBoardBtn.onclick = () => activePotionsBoard.classList.add('translate-x-full');
             
             // --- Listener Principal do JOGO ---
             function listenToGameChanges(id) {
-                if (unsubscribeGame) unsubscribeGame();
+                if (unsubscribeGame) unsubscribeGame(); // Para o listener antigo
                 
                 unsubscribeGame = onSnapshot(doc(db, gamesCollectionPath, id), (doc) => {
                     if (!doc.exists()) {
-                        // --- CORREÇÃO: Evita recarregar a página inteira, só volta ao lobby ---
+                        // O jogo foi encerrado pelo host
                         showMessage("O jogo foi encerrado pelo host.");
-                        
                         gameScreen.classList.add('hidden');
                         playerListScreen.classList.remove('hidden');
-                        
-                        // Recomeça a ouvir o lobby
+                        // Limpa o status no lobby e volta a ouvir
                         if(localUserId) {
-                             // Limpa o status do jogador no lobby para que ele possa jogar novamente
                             const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
-                            setDoc(lobbyDocRef, { 
-                                name: localPlayerName, 
-                                status: "online", 
-                                invitedBy: null, 
-                                inviteTo: null 
-                            });
+                            setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
                             listenToLobbyList();
                             listenToLobbyUser();
                         }
                         gameId = null;
                         if(unsubscribeGame) unsubscribeGame();
-                        // --- FIM CORREÇÃO ---
                         return;
                     }
                     
                     const oldState = localGameState;
                     localGameState = doc.data();
                     
-                    // Define o localPlayerId com base no UID (necessário para reconexão)
-                    if (localUserId === localGameState.players.player1.uid) {
-                        localPlayerId = 'player1';
-                    } else if (localUserId === localGameState.players.player2.uid) {
-                        localPlayerId = 'player2';
-                    }
+                    // Define/Redefine o localPlayerId com base no UID (para reconexão)
+                    if (localUserId === localGameState.players.player1.uid) localPlayerId = 'player1';
+                    else if (localUserId === localGameState.players.player2.uid) localPlayerId = 'player2';
     
                     if (localGameState.status === 'active') {
                         lobbyScreen.classList.add('hidden');
@@ -1798,101 +1602,76 @@
                         gameScreen.classList.remove('hidden');
                     }
                     
+                    // Atualiza toda a UI
                     updateUI();
                     
-                    // Lógica de decisão pendente
-                    if (localGameState.decision && localGameState.decision.player === localPlayerId) {
-                        // Implementar a exibição do modal de decisão
+                    // --- Gatilho da Fase de Ação ---
+                    // Se a fase mudou PARA a fase de ação do jogador local
+                    if (oldState.phase !== localGameState.phase && localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`) {
+                        showActionModal(); // Inicia o processo de Vender/Usar
                     }
                     
-                    // Lógica para poções de efeito momentâneo
-                    if (oldState.phase !== localGameState.phase && localGameState.phase === `PRODUCTION_${localPlayerId.toUpperCase()}`) {
-                        const playerState = localGameState.players[localPlayerId];
-                        // Ativa maldições
-                        if (playerState.activePotions["Maldição do Caldeirão Trincado"]) {
-                            showMessage("Você está sob a Maldição do Caldeirão Trincado! Puxar um ingrediente AMARELO encerrará sua fase!");
-                            // A lógica de checagem deve estar no handleCauldronClick
-                        }
-                    }
-
-                    // --- CORREÇÃO: Checa se o jogo acabou ---
+                    // Checa se o jogo acabou
                     if (localGameState.phase === 'GAME_OVER' && oldState.phase !== 'GAME_OVER') {
                         endGame(); // Chama a função para mostrar o modal de fim de jogo
                     }
                 });
             }
             
-            // --- Inicialização da Autenticação (Modificado) ---
+            // --- Inicialização da Autenticação ---
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    // Usuário já está logado (anônimo ou não)
-                    console.log("Usuário autenticado:", user.uid);
+                    // Usuário já está logado
                     localUserId = user.uid;
-                    
-                    // --- CORREÇÃO (Race Condition) ---
-                    startLobbyBtn.disabled = false; // Habilita o botão
-                    lobbyStatus.textContent = "Autenticado. Insira seu nome."; // Status padrão
-                    // --- FIM CORREÇÃO ---
+                    // Libera o botão de login
+                    startLobbyBtn.disabled = false;
+                    lobbyStatus.textContent = "Autenticado. Insira seu nome.";
                     
                     // Verifica se o usuário já está em um jogo ou lobby (ex: F5 na página)
                     const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
                     const lobbyDoc = await getDoc(lobbyDocRef);
                     
                     if (lobbyDoc.exists()) {
-                        // --- CORREÇÃO (Race Condition) ---
-                        lobbyStatus.textContent = "Verificando sessão anterior..."; // Atualiza status
-                        // --- FIM CORREÇÃO ---
+                        lobbyStatus.textContent = "Verificando sessão anterior...";
                         
                         const lobbyData = lobbyDoc.data();
                         localPlayerName = lobbyData.name;
-                        playerNameInput.value = localPlayerName; // Preenche o nome no lobby
+                        playerNameInput.value = localPlayerName; // Preenche o nome
                         
                         if (lobbyData.status === 'ingame') {
                             // Tenta encontrar o ID do jogo para reconectar
-                            let gameIdToFind = null;
-                            if (lobbyData.inviteTo) { // Eu era P1/Host
-                                gameIdToFind = localUserId;
-                            } else if (lobbyData.invitedBy) { // Eu era P2/Convidado
-                                gameIdToFind = lobbyData.invitedBy;
-                            }
+                            let gameIdToFind = lobbyData.inviteTo ? localUserId : lobbyData.invitedBy;
                     
                             if (gameIdToFind) {
                                 const gameDoc = await getDoc(doc(db, gamesCollectionPath, gameIdToFind));
                                 
-                                // NOVO: A condição agora também verifica se o jogo já não foi finalizado
+                                // Se o jogo existe E não está finalizado
                                 if (gameDoc.exists() && gameDoc.data().status !== 'finished') {
-                                    
-                                    // Jogo encontrado, AGORA MOSTRA A TELA DE ESCOLHA
                                     gameId = gameIdToFind;
-                    
-                                    // Esconde todas as outras telas para garantir
                                     lobbyScreen.classList.add('hidden');
-                                    playerListScreen.classList.add('hidden');
-                                    gameScreen.classList.add('hidden');
-                    
                                     // Mostra a tela de reconexão
                                     const reconnectScreen = document.getElementById('reconnect-screen');
                                     reconnectScreen.classList.remove('hidden');
                     
-                                    // Lógica do botão "Sim": faz o que o código antigo fazia
+                                    // Lógica do botão "Sim" (reconectar)
                                     document.getElementById('reconnect-yes-btn').onclick = () => {
                                         reconnectScreen.classList.add('hidden');
                                         listenToGameChanges(gameId); // Reconecta ao jogo
                                     };
                     
-                                    // Lógica do botão "Não": abandona a partida
+                                    // Lógica do botão "Não" (abandonar)
                                     document.getElementById('reconnect-no-btn').onclick = async () => {
-                                        // Finaliza o jogo, dando a vitória para o oponente
                                         const gameData = gameDoc.data();
                                         const myPlayerId = gameData.players.player1.uid === localUserId ? 'player1' : 'player2';
                                         const opponentId = myPlayerId === 'player1' ? 'player2' : 'player1';
                     
+                                        // Finaliza o jogo, dando a vitória para o oponente
                                         gameData.status = 'finished';
                                         gameData.phase = 'GAME_OVER';
-                                        gameData.winner = opponentId; // Oponente vence
+                                        gameData.winner = opponentId;
                                         gameData.log.unshift(`${gameData.players[myPlayerId].name} abandonou a partida.`);
                                         
-                                        await setDoc(doc(db, gamesCollectionPath, gameId), gameData); // Atualiza o jogo
+                                        await setDoc(doc(db, gamesCollectionPath, gameId), gameData);
                     
                                         // Reseta o jogador para o lobby
                                         reconnectScreen.classList.add('hidden');
@@ -1905,16 +1684,16 @@
                                 } else {
                                     // Jogo não existe mais ou já acabou, reseta para o lobby
                                     await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
-                                    lobbyScreen.classList.add('hidden'); // Esconde lobby
-                                    playerListScreen.classList.remove('hidden'); // Mostra lista
+                                    lobbyScreen.classList.add('hidden');
+                                    playerListScreen.classList.remove('hidden');
                                     listenToLobbyList();
                                     listenToLobbyUser();
                                 }
                             } else {
                                 // Estado 'ingame' inconsistente, reseta para o lobby
                                 await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
-                                lobbyScreen.classList.add('hidden'); // Esconde lobby
-                                playerListScreen.classList.remove('hidden'); // Mostra lista
+                                lobbyScreen.classList.add('hidden');
+                                playerListScreen.classList.remove('hidden');
                                 listenToLobbyList();
                                 listenToLobbyUser();
                             }
@@ -1927,13 +1706,14 @@
                         }
                     }
                     // Se não está no lobby, espera na tela de login (lobbyScreen)
-                    
                 } else {
-                    // Tenta logar
+                    // Tenta logar anonimamente
                     try {
+                        // Se um token customizado for injetado (ambiente de dev)
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                             await signInWithCustomToken(auth, __initial_auth_token);
                         } else {
+                            // Senão, login anônimo (GitHub Pages)
                             await signInAnonymously(auth);
                         }
                     } catch (error) {
@@ -1942,204 +1722,89 @@
                     }
                 }
             });
-    
-            // --- Limpeza ao fechar a aba (Modificado) ---
+            
+            // --- Limpeza ao fechar a aba ---
+            // Removemos a limpeza para permitir a reconexão
+            /*
             window.addEventListener('beforeunload', () => {
-                // Não deleta mais o jogador do lobby, para permitir reconexão
-                /*
                 if (localUserId) {
-                    // Remove o jogador do lobby ao fechar
                     deleteDoc(doc(db, lobbyCollectionPath, localUserId));
                 }
-                */
-                // Não deleta mais o jogo, para permitir reconexão
-                /*
                 if (gameId && localPlayerId === 'player1' && localGameState.status !== 'finished') {
                     deleteDoc(doc(db, gamesCollectionPath, gameId));
                 }
-                */
             });
+            */
             
         } catch (e) {
             console.error("Erro ao inicializar o Firebase:", e);
-            document.body.innerHTML = "<h1>Erro ao conectar ao Firebase. Verifique sua configuração.</h1>";
+            document.body.innerHTML = `
+                <div class="fixed inset-0 bg-red-900 text-white flex flex-col items-center justify-center p-8 text-center">
+                    <h1 class="text-3xl font-bold mb-4">Erro Crítico ao Inicializar</h1>
+                    <p class="text-lg mb-2">Não foi possível conectar ao Firebase. Verifique a configuração no código.</p>
+                    <p class="text-sm font-mono bg-red-700 p-4 rounded">${e.message}</p>
+                </div>
+            `;
         }
 
     </script>
     
+    <!-- Estilos (sem alterações) -->
     <style>
-        /* Estilos globais do body */
-        body {
-            /* background-image: url('imagens/Fundo.png'); -- Removido */
-            /* background-size: cover; */
-            /* background-position: center center; */
-            /* background-repeat: no-repeat; */
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            font-family: 'Times New Roman', Times, serif;
-        }
-
-        /* Fundo da tela de Jogo (O fundo original) */
-        #game-screen {
-            background-image: url('imagens/Fundo.png');
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-        }
-
-        /* Fundo das telas de Lobby e Lista de Jogadores (Fundo de pergaminho) */
-        #lobby-screen, #player-list-screen, #reconnect-screen {
-            /* Usando o pergaminho como fundo do lobby, diferente do jogo */
-            background-image: url('imagens/pergaminho_fundo.jpg');
-            background-size: cover;
-            background-position: center center;
-        }
-
-        /* ADICIONE ESTE NOVO ESTILO */
-        #livro-container {
-            background-image: url('imagens/livro.png');
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-        }
-
-        /* Estilo para a receita dentro da página, para ficar legível */
-        .receita-item {
-            color: #3d2a1a; /* Cor de texto escura, boa para fundo claro */
-        }
-        
-        /* Cor de fonte padrão para melhor legibilidade */
-        .text-shadow {
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-        }
-
-        /* Estilo para a bolha de diálogo dos clientes */
-        .speech-bubble {
-            position: relative;
-            background: #f0e6d2; /* Cor de pergaminho */
-            border-radius: .4em;
-            border: 2px solid #5c3d20;
-            padding: 8px 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-            transition: all 0.2s ease;
-        }
-        .speech-bubble:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border: 15px solid transparent;
-            border-top-color: #5c3d20;
-            border-bottom: 0;
-            margin-left: -15px;
-            margin-bottom: -17px;
-        }
-        
-        /* Fundo de pergaminho para os modais */
-        .pergaminho-bg {
-            background-image: url('imagens/pergaminho_fundo.jpg');
-            background-size: cover;
-            background-position: center;
-            color: #3d2a1a;
-            border: 4px solid #5c3d20;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-
-        /* Animação para o painel de poções ativas */
-        #active-potions-board {
-            transition: transform 0.3s ease-in-out;
-        }
-        
-        /* Tooltip para mostrar nome da poção ao passar o mouse */
-        .potion-tooltip .tooltip-text {
-            visibility: hidden;
-            width: 200px;
-            background-color: #5c3d20;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 5px;
-            position: absolute;
-            z-index: 10;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -100px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-        .potion-tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
-        
-        /* Estilo dos botões */
-        .btn {
-            @apply py-2 px-4 rounded text-white font-bold shadow-lg transition-all duration-200 transform hover:scale-105 border-b-4 disabled:opacity-50 disabled:cursor-not-allowed;
-        }
+        body { height: 100vh; width: 100vw; overflow: hidden; font-family: 'Times New Roman', Times, serif; }
+        #game-screen { background-image: url('imagens/Fundo.png'); background-size: cover; background-position: center center; background-repeat: no-repeat; }
+        #lobby-screen, #player-list-screen, #reconnect-screen { background-image: url('imagens/pergaminho_fundo.jpg'); background-size: cover; background-position: center center; }
+        #livro-container { background-image: url('imagens/livro.png'); background-size: 100% 100%; background-repeat: no-repeat; }
+        .receita-item { color: #3d2a1a; }
+        .text-shadow { text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+        .speech-bubble { position: relative; background: #f0e6d2; border-radius: .4em; border: 2px solid #5c3d20; padding: 8px 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); transition: all 0.2s ease; }
+        .speech-bubble:after { content: ''; position: absolute; bottom: 0; left: 50%; width: 0; height: 0; border: 15px solid transparent; border-top-color: #5c3d20; border-bottom: 0; margin-left: -15px; margin-bottom: -17px; }
+        .pergaminho-bg { background-image: url('imagens/pergaminho_fundo.jpg'); background-size: cover; background-position: center; color: #3d2a1a; border: 4px solid #5c3d20; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        #active-potions-board { transition: transform 0.3s ease-in-out; }
+        .potion-tooltip .tooltip-text { visibility: hidden; width: 200px; background-color: #5c3d20; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -100px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .potion-tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
+        .btn { @apply py-2 px-4 rounded text-white font-bold shadow-lg transition-all duration-200 transform hover:scale-105 border-b-4 disabled:opacity-50 disabled:cursor-not-allowed; }
         .btn-green { @apply bg-green-700 border-green-900 hover:bg-green-600; }
         .btn-red { @apply bg-red-700 border-red-900 hover:bg-red-600; }
         .btn-blue { @apply bg-blue-700 border-blue-900 hover:bg-blue-600; }
         .btn-gray { @apply bg-gray-600 border-gray-800 hover:bg-gray-500; }
         .btn-yellow { @apply bg-yellow-600 border-yellow-800 hover:bg-yellow-500; }
-        
-        /* Estilos das Fichas de Ingrediente */
-        .ingredient-img {
-            @apply w-16 h-16 rounded-full border-4 shadow-md object-cover;
-            border-color: #3d2a1a;
-            transition: all 0.2s ease;
-        }
-        .ingredient-img:hover {
-            @apply shadow-lg scale-105;
-        }
-        .ingredient-img.clickable {
-            @apply cursor-pointer hover:border-yellow-400;
-        }
-        
-        .potion-img {
-            @apply w-16 h-16 object-contain;
-            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5));
-        }
-
+        .ingredient-img { @apply w-16 h-16 rounded-full border-4 shadow-md object-cover; border-color: #3d2a1a; transition: all 0.2s ease; }
+        .ingredient-img:hover { @apply shadow-lg scale-105; }
+        .ingredient-img.clickable { @apply cursor-pointer hover:border-yellow-400; }
+        .potion-img { @apply w-16 h-16 object-contain; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
 
-    <!-- TELA 1: LOGIN (Modificada) -->
+    <!-- TELA 1: LOGIN -->
     <div id="lobby-screen" class="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div class="p-8 rounded-lg w-full max-w-md text-center text-[#3d2a1a]">
-            
-            <!-- Logo (Círculo do seu rascunho) - Borda removida e tamanho aumentado -->
+            <!-- Logo -->
             <div class="w-[400px] h-[400px] bg-transparent rounded-full mx-auto mb-6 flex items-center justify-center">
                  <img src="imagens/Logo.png" alt="Logo Alquimercadores" class="w-[350px] h-[350px]">
             </div>
-            
+            <!-- Input de Nome -->
             <div class="mb-4">
-                <!-- Label removida, texto movido para o placeholder -->
                 <input type="text" id="player-name-input" placeholder="Insira seu nome" class="w-full p-3 rounded border-2 bg-purple-600 text-white placeholder-purple-200 border-purple-800">
             </div>
-            
+           <!-- Botão de Iniciar -->
            <button id="start-lobby-btn" class="btn w-1/2 mx-auto mb-4 bg-purple-600 border-purple-800 hover:bg-purple-500">Iniciar Jogo</button>
-            
+            <!-- Status do Lobby -->
             <p id="lobby-status" class="text-center text-red-700 h-6 mt-4"></p>
         </div>
     </div>
     
-    <!-- TELA 2: LISTA DE JOGADORES (Nova) -->
+    <!-- TELA 2: LISTA DE JOGADORES -->
     <div id="player-list-screen" class="hidden fixed inset-0 flex items-center justify-center z-40 p-4">
         <div class="pergaminho-bg p-8 rounded-lg w-full max-w-lg h-[80vh] flex flex-col">
             <h2 class="text-3xl font-bold text-center text-[#3d2a1a] mb-6">Jogadores Online</h2>
-            
             <p id="player-list-status" class="text-center text-gray-700 h-6 mb-4">Aguardando convites...</p>
-
+            <!-- Lista de Jogadores -->
             <div id="player-list" class="flex-grow overflow-y-auto space-y-2 bg-black/5 p-2 rounded border border-yellow-700/30">
-                <!-- A lista de jogadores será preenchida pelo JS -->
                 <p class="text-center text-gray-700">Carregando jogadores...</p>
             </div>
-            
-            <!-- Popup de Convite (Inicialmente oculto) -->
+            <!-- Popup de Convite -->
             <div id="invitation-popup" class="hidden absolute bottom-8 left-8 right-8 bg-yellow-100 p-6 rounded-lg border-4 border-green-600 shadow-2xl">
                 <p id="invitation-text" class="text-center text-xl font-bold mb-4">...</p>
                 <div class="flex gap-4">
@@ -2150,28 +1815,31 @@
         </div>
     </div>
 
+    <!-- TELA DE RECONEXÃO -->
     <div id="reconnect-screen" class="hidden fixed inset-0 flex items-center justify-center z-40 p-4">
-    <div class="pergaminho-bg p-8 rounded-lg w-full max-w-md text-center">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">Partida em Andamento Detectada!</h2>
-        <p class="text-lg text-gray-700 mb-6">Você quer voltar para a sua partida anterior?</p>
-        <div class="flex gap-4">
-            <button id="reconnect-yes-btn" class="btn btn-green w-1/2">Sim, reconectar</button>
-            <button id="reconnect-no-btn" class="btn btn-red w-1/2">Não, abandonar</button>
+        <div class="pergaminho-bg p-8 rounded-lg w-full max-w-md text-center">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Partida em Andamento Detectada!</h2>
+            <p class="text-lg text-gray-700 mb-6">Você quer voltar para a sua partida anterior?</p>
+            <div class="flex gap-4">
+                <button id="reconnect-yes-btn" class="btn btn-green w-1/2">Sim, reconectar</button>
+                <button id="reconnect-no-btn" class="btn btn-red w-1/2">Não, abandonar</button>
+            </div>
         </div>
     </div>
-</div>
     
-    <!-- TELA 3: JOGO (Oculta, sem modificações de layout) -->
+    <!-- TELA 3: JOGO -->
     <div id="game-screen" class="hidden relative w-full h-screen max-w-[1920px] mx-auto">
-        
+        <!-- Placar -->
         <div id="score-display" class="absolute top-4 left-4 bg-black/50 p-4 rounded-lg border-2 border-[#5c3d20] text-shadow">
             <h3 class="text-xl font-bold text-yellow-300 mb-2">Tesouro</h3>
             <div id="player1-score" class="text-lg text-white">Jogador 1: 0 💰</div>
             <div id="player2-score" class="text-lg text-white">Jogador 2: 0 💰</div>
         </div>
         
-        <button id="quit-game-btn" class="absolute top-4 right-4 btn btn-red z-20">Sair da Partida</button>
+        <!-- Botão de Sair -->
+        <button id="quit-game-btn" class="absolute top-4 right-4 btn btn-red z-20">Desistir</button>
         
+        <!-- Área dos Clientes -->
         <div id="client-area" class="absolute top-[28%] left-[12%] w-[45%] h-[25%]">
             <div id="client-1" class="absolute left-[-5%] top-0 w-48">
                 <div id="client-1-bubble" class="speech-bubble text-center text-black">
@@ -2193,42 +1861,43 @@
             </div>
         </div>
 
+        <!-- Nomes dos Jogadores -->
         <div id="player1-name-display" class="absolute top-[20%] right-[15%] text-2xl font-bold text-blue-300 text-shadow">Jogador 1</div>
         <div id="player2-name-display" class="absolute top-[40%] right-[15%] text-2xl font-bold text-red-300 text-shadow">Jogador 2</div>
 
-        <div id="player1-shelf" class="absolute top-[12%] right-[8%] w-[20%] h-[10%] flex justify-center items-center gap-2 p-2">
-            </div>
-        <div id="player2-shelf" class="absolute top-[30%] right-[8%] w-[20%] h-[10%] flex justify-center items-center gap-2 p-2">
-            </div>
-
-        <div id="counter-area" class="absolute top-[78%] left-[13%] w-[50%] h-[15%] flex justify-center items-center gap-2 p-2 bg-black/10 rounded">
-            </div>
-
-        <div id="cauldron-btn" class="absolute top-[64%] right-[21%] w-[20%] h-[35%] cursor-pointer rounded-full" title="Puxar Ingrediente"></div>
+        <!-- Prateleiras -->
+        <div id="player1-shelf" class="absolute top-[12%] right-[8%] w-[20%] h-[10%] flex justify-center items-center gap-2 p-2"></div>
+        <div id="player2-shelf" class="absolute top-[30%] right-[8%] w-[20%] h-[10%] flex justify-center items-center gap-2 p-2"></div>
+        
+        <!-- Balcão -->
+        <div id="counter-area" class="absolute top-[78%] left-[13%] w-[50%] h-[15%] flex justify-center items-center gap-2 p-2 bg-black/10 rounded"></div>
+        
+        <!-- Caldeirão e Mesa de Livro -->
+        <div id="cauldron-btn" class="absolute top-[64%] right-[21%] w-[20%] h-[35%] rounded-full" title="Puxar Ingrediente"></div>
         <div id="mesa-book-btn" class="absolute top-[73%] left-[3%] w-[8%] h-[18%] cursor-pointer rounded-lg" title="Abrir Arcano Potionum"></div>
         
+        <!-- Botões de Ação de Turno -->
         <div id="action-buttons-container" class="absolute bottom-4 left-4 flex flex-col gap-2 z-10">
             <button id="stop-pulling-btn" class="btn btn-red hidden">Parar de Puxar</button>
             <button id="finish-production-btn" class="btn btn-yellow hidden">Finalizar Produção</button>
             <button id="finish-action-btn" class="btn btn-green hidden">Finalizar Ações</button>
         </div>
 
+        <!-- Botão de Poções Ativas (Painel Lateral) -->
         <div id="active-potions-toggle" class="absolute bottom-5 right-5 bg-[#5c3d20] p-3 rounded-full cursor-pointer border-2 border-yellow-300 hover:bg-[#7a5532] z-20">
             <img src="imagens/Poção.png" alt="Poções Ativas" class="w-10 h-10">
         </div>
 
+        <!-- Painel Lateral de Poções -->
         <div id="active-potions-board" class="absolute top-0 right-0 w-80 h-full bg-black/80 backdrop-blur-sm p-4 border-l-4 border-[#5c3d20] z-30 translate-x-full">
-
             <button id="close-potions-board-btn" class="absolute top-2 right-3 text-4xl text-yellow-300 hover:text-white">&times;</button>
-        
             <h3 class="text-2xl font-bold text-yellow-300 mb-4 border-b-2 border-yellow-400 pb-2">Poções</h3>
-        
+            <!-- Poções Prontas -->
             <div class="mb-6">
                 <h4 class="text-xl font-semibold text-yellow-500">Prontas para Uso:</h4>
-                <div id="ready-potions-board-list" class="flex flex-wrap gap-2 mt-2 min-h-[70px] bg-black/20 p-2 rounded">
-                    </div>
+                <div id="ready-potions-board-list" class="flex flex-wrap gap-2 mt-2 min-h-[70px] bg-black/20 p-2 rounded"></div>
             </div>
-        
+            <!-- Efeitos Ativos -->
             <div>
                 <h4 class="text-xl font-semibold text-gray-300">Efeitos Ativos:</h4>
                 <div id="player1-active-potions" class="mt-2">
@@ -2240,35 +1909,32 @@
                     <ul id="player2-active-potions-list" class="flex flex-col gap-2 mt-1"></ul>
                 </div>
             </div>
-        
         </div>
 
-        <!-- MODAIS (Ocultados para brevidade, são os mesmos de antes) -->
+        <!-- =================== MODAIS =================== -->
+
+        <!-- Modal Livro de Receitas -->
         <div id="recipe-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
             <div id="livro-container" class="relative w-full max-w-5xl aspect-[16/9]"> 
-        
-                <div id="pagina-esquerda" class="absolute top-[10%] left-[5%] w-[42%] h-[80%] p-4 overflow-y-auto">
-                    </div>
-                <div id="pagina-direita" class="absolute top-[10%] right-[5%] w-[42%] h-[80%] p-4 overflow-y-auto">
-                    </div>
-        
+                <div id="pagina-esquerda" class="absolute top-[10%] left-[5%] w-[42%] h-[80%] p-4 overflow-y-auto"></div>
+                <div id="pagina-direita" class="absolute top-[10%] right-[5%] w-[42%] h-[80%] p-4 overflow-y-auto"></div>
                 <button id="prev-page-btn" class="absolute bottom-[5%] left-[3%] text-5xl text-[#5c3d20] hover:text-black">‹</button>
                 <button id="next-page-btn" class="absolute bottom-[5%] right-[3%] text-5xl text-[#5c3d20] hover:text-black">›</button>
-        
                 <button id="close-recipe-modal-btn" class="absolute top-4 right-6 text-5xl text-[#5c3d20] hover:text-red-700">&times;</button>
             </div>
         </div>
         
+        <!-- Modal Criar Poção -->
         <div id="create-potion-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
             <div class="pergaminho-bg p-8 rounded-lg w-full max-w-2xl h-auto max-h-[80vh] overflow-y-auto relative">
                 <h2 class="text-3xl font-bold text-center text-[#3d2a1a] mb-6">Criar Poções</h2>
                 <p class="text-center text-lg text-[#3d2a1a] mb-4">Poções que você pode criar com os ingredientes do balcão:</p>
-                <div id="create-potion-list" class="space-y-4">
-                    </div>
-                <button id="close-create-potion-modal-btn" class="absolute top-4 right-6 text-5xl text-[#5c3d20] hover:text-red-700">&times;</button>
+                <div id="create-potion-list" class="space-y-4"></div>
+                <button id="close-create-potion-modal-btn" class="absolute top-4 right-6 text-5xl text-[#3d2a1a] hover:text-red-700">&times;</button>
             </div>
         </div>
         
+        <!-- Modal de Ação (Vender/Usar) -->
         <div id="action-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
             <div class="pergaminho-bg p-8 rounded-lg w-full max-w-lg text-center">
                 <h2 class="text-3xl font-bold text-center text-[#3d2a1a] mb-2">Sua Poção Pronta:</h2>
@@ -2281,6 +1947,7 @@
             </div>
         </div>
         
+        <!-- Modal de Mensagem Simples -->
         <div id="message-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-50">
             <div class="pergaminho-bg p-8 rounded-lg w-full max-w-md text-center">
                 <h2 id="message-text" class="text-2xl font-bold text-gray-800 mb-6">...</h2>
@@ -2288,14 +1955,15 @@
             </div>
         </div>
         
+        <!-- Modal de Decisão (Genérico) -->
         <div id="decision-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-50">
             <div class="pergaminho-bg p-8 rounded-lg w-full max-w-lg text-center">
                 <h2 id="decision-title" class="text-2xl font-bold text-gray-800 mb-4">...</h2>
-                <div id="decision-options" class="space-y-2">
-                    </div>
+                <div id="decision-options" class="space-y-2"></div>
             </div>
         </div>
 
+        <!-- Modal de Fim de Jogo -->
         <div id="end-game-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-50">
             <div class="pergaminho-bg p-12 rounded-lg w-full max-w-lg text-center">
                 <h2 class="text-4xl font-bold text-gray-800 mb-6">O Mercado Fechou!</h2>
@@ -2303,8 +1971,6 @@
                 <button id="back-to-lobby-btn" class="btn btn-blue w-full">Voltar ao Lobby</button>
             </div>
         </div>
-
     </div>
-    
 </body>
 </html>
