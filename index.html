@@ -1800,6 +1800,12 @@
                 // Usuário já está logado (anônimo ou não)
                 console.log("Usuário autenticado:", user.uid);
                 localUserId = user.uid;
+
+                // ▼▼▼ ADICIONE ESTE BLOCO DE CÓDIGO AQUI ▼▼▼
+                // Habilita o botão do lobby e restaura o texto original
+                startLobbyBtn.disabled = false;
+                startLobbyBtn.textContent = "Iniciar Jogo";
+                // ▲▲▲ FIM DO BLOCO NOVO ▲▲▲
                 
                 // Verifica se o usuário já está em um jogo ou lobby (ex: F5 na página)
                 const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
@@ -2072,8 +2078,7 @@
                 <input type="text" id="player-name-input" placeholder="Insira seu nome" class="w-full p-3 rounded border-2 bg-purple-600 text-white placeholder-purple-200 border-purple-800">
             </div>
             
-            <!-- Botão modificado para roxo e menor -->
-            <button id="start-lobby-btn" class="btn w-1/2 mx-auto mb-4 bg-purple-600 border-purple-800 hover:bg-purple-500">Iniciar Jogo</button>
+           <button id="start-lobby-btn" class="btn w-1/2 mx-auto mb-4 bg-purple-600 border-purple-800 hover:bg-purple-500" disabled>Autenticando...</button>
             
             <p id="lobby-status" class="text-center text-red-700 h-6 mt-4"></p>
         </div>
@@ -2260,6 +2265,7 @@
     
 </body>
 </html>
+
 
 
 
