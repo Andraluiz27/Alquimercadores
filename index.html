@@ -1460,18 +1460,35 @@
         // INICIALIZAÇÃO E LISTENERS (NOVOS E MODIFICADOS)
         // ==========================================================
         
-        // --- Listener do Botão "Iniciar Jogo" (Novo) ---
+        // SUBSTITUA TODA A SUA FUNÇÃO startLobbyBtn.onclick POR ESTA
+
         startLobbyBtn.onclick = async () => {
             const playerName = playerNameInput.value.trim();
             if (!playerName) {
                 lobbyStatus.textContent = "Por favor, digite seu nome.";
                 return;
             }
+        
+            // Desabilita o botão e mostra feedback
+            startLobbyBtn.disabled = true;
+            startLobbyBtn.textContent = "Conectando...";
+            
+            // Tenta por até 5 segundos obter o ID do usuário
+            let attempts = 0;
+            while (!localUserId && attempts < 10) {
+                lobbyStatus.textContent = "Autenticando, por favor aguarde...";
+                await new Promise(resolve => setTimeout(resolve, 500)); // Espera meio segundo
+                attempts++;
+            }
+        
+            // Se depois de 5 segundos não autenticou, mostra erro
             if (!localUserId) {
-                lobbyStatus.textContent = "Aguardando autenticação...";
+                lobbyStatus.textContent = "Falha na autenticação. Tente recarregar a página.";
+                startLobbyBtn.disabled = false; // Reabilita o botão
+                startLobbyBtn.textContent = "Iniciar Jogo";
                 return;
             }
-
+        
             localPlayerName = playerName;
             lobbyStatus.textContent = "Entrando no lobby...";
             
@@ -1479,21 +1496,24 @@
             try {
                 await setDoc(lobbyDocRef, {
                     name: localPlayerName,
-                    status: "online", // 'online', 'invited', 'ingame'
-                    invitedBy: null, // UID de quem convidou
-                    inviteTo: null   // UID de para quem enviou convite
+                    status: "online",
+                    invitedBy: null,
+                    inviteTo: null
                 });
                 
                 lobbyScreen.classList.add('hidden');
                 playerListScreen.classList.remove('hidden');
                 
-                // Inicia os listeners do lobby
                 listenToLobbyList();
                 listenToLobbyUser();
                 
             } catch (e) {
                 console.error("Erro ao entrar no lobby:", e);
                 lobbyStatus.textContent = "Erro ao conectar. Tente novamente.";
+            } finally {
+                // Garante que o botão seja reativado mesmo se der erro
+                startLobbyBtn.disabled = false;
+                startLobbyBtn.textContent = "Iniciar Jogo";
             }
         };
 
@@ -1800,12 +1820,6 @@
                 // Usuário já está logado (anônimo ou não)
                 console.log("Usuário autenticado:", user.uid);
                 localUserId = user.uid;
-
-                // ▼▼▼ ADICIONE ESTE BLOCO DE CÓDIGO AQUI ▼▼▼
-                // Habilita o botão do lobby e restaura o texto original
-                startLobbyBtn.disabled = false;
-                startLobbyBtn.textContent = "Iniciar Jogo";
-                // ▲▲▲ FIM DO BLOCO NOVO ▲▲▲
                 
                 // Verifica se o usuário já está em um jogo ou lobby (ex: F5 na página)
                 const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
@@ -2078,7 +2092,7 @@
                 <input type="text" id="player-name-input" placeholder="Insira seu nome" class="w-full p-3 rounded border-2 bg-purple-600 text-white placeholder-purple-200 border-purple-800">
             </div>
             
-           <button id="start-lobby-btn" class="btn w-1/2 mx-auto mb-4 bg-purple-600 border-purple-800 hover:bg-purple-500" disabled>Autenticando...</button>
+           <button id="start-lobby-btn" class="btn w-1/2 mx-auto mb-4 bg-purple-600 border-purple-800 hover:bg-purple-500">Iniciar Jogo</button>
             
             <p id="lobby-status" class="text-center text-red-700 h-6 mt-4"></p>
         </div>
@@ -2265,6 +2279,7 @@
     
 </body>
 </html>
+
 
 
 
