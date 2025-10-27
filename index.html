@@ -573,21 +573,23 @@
             // O estado é atualizado dentro de startActionPhase ou endGame ou startNewRound
         }
         
-        /**
-         * Prepara uma nova rodada (novos clientes, se necessário).
-         */
-        // SUBSTITUA a função startNewRound antiga por esta
+        // SUBSTITUA A FUNÇÃO startNewRound ANTIGA POR ESTA
         function startNewRound() {
             logMessage("Uma nova rodada começa!");
-        
+            
             // Repõe os clientes que foram atendidos na rodada anterior
             localGameState.clients.forEach((client, index) => {
                 if (client.served) {
+                    // Gera um novo cliente na mesma posição
                     localGameState.clients[index] = generateClient(CLIENT_TYPES[index]);
                 }
             });
         
-            startProductionPhase('player1'); // O updateFirestoreState já está aqui dentro
+            // Zera a poção selecionada para o novo turno
+            selectedPotion = null; 
+        
+            // O jogo continua, passando para a produção do Jogador 1
+            startProductionPhase('player1');
         }
         
         /**
@@ -862,6 +864,41 @@
                 return;
             }
             endActionPhase();
+        }
+
+        // ADICIONE ESTA FUNÇÃO NOVA
+        /**
+         * Lida com o clique em um balão de cliente para vender uma poção selecionada.
+         */
+        function handleClientClick(clientIndex) {
+            const client = localGameState.clients[clientIndex];
+            if (!selectedPotion || client.wants !== selectedPotion) {
+                showMessage("Este cliente não quer a poção selecionada!");
+                return;
+            }
+        
+            const playerState = localGameState.players[localPlayerId];
+            if (client.contract && client.contract !== localPlayerId) {
+                showMessage("Este cliente tem um contrato com seu oponente!");
+                return;
+            }
+        
+            // --- VENDA BEM SUCEDIDA ---
+            logMessage(`${playerState.name} vendeu ${selectedPotion} por ${client.price} moedas!`);
+            
+            // Adiciona moedas
+            playerState.coins += client.price; 
+            
+            // Remove a poção da lista de prontas
+            const potionIdx = playerState.potionsReady.indexOf(selectedPotion);
+            if (potionIdx > -1) playerState.potionsReady.splice(potionIdx, 1);
+        
+            // Marca o cliente como atendido para que ele suma, mas NÃO o substitui ainda
+            localGameState.clients[clientIndex].served = true;
+            localGameState.clientsServed++;
+            
+            selectedPotion = null; // Limpa a seleção
+            updateFirestoreState(localGameState);
         }
 
         // ==========================================================
@@ -1213,18 +1250,18 @@
             player1NameDisplay.textContent = p1.name + (amIPlayer1 ? " (Você)" : "");
             player2NameDisplay.textContent = p2.name + (!amIPlayer1 ? " (Você)" : "");
 
-            // SUBSTITUA O BLOCO "clientBubbles.forEach" DENTRO DE updateUI POR ESTE
+            // SUBSTITUA O BLOCO "clientBubbles.forEach" POR ESTE
             clientBubbles.forEach((bubble, index) => {
                 const client = localGameState.clients[index];
-                bubble.style.cursor = 'default'; // Reset cursor
-                bubble.onclick = null; // Reset click handler
+                bubble.style.cursor = 'default';
+                bubble.onclick = null;
             
-                if (client && !client.served) { // Só mostra e adiciona lógica se o cliente não foi atendido
-                    bubble.style.visibility = 'visible';
+                // A nova condição: só mostra se o cliente existe E não foi atendido
+                if (client && !client.served) {
+                    bubble.style.visibility = 'visible'; // Garante que o balão está visível
                     bubble.querySelector('.potion-name').textContent = client.wants;
                     bubble.querySelector('.potion-price').textContent = `💰 ${client.price}`;
-                    
-                    // Lógica de Contrato
+            
                     if (client.contract === 'player1') {
                         bubble.classList.add('border-4', 'border-blue-500');
                     } else if (client.contract === 'player2') {
@@ -1233,14 +1270,13 @@
                         bubble.classList.remove('border-4', 'border-blue-500', 'border-red-500');
                     }
             
-                    // Torna o balão clicável APENAS na fase de ação
-                    if (myActionPhase) {
+                    // Torna o balão clicável apenas na sua fase de ação E se você tiver uma poção selecionada
+                    if (myActionPhase && selectedPotion) {
                         bubble.style.cursor = 'pointer';
                         bubble.onclick = () => handleClientClick(index);
                     }
-            
                 } else {
-                    // Esconde o balão se o cliente já foi atendido nesta rodada
+                    // Se o cliente não existe ou já foi atendido, ESCONDE o balão
                     bubble.style.visibility = 'hidden';
                 }
             });
@@ -1265,27 +1301,28 @@
             const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
             const myActionPhase = localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`;
 
+            // SUBSTITUA PELO CÓDIGO ABAIXO
+            // Desabilita/habilita o caldeirão
             cauldronBtn.disabled = !myProdPhase;
+            
+            // Mostra o botão "Parar de Puxar" apenas na fase de puxar
             stopPullingBtn.classList.toggle('hidden', !myProdPhase);
             
-            // O botão do livro de receitas agora tem duas funções:
-            // 1. Mostrar todas as receitas (sempre)
-            // 2. Abrir o modal de *criação* (só na fase POST_PRODUCTION)
-            // SUBSTITUA PELO BLOCO ABAIXO
+            // Mostra o botão "Finalizar Produção" apenas na fase de organizar/criar
+            finishProductionBtn.classList.toggle('hidden', !myPostProdPhase);
+            
+            // Mostra o botão "Finalizar Ações" apenas na sua fase de ação
+            finishActionBtn.classList.toggle('hidden', !myActionPhase);
+            
+            // Lógica do botão do Livro (que você já tinha, mas vamos garantir que está correta)
             const mesaBook = document.getElementById('mesa-book-btn');
             if (myPostProdPhase) {
-                // Na fase de produção, o livro abre o modal de CRIAÇÃO
                 mesaBook.onclick = openCreatePotionModal;
                 mesaBook.title = "Criar Poções com Ingredientes do Balcão";
             } else {
-                // Fora da fase de produção, o livro abre o manual de TODAS as receitas
                 mesaBook.onclick = handleBookClick;
                 mesaBook.title = "Ver Arcano Potionum";
             }
-            
-            finishProductionBtn.classList.toggle('hidden', !myPostProdPhase);
-            finishActionBtn.classList.toggle('hidden', !myActionPhase);
-        }
         
         function renderShelf(shelfEl, shelfItems, ownerId) {
             shelfEl.innerHTML = '';
@@ -1313,7 +1350,6 @@
             });
         }
 
-        // SUBSTITUA A FUNÇÃO ANTIGA POR ESTA
         // SUBSTITUA A FUNÇÃO renderReadyPotions ANTIGA POR ESTA
         function renderReadyPotions() {
             readyPotionsBoardListEl.innerHTML = '';
@@ -1326,47 +1362,42 @@
             }
         
             playerPotions.forEach(potionName => {
-                // Cria um container para a poção e seus botões
                 const potionContainer = document.createElement('div');
-                potionContainer.className = 'relative w-16 h-16 mb-8'; // Adiciona margem inferior para os botões
+                potionContainer.className = 'relative text-center';
         
                 const img = createPotionImage(potionName);
-                
-                // Adiciona borda se a poção estiver selecionada
+                img.className += ' w-16 h-16';
+        
+                // Adiciona borda se a poção for a selecionada
                 if (selectedPotion === potionName) {
                     img.classList.add('border-4', 'border-yellow-400', 'rounded-lg');
                 }
         
-                potionContainer.appendChild(img);
-        
-                // Só adiciona botões de ação se estiver na fase de Ação
+                // Se estiver na fase de Ação, torna a imagem clicável para selecionar/desselecionar
                 if (myActionPhase) {
-                    const actionsWrapper = document.createElement('div');
-                    actionsWrapper.className = 'absolute bottom-[-30px] left-0 w-full flex justify-center gap-1';
-        
-                    // Botão de Vender
-                    const sellBtn = document.createElement('button');
-                    sellBtn.className = 'text-xs bg-green-600 text-white rounded px-1 py-0.5 hover:bg-green-500';
-                    sellBtn.textContent = 'Vender';
-                    sellBtn.onclick = (e) => {
-                        e.stopPropagation(); // Evita que o clique se propague
-                        selectedPotion = potionName;
-                        showMessage(`Poção "${potionName}" selecionada. Agora, clique no balão de um cliente que a deseje.`);
-                        updateUI(); // Re-renderiza para mostrar a borda amarela
+                    img.classList.add('cursor-pointer');
+                    img.onclick = () => {
+                        if (selectedPotion === potionName) {
+                            selectedPotion = null; // Clicar de novo desmarca
+                        } else {
+                            selectedPotion = potionName; // Seleciona a poção para vender
+                        }
+                        updateUI(); // Re-renderiza para mostrar/remover a borda
                     };
+                }
         
-                    // Botão de Usar
+                potionContainer.appendChild(img);
+                
+                // Botão de Usar Efeito (sempre disponível na fase de ação)
+                if (myActionPhase) {
                     const useBtn = document.createElement('button');
-                    useBtn.className = 'text-xs bg-blue-600 text-white rounded px-1 py-0.5 hover:bg-blue-500';
                     useBtn.textContent = 'Usar';
-                    useBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        handleUsePotion(potionName); // Reutiliza a função de usar poção
+                    useBtn.className = 'mt-1 text-xs bg-blue-600 text-white rounded px-2 py-0.5 hover:bg-blue-500';
+                    useBtn.onclick = () => {
+                        selectedPotion = null; // Garante que desmarcou antes de usar
+                        handleUsePotion(potionName);
                     };
-                    
-                    actionsWrapper.appendChild(sellBtn);
-                    actionsWrapper.appendChild(useBtn);
-                    potionContainer.appendChild(actionsWrapper);
+                    potionContainer.appendChild(useBtn);
                 }
                 
                 readyPotionsBoardListEl.appendChild(potionContainer);
@@ -2229,6 +2260,7 @@
     
 </body>
 </html>
+
 
 
 
