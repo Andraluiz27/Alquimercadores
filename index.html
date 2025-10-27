@@ -310,7 +310,7 @@
             const decisionOptionsEl = document.getElementById('decision-options');
             const quitGameBtn = document.getElementById('quit-game-btn');
             const mesaBook = document.getElementById('mesa-book-btn'); // Referência para o botão do livro na mesa
-            
+            mesaBook.addEventListener('click', handleMesaBookClick);
             // ==========================================================
             // FUNÇÕES DE LÓGICA DO JOGO (CORE)
             // ==========================================================
@@ -397,6 +397,7 @@
                     status: 'waiting', 
                     phase: 'PREPARATION',
                     currentPlayer: startingPlayer, 
+                    roundStarter: startingPlayer, // <-- ADICIONE ESTA LINHA
                     players: {
                         player1: {
                             uid: player1UID,
@@ -515,8 +516,14 @@
                     }
                 });
             
+                // --- INÍCIO DA CORREÇÃO: Alternar jogador inicial ---
+                const nextStarter = localGameState.roundStarter === 'player1' ? 'player2' : 'player1';
+                localGameState.roundStarter = nextStarter;
+                logMessage(`${localGameState.players[nextStarter].name} começa a nova rodada.`);
+                // --- FIM DA CORREÇÃO ---
+
                 selectedPotion = null; 
-                startProductionPhase('player1'); // Sempre começa com player1? Verificar regra.
+                startProductionPhase(nextStarter); // <-- ALTERE 'player1' para nextStarter
             }
             
             function endGame() {
@@ -601,6 +608,17 @@
                 updateFirestoreState(localGameState).then(() => {
                     showActionModal();
                 });
+            }
+
+            function handleMesaBookClick() {
+                const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
+                if (myPostProdPhase) {
+                    // Se estou na minha fase de pós-produção, abro o modal de criação.
+                    openCreatePotionModal();
+                } else {
+                    // Em qualquer outro momento, abro o livro de receitas.
+                    handleBookClick();
+                }
             }
             
             function handleCauldronClick() {
@@ -1053,19 +1071,11 @@
                 finishProductionBtn.classList.toggle('hidden', !myPostProdPhase);
                 finishActionBtn.classList.toggle('hidden', !myActionPhase);
                 
-                // --- CORREÇÃO: Usar addEventListener/removeEventListener ---
-                // Remove listeners antigos para evitar duplicação
-                mesaBook.removeEventListener('click', openCreatePotionModal);
-                mesaBook.removeEventListener('click', handleBookClick);
-
+                // --- CORREÇÃO: Lógica do botão do livro simplificada ---
                 if (myPostProdPhase) {
-                    mesaBook.addEventListener('click', openCreatePotionModal);
                     mesaBook.title = "Criar Poções com Ingredientes do Balcão";
-                    // console.log('Listener ADICIONADO: openCreatePotionModal'); // Log para depuração
                 } else {
-                    mesaBook.addEventListener('click', handleBookClick);
                     mesaBook.title = "Ver Arcano Potionum";
-                    // console.log('Listener ADICIONADO: handleBookClick'); // Log para depuração
                 }
                 // --- FIM DA CORREÇÃO ---
             }
@@ -1929,6 +1939,7 @@
     </div>
 </body>
 </html>
+
 
 
 
