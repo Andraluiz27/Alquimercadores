@@ -221,13 +221,17 @@
             // Adiciona log de debug para o console
             setLogLevel('debug');
 
-            // Pega o App ID do ambiente ou usa um padrão
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'alquimercadores-default';
-            const gamesCollectionPath = `/artifacts/${appId}/public/data/alquimercadores_games`;
-            const lobbyCollectionPath = `/artifacts/${appId}/public/data/alquimercadores_lobby`;
+            // --- CORREÇÃO INÍCIO ---
+            // Pega o App ID do ambiente ou usa um padrão (REMOVIDO, não é mais necessário para o path)
+            // const appId = typeof __app_id !== 'undefined' ? __app_id : 'alquimercadores-default';
+            
+            // CORREÇÃO: Aponta para as coleções na raiz do Firestore, como esperado no GitHub Pages
+            const gamesCollectionPath = `alquimercadores_games`;
+            const lobbyCollectionPath = `alquimercadores_lobby`;
+            // --- CORREÇÃO FIM ---
             
             // ==========================================================
-            // VARIÁVEIS DE ESTADO GLOBAIS
+            // VARIÁVEIS de ESTADO GLOBAIS
             // ==========================================================
     
             // ADICIONE ESTA LINHA
@@ -259,6 +263,11 @@
             const playerNameInput = document.getElementById('player-name-input');
             const startLobbyBtn = document.getElementById('start-lobby-btn');
             const lobbyStatus = document.getElementById('lobby-status');
+            
+            // --- CORREÇÃO INÍCIO (Race Condition) ---
+            startLobbyBtn.disabled = true; // Desabilita até o auth estar pronto
+            lobbyStatus.textContent = "Autenticando..."; // Informa o usuário
+            // --- CORREÇÃO FIM ---
     
             // ==========================================================
             // ELEMENTOS DA DOM (Lista de Jogadores)
@@ -862,40 +871,12 @@
                 endActionPhase();
             }
     
-            // ADICIONE ESTA FUNÇÃO NOVA
-            /**
-             * Lida com o clique em um balão de cliente para vender uma poção selecionada.
-             */
+            // ADICIONE ESTA FUNÇÃO NOVA (handleClientClick já existe acima, esta está duplicada)
+            /*
             function handleClientClick(clientIndex) {
-                const client = localGameState.clients[clientIndex];
-                if (!selectedPotion || client.wants !== selectedPotion) {
-                    showMessage("Este cliente não quer a poção selecionada!");
-                    return;
-                }
-            
-                const playerState = localGameState.players[localPlayerId];
-                if (client.contract && client.contract !== localPlayerId) {
-                    showMessage("Este cliente tem um contrato com seu oponente!");
-                    return;
-                }
-            
-                // --- VENDA BEM SUCEDIDA ---
-                logMessage(`${playerState.name} vendeu ${selectedPotion} por ${client.price} moedas!`);
-                
-                // Adiciona moedas
-                playerState.coins += client.price; 
-                
-                // Remove a poção da lista de prontas
-                const potionIdx = playerState.potionsReady.indexOf(selectedPotion);
-                if (potionIdx > -1) playerState.potionsReady.splice(potionIdx, 1);
-            
-                // Marca o cliente como atendido para que ele suma, mas NÃO o substitui ainda
-                localGameState.clients[clientIndex].served = true;
-                localGameState.clientsServed++;
-                
-                selectedPotion = null; // Limpa a seleção
-                updateFirestoreState(localGameState);
+                // ... (código duplicado removido)
             }
+            */
     
             // ==========================================================
             // MANIPULADORES DE MODAIS (LIVRO, CRIAÇÃO, AÇÃO)
@@ -1032,6 +1013,7 @@
             /**
              * Mostra o modal de Ação (Vender/Usar) para a próxima poção pronta.
              */
+            // (Função showActionModal() parece estar faltando, mas a lógica de renderReadyPotions a substitui)
     
             /**
              * Lógica para Usar uma poção.
@@ -1039,16 +1021,22 @@
             function handleUsePotion(potionName) {
                 const playerState = localGameState.players[localPlayerId];
                 
-                // Remove a poção da fila
-                playerState.potionsReady.shift();
+                // Remove a poção da fila (ATENÇÃO: isso assume ordem. Se clicar em qualquer uma, precisa de índice)
+                // Vamos mudar para remover a poção específica
+                const potionIndex = playerState.potionsReady.indexOf(potionName);
+                if (potionIndex > -1) {
+                    playerState.potionsReady.splice(potionIndex, 1);
+                } else {
+                    console.error("Tentei usar uma poção que não estava na lista:", potionName);
+                    return;
+                }
                 
                 logMessage(`${playerState.name} usou: ${potionName}!`);
                 
                 // Executa o efeito
                 executePotionEffect(potionName, localPlayerId);
                 
-                // Mostra o próximo modal de ação ou termina a fase
-                showActionModal();
+                // (Não mostra mais o modal, a UI é atualizada)
                 updateFirestoreState(localGameState);
             }
             
@@ -1246,6 +1234,8 @@
                 player1NameDisplay.textContent = p1.name + (amIPlayer1 ? " (Você)" : "");
                 player2NameDisplay.textContent = p2.name + (!amIPlayer1 ? " (Você)" : "");
     
+                const myActionPhase = localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`;
+    
                 // SUBSTITUA O BLOCO "clientBubbles.forEach" POR ESTE
                 clientBubbles.forEach((bubble, index) => {
                     const client = localGameState.clients[index];
@@ -1295,7 +1285,7 @@
                 const myTurn = localGameState.currentPlayer === localPlayerId;
                 const myProdPhase = localGameState.phase === `PRODUCTION_${localPlayerId.toUpperCase()}`;
                 const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
-                const myActionPhase = localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`;
+                // const myActionPhase = localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`; // Já definido acima
     
                 // SUBSTITUA PELO CÓDIGO ABAIXO
                 // Desabilita/habilita o caldeirão
@@ -1319,6 +1309,7 @@
                     mesaBook.onclick = handleBookClick;
                     mesaBook.title = "Ver Arcano Potionum";
                 }
+            } // Fim da função updateUI()
             
             function renderShelf(shelfEl, shelfItems, ownerId) {
                 shelfEl.innerHTML = '';
@@ -1554,6 +1545,9 @@
                     // 1. Foi convidado?
                     if (lobbyData.status === 'invited' && lobbyData.invitedBy) {
                         const inviterId = lobbyData.invitedBy;
+                        // --- CORREÇÃO: Adiciona verificação se inviterId não é nulo ---
+                        if (!inviterId) return; 
+                        // --- FIM CORREÇÃO ---
                         const inviterDoc = await getDoc(doc(db, lobbyCollectionPath, inviterId));
                         if (inviterDoc.exists()) {
                             invitationText.textContent = `${inviterDoc.data().name} convidou você para jogar!`;
@@ -1731,9 +1725,22 @@
             };
     
             quitGameBtn.onclick = () => {
-                if (confirm("Você tem certeza que deseja desistir? Seu oponente será declarado o vencedor.")) {
+                // CORREÇÃO: Substitui o 'confirm' por um modal de decisão
+                decisionTitleEl.textContent = "Desistir da Partida?";
+                decisionOptionsEl.innerHTML = `
+                    <p class="mb-4">Você tem certeza que deseja desistir? Seu oponente será declarado o vencedor.</p>
+                    <button id="confirm-forfeit-btn" class="btn btn-red w-full mb-2">Sim, desistir</button>
+                    <button id="cancel-forfeit-btn" class="btn btn-gray w-full">Cancelar</button>
+                `;
+                decisionModal.classList.remove('hidden');
+                
+                document.getElementById('confirm-forfeit-btn').onclick = () => {
+                    decisionModal.classList.add('hidden');
                     handleForfeit();
-                }
+                };
+                document.getElementById('cancel-forfeit-btn').onclick = () => {
+                    decisionModal.classList.add('hidden');
+                };
             };
             
             // SUBSTITUA-A POR ESTAS TRÊS LINHAS:
@@ -1750,10 +1757,28 @@
                 
                 unsubscribeGame = onSnapshot(doc(db, gamesCollectionPath, id), (doc) => {
                     if (!doc.exists()) {
+                        // --- CORREÇÃO: Evita recarregar a página inteira, só volta ao lobby ---
                         showMessage("O jogo foi encerrado pelo host.");
-                        // Limpa o lobby local e recarrega
-                        if(localUserId) deleteDoc(doc(db, lobbyCollectionPath, localUserId));
-                        setTimeout(() => window.location.reload(), 3000);
+                        
+                        gameScreen.classList.add('hidden');
+                        playerListScreen.classList.remove('hidden');
+                        
+                        // Recomeça a ouvir o lobby
+                        if(localUserId) {
+                             // Limpa o status do jogador no lobby para que ele possa jogar novamente
+                            const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
+                            setDoc(lobbyDocRef, { 
+                                name: localPlayerName, 
+                                status: "online", 
+                                invitedBy: null, 
+                                inviteTo: null 
+                            });
+                            listenToLobbyList();
+                            listenToLobbyUser();
+                        }
+                        gameId = null;
+                        if(unsubscribeGame) unsubscribeGame();
+                        // --- FIM CORREÇÃO ---
                         return;
                     }
                     
@@ -1789,6 +1814,11 @@
                             // A lógica de checagem deve estar no handleCauldronClick
                         }
                     }
+
+                    // --- CORREÇÃO: Checa se o jogo acabou ---
+                    if (localGameState.phase === 'GAME_OVER' && oldState.phase !== 'GAME_OVER') {
+                        endGame(); // Chama a função para mostrar o modal de fim de jogo
+                    }
                 });
             }
             
@@ -1799,11 +1829,20 @@
                     console.log("Usuário autenticado:", user.uid);
                     localUserId = user.uid;
                     
+                    // --- CORREÇÃO (Race Condition) ---
+                    startLobbyBtn.disabled = false; // Habilita o botão
+                    lobbyStatus.textContent = "Autenticado. Insira seu nome."; // Status padrão
+                    // --- FIM CORREÇÃO ---
+                    
                     // Verifica se o usuário já está em um jogo ou lobby (ex: F5 na página)
                     const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
                     const lobbyDoc = await getDoc(lobbyDocRef);
                     
                     if (lobbyDoc.exists()) {
+                        // --- CORREÇÃO (Race Condition) ---
+                        lobbyStatus.textContent = "Verificando sessão anterior..."; // Atualiza status
+                        // --- FIM CORREÇÃO ---
+                        
                         const lobbyData = lobbyDoc.data();
                         localPlayerName = lobbyData.name;
                         playerNameInput.value = localPlayerName; // Preenche o nome no lobby
@@ -1866,14 +1905,16 @@
                                 } else {
                                     // Jogo não existe mais ou já acabou, reseta para o lobby
                                     await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
-                                    playerListScreen.classList.remove('hidden');
+                                    lobbyScreen.classList.add('hidden'); // Esconde lobby
+                                    playerListScreen.classList.remove('hidden'); // Mostra lista
                                     listenToLobbyList();
                                     listenToLobbyUser();
                                 }
                             } else {
                                 // Estado 'ingame' inconsistente, reseta para o lobby
                                 await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
-                                playerListScreen.classList.remove('hidden');
+                                lobbyScreen.classList.add('hidden'); // Esconde lobby
+                                playerListScreen.classList.remove('hidden'); // Mostra lista
                                 listenToLobbyList();
                                 listenToLobbyUser();
                             }
@@ -1904,14 +1945,19 @@
     
             // --- Limpeza ao fechar a aba (Modificado) ---
             window.addEventListener('beforeunload', () => {
+                // Não deleta mais o jogador do lobby, para permitir reconexão
+                /*
                 if (localUserId) {
                     // Remove o jogador do lobby ao fechar
                     deleteDoc(doc(db, lobbyCollectionPath, localUserId));
                 }
-                // O host (player1) de um jogo ATIVO ainda deve deletar o jogo
+                */
+                // Não deleta mais o jogo, para permitir reconexão
+                /*
                 if (gameId && localPlayerId === 'player1' && localGameState.status !== 'finished') {
                     deleteDoc(doc(db, gamesCollectionPath, gameId));
                 }
+                */
             });
             
         } catch (e) {
@@ -1943,7 +1989,7 @@
         }
 
         /* Fundo das telas de Lobby e Lista de Jogadores (Fundo de pergaminho) */
-        #lobby-screen, #player-list-screen {
+        #lobby-screen, #player-list-screen, #reconnect-screen {
             /* Usando o pergaminho como fundo do lobby, diferente do jogo */
             background-image: url('imagens/pergaminho_fundo.jpg');
             background-size: cover;
@@ -2062,7 +2108,7 @@
 <body class="bg-gray-900 text-white">
 
     <!-- TELA 1: LOGIN (Modificada) -->
-    <div id="lobby-screen" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+    <div id="lobby-screen" class="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div class="p-8 rounded-lg w-full max-w-md text-center text-[#3d2a1a]">
             
             <!-- Logo (Círculo do seu rascunho) - Borda removida e tamanho aumentado -->
@@ -2082,7 +2128,7 @@
     </div>
     
     <!-- TELA 2: LISTA DE JOGADORES (Nova) -->
-    <div id="player-list-screen" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-40 p-4">
+    <div id="player-list-screen" class="hidden fixed inset-0 flex items-center justify-center z-40 p-4">
         <div class="pergaminho-bg p-8 rounded-lg w-full max-w-lg h-[80vh] flex flex-col">
             <h2 class="text-3xl font-bold text-center text-[#3d2a1a] mb-6">Jogadores Online</h2>
             
@@ -2104,7 +2150,7 @@
         </div>
     </div>
 
-    <div id="reconnect-screen" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-40 p-4">
+    <div id="reconnect-screen" class="hidden fixed inset-0 flex items-center justify-center z-40 p-4">
     <div class="pergaminho-bg p-8 rounded-lg w-full max-w-md text-center">
         <h2 class="text-2xl font-bold text-gray-800 mb-4">Partida em Andamento Detectada!</h2>
         <p class="text-lg text-gray-700 mb-6">Você quer voltar para a sua partida anterior?</p>
@@ -2262,31 +2308,3 @@
     
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
