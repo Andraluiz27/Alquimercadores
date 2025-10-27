@@ -1271,7 +1271,7 @@
                 });
             }
             
-            async function listenToLobbyUser() {
+           async function listenToLobbyUser() {
                 if (unsubscribeLobbyUser) unsubscribeLobbyUser();
                 
                 unsubscribeLobbyUser = onSnapshot(doc(db, lobbyCollectionPath, localUserId), async (docSnap) => {
@@ -1279,10 +1279,11 @@
                     
                     const lobbyData = docSnap.data();
                     
+                    // Lógica para quem RECEBE o convite
                     if (lobbyData.status === 'invited' && lobbyData.invitedBy) {
                         const inviterId = lobbyData.invitedBy;
                         if (!inviterId) return; 
-                        try { // Adiciona try-catch para getDoc
+                        try {
                             const inviterDoc = await getDoc(doc(db, lobbyCollectionPath, inviterId));
                             if (inviterDoc.exists()) {
                                 invitationText.textContent = `${inviterDoc.data().name} convidou você para jogar!`;
@@ -1290,34 +1291,40 @@
                                 acceptInviteBtn.onclick = () => handleAcceptInvite(inviterId, inviterDoc.data().name);
                                 declineInviteBtn.onclick = () => handleDeclineInvite(inviterId);
                             } else {
-                                // O invitador saiu do lobby, reseta o estado
-                                await handleDeclineInvite(inviterId); // Recusa automaticamente
+                                await handleDeclineInvite(inviterId); 
                             }
                         } catch(error) {
                             console.error("Erro ao buscar dados do invitador:", error);
-                            // Pode ser um ID inválido ou problema de permissão
-                             await handleDeclineInvite(inviterId); // Recusa para evitar ficar preso
+                             await handleDeclineInvite(inviterId);
                         }
                     } 
-                    else if (lobbyData.status === 'ingame' && lobbyData.inviteTo) {
-                        gameId = localUserId;
-                        localPlayerId = 'player1';
-                        stopLobbyListeners();
-                        listenToGameChanges(gameId);
-                        playerListScreen.classList.add('hidden');
-                        gameScreen.classList.remove('hidden');
+                    // Lógica CORRIGIDA para quem ENVIOU o convite e está sendo puxado para o jogo
+                    else if (lobbyData.status === 'ingame') {
+                        // Se o status mudou para 'ingame', e não estamos já em um jogo,
+                        // significa que somos o Player 1 e nosso convite foi aceito.
+                        if (!gameId) { // Evita que a lógica rode múltiplas vezes
+                            gameId = localUserId; // O ID do jogo é o UID do convidante (Player 1)
+                            localPlayerId = 'player1';
+                            
+                            stopLobbyListeners();
+                            listenToGameChanges(gameId);
+                            
+                            playerListScreen.classList.add('hidden');
+                            invitationPopup.classList.add('hidden'); // Garante que o popup suma
+                            gameScreen.classList.remove('hidden');
+                        }
                     }
                     else if (lobbyData.status === 'online') {
                         invitationPopup.classList.add('hidden');
                         playerListStatus.textContent = "Aguardando convites...";
                     }
+                    // Lógica para quem ENVIOU e está aguardando resposta
                     else if (lobbyData.status === 'invited' && lobbyData.inviteTo) {
                         playerListStatus.textContent = "Convite enviado. Aguardando resposta...";
                     }
-                }, (error) => { // Adiciona tratamento de erro para o listener
+                }, (error) => {
                      console.error("Erro no listener do usuário no lobby:", error);
                      lobbyStatus.textContent = "Erro de conexão no lobby.";
-                     // Tentar recarregar ou mostrar mensagem para o usuário
                 });
             }
             
@@ -1920,4 +1927,5 @@
     </div>
 </body>
 </html>
+
 
