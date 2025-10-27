@@ -464,66 +464,71 @@
                 updateFirestoreState(localGameState);
             }
             
-            function endProductionPhase() {
+           function endProductionPhase() {
                 const playerId = localGameState.currentPlayer;
-                
+                const roundStarter = localGameState.roundStarter;
+                const otherPlayer = roundStarter === 'player1' ? 'player2' : 'player1';
+
+                // Devolve os ingredientes não usados para o caldeirão
                 localGameState.cauldron.push(...localGameState.currentPull);
                 localGameState.cauldron = shuffle(localGameState.cauldron);
                 localGameState.currentPull = [];
                 
-                if (playerId === 'player1') {
-                    startProductionPhase('player2');
+                if (playerId === roundStarter) {
+                    // Se o jogador que iniciou a rodada terminou a produção, é a vez do outro.
+                    startProductionPhase(otherPlayer);
                 } else {
-                    startActionPhase('player1');
+                    // Se o segundo jogador terminou a produção, inicia a fase de Ação com o starter.
+                    startActionPhase(roundStarter);
                 }
-            }
-            
-            function startActionPhase(playerId) {
-                localGameState.phase = `ACTION_${playerId.toUpperCase()}`;
-                localGameState.currentPlayer = playerId;
-                selectedPotion = null; 
-                logMessage(`${localGameState.players[playerId].name}, sua vez de agir!`);
-                
-                updateFirestoreState(localGameState); 
-                // A chamada para showActionModal() agora é feita pelo listener onSnapshot
             }
     
             function endActionPhase() {
                 const playerId = localGameState.currentPlayer;
-    
+                const roundStarter = localGameState.roundStarter;
+                const otherPlayer = roundStarter === 'player1' ? 'player2' : 'player1';
+
+                // Verifica se o jogo deve terminar
                 if (localGameState.clientsServed >= 10) {
-                    if (playerId === 'player1') {
-                        startActionPhase('player2');
-                    } else {
+                    // Se quem acabou de jogar foi o segundo jogador da rodada, o jogo acaba.
+                    if (playerId === otherPlayer) {
                         endGame();
-                    }
-                } else {
-                    if (playerId === 'player1') {
-                        startActionPhase('player2');
+                        return; // Impede o resto da função de rodar
                     } else {
-                        localGameState.phase = 'PREPARATION';
-                        startNewRound();
+                        // Se foi o primeiro, o segundo ainda tem uma chance de jogar antes do fim.
+                        startActionPhase(otherPlayer);
+                        return;
                     }
+                } 
+
+                if (playerId === roundStarter) {
+                    // Se o jogador que iniciou a rodada terminou a ação, é a vez do outro.
+                    startActionPhase(otherPlayer);
+                } else {
+                    // Se o segundo jogador terminou a ação, a rodada inteira acaba.
+                    startNewRound();
                 }
             }
             
             function startNewRound() {
                 logMessage("Uma nova rodada começa!");
                 
+                // Atualiza os clientes que foram servidos
                 localGameState.clients.forEach((client, index) => {
                     if (client.served) {
                         localGameState.clients[index] = generateClient(CLIENT_TYPES[index]);
                     }
                 });
-            
-                // --- INÍCIO DA CORREÇÃO: Alternar jogador inicial ---
+
+                // Alterna quem vai começar a próxima rodada
                 const nextStarter = localGameState.roundStarter === 'player1' ? 'player2' : 'player1';
                 localGameState.roundStarter = nextStarter;
-                logMessage(`${localGameState.players[nextStarter].name} começa a nova rodada.`);
-                // --- FIM DA CORREÇÃO ---
+                logMessage(`${localGameState.players[nextStarter].name} começa esta rodada.`);
 
                 selectedPotion = null; 
-                startProductionPhase(nextStarter); // <-- ALTERE 'player1' para nextStarter
+                
+                // A nova rodada começa com a fase de produção do novo "starter".
+                startProductionPhase(nextStarter);
             }
             
             function endGame() {
@@ -1939,6 +1944,7 @@
     </div>
 </body>
 </html>
+
 
 
 
