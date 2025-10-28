@@ -265,6 +265,7 @@
             const invitationText = document.getElementById('invitation-text');
             const acceptInviteBtn = document.getElementById('accept-invite-btn');
             const declineInviteBtn = document.getElementById('decline-invite-btn');
+            const exitLobbyBtn = document.getElementById('exit-lobby-btn');
     
             // ==========================================================
             // ELEMENTOS DA DOM (Jogo)
@@ -1248,6 +1249,8 @@
                     lobbyStatus.textContent = "Erro ao conectar. Tente novamente.";
                 }
             };
+
+            exitLobbyBtn.onclick = handleExitLobby;
     
             function listenToLobbyList() {
                 if (unsubscribeLobbyList) unsubscribeLobbyList();
@@ -1364,6 +1367,31 @@
                     } catch (resetError) {
                         console.error("Erro ao resetar status após falha no convite:", resetError);
                     }
+                }
+            }
+
+            async function handleExitLobby() {
+                if (!localUserId) return; // Segurança para não rodar se o ID não existir
+
+                // Para os listeners para evitar qualquer atividade em segundo plano
+                stopLobbyListeners(); 
+
+                try {
+                    // Remove o jogador do banco de dados do lobby
+                    const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
+                    await deleteDoc(lobbyDocRef);
+
+                    // Troca as telas
+                    playerListScreen.classList.add('hidden');
+                    lobbyScreen.classList.remove('hidden');
+                    lobbyStatus.textContent = "Autenticado. Insira seu nome.";
+
+                } catch (error) {
+                    console.error("Erro ao sair do lobby:", error);
+                    // Mesmo com erro, tenta levar o usuário para a tela inicial
+                    playerListScreen.classList.add('hidden');
+                    lobbyScreen.classList.remove('hidden');
+                    lobbyStatus.textContent = "Ocorreu um erro. Tente novamente.";
                 }
             }
             
@@ -1797,6 +1825,9 @@
             <div id="player-list" class="flex-grow overflow-y-auto space-y-2 bg-black/5 p-2 rounded border border-yellow-700/30">
                 <p class="text-center text-gray-700">Carregando jogadores...</p>
             </div>
+
+            <button id="exit-lobby-btn" class="btn btn-gray w-full mt-4">Sair do Lobby</button>
+            
             <div id="invitation-popup" class="hidden absolute bottom-8 left-8 right-8 bg-yellow-100 p-6 rounded-lg border-4 border-green-600 shadow-2xl">
                 <p id="invitation-text" class="text-center text-xl font-bold mb-4">...</p>
                 <div class="flex gap-4">
@@ -1947,6 +1978,7 @@
     </div>
 </body>
 </html>
+
 
 
 
