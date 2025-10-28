@@ -1706,6 +1706,7 @@
                     
                     const oldState = {...localGameState}; 
                     localGameState = doc.data();
+                    window.localGameState = localGameState
                     console.log('Novo estado do jogo:', localGameState); 
                      console.log(`Fase atual: ${localGameState.phase}, Jogador atual: ${localGameState.currentPlayer}, Meu ID: ${localPlayerId}`); 
                     
@@ -2109,3 +2110,4 @@
     </div>
 </body>
 </html>
+
