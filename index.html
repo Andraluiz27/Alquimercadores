@@ -325,9 +325,10 @@
                         cauldron.push(ingredient);
                     }
                 }
-                return shuffle(cauldron);
+                return cauldron; // REMOVIDO O SHUFFLE DAQUI
             }
     
+            /* FUNÇÃO NÃO É MAIS NECESSÁRIA
             function shuffle(array) {
                 for (let i = array.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
@@ -335,6 +336,7 @@
                 }
                 return array;
             }
+            */
     
             function generateClient(clientType) {
                 const allPotionNames = Object.keys(ARCANO_POTIONUM);
@@ -510,7 +512,7 @@
                 const starterOfThisRound = localGameState.roundStarter;
 
                 localGameState.cauldron.push(...localGameState.currentPull);
-                localGameState.cauldron = shuffle(localGameState.cauldron);
+                // localGameState.cauldron = shuffle(localGameState.cauldron); // REMOVIDO O SHUFFLE
                 localGameState.currentPull = [];
                 
                 if (playerWhoFinished === starterOfThisRound) {
@@ -669,7 +671,12 @@
                     return;
                 }
                 
-                const pulledIngredient = localGameState.cauldron.pop();
+                // const pulledIngredient = localGameState.cauldron.pop(); // MUDANÇA: Comentado
+                
+                // MUDANÇA: Puxa um item aleatório em vez do último
+                const randomIndex = Math.floor(Math.random() * localGameState.cauldron.length);
+                const pulledIngredient = localGameState.cauldron.splice(randomIndex, 1)[0];
+
                 localGameState.currentPull.push(pulledIngredient);
                 
                 logMessage(`${playerState.name} puxou: ${pulledIngredient}`);
@@ -2092,3 +2099,4 @@
     </div>
 </body>
 </html>
+
