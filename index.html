@@ -357,7 +357,6 @@
                 paginaEsquerdaEl.innerHTML = '';
                 paginaDireitaEl.innerHTML = '';
 
-                // Determina quais poções podem ser criadas se estivermos no modo de criação
                 let creatablePotions = [];
                 if (recipeBookMode === 'create') {
                     creatablePotions = findCreatablePotions(localGameState.currentPull || []);
@@ -367,9 +366,9 @@
                 const endIndex = startIndex + recipesPerPage;
                 const pagePotions = allPotionNames.slice(startIndex, endIndex);
 
-                // Função auxiliar para renderizar uma única receita
-                const renderRecipe = (potionName) => {
-                    if (!potionName) return ''; // Retorna string vazia se não houver poção
+                // Esta função interna agora SÓ gera o HTML, sem o onclick
+                const renderRecipeHTML = (potionName) => {
+                    if (!potionName) return '';
 
                     const potion = ARCANO_POTIONUM[potionName];
                     const ingredientsText = Object.entries(potion.ingredientes)
@@ -378,18 +377,19 @@
                     const isCreatable = recipeBookMode === 'create' && creatablePotions.includes(potionName);
                     
                     let creatableMarker = '';
-                    let className = 'receita-item p-2'; // Adiciona padding para melhor visualização
-                    let onClickHandler = '';
+                    let className = 'receita-item p-2';
+                    // Usaremos um 'data attribute' para identificar a poção
+                    let dataAttribute = ''; 
 
                     if (isCreatable) {
-                        className += ' creatable'; // Adiciona classe para estilo
+                        className += ' creatable';
                         creatableMarker = '<span class="creatable-marker">Fabricar! (Clique)</span>';
-                        // Adiciona evento de clique globalmente acessível
-                        onClickHandler = `window.handleCreatePotion('${potionName}')`; 
+                        // Adicionamos um identificador que o JavaScript pode ler
+                        dataAttribute = `data-potion-name="${potionName}"`;
                     }
 
                     return `
-                        <div class="${className}" ${onClickHandler}>
+                        <div class="${className}" ${dataAttribute}>
                             <h4 class="text-xl font-bold">${potion.nome} [${potion.tipo}]</h4>
                             <p class="text-sm"><strong>Ingredientes:</strong> ${ingredientsText}</p>
                             <p class="text-sm mt-1"><strong>Efeito:</strong> ${potion.descricao}</p>
@@ -398,9 +398,28 @@
                     `;
                 };
 
-                paginaEsquerdaEl.innerHTML = renderRecipe(pagePotions[0]);
-                paginaDireitaEl.innerHTML = renderRecipe(pagePotions[1]);
+                // Primeiro, colocamos o HTML nas páginas
+                paginaEsquerdaEl.innerHTML = renderRecipeHTML(pagePotions[0]);
+                paginaDireitaEl.innerHTML = renderRecipeHTML(pagePotions[1]);
             
+                // AGORA, a parte crucial: adicionamos os cliques com JavaScript
+                if (recipeBookMode === 'create') {
+                    // Encontra todos os elementos que marcamos como 'creatable'
+                    const creatableElements = recipeModal.querySelectorAll('.creatable');
+                    // Para cada um deles...
+                    creatableElements.forEach(element => {
+                        // ...adicionamos um listener de clique
+                        element.addEventListener('click', () => {
+                            // Quando clicado, ele pega o nome da poção do 'data attribute'
+                            const potionNameToCreate = element.dataset.potionName;
+                            if (potionNameToCreate) {
+                                // E chama a função de criação
+                                window.handleCreatePotion(potionNameToCreate);
+                            }
+                        });
+                    });
+                }
+
                 document.getElementById('prev-page-btn').disabled = recipeCurrentPage === 0;
                 document.getElementById('next-page-btn').disabled = endIndex >= allPotionNames.length;
             }
@@ -1954,3 +1973,4 @@
     </div>
 </body>
 </html>
+
