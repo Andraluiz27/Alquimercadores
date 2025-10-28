@@ -465,21 +465,24 @@
             }
             
            function endProductionPhase() {
-                const playerId = localGameState.currentPlayer;
-                const roundStarter = localGameState.roundStarter;
-                const otherPlayer = roundStarter === 'player1' ? 'player2' : 'player1';
+                const playerWhoFinished = localGameState.currentPlayer;
+                const starterOfThisRound = localGameState.roundStarter;
 
-                // Devolve os ingredientes não usados para o caldeirão
+                // Devolve os ingredientes não usados do balcão para o caldeirão
                 localGameState.cauldron.push(...localGameState.currentPull);
                 localGameState.cauldron = shuffle(localGameState.cauldron);
                 localGameState.currentPull = [];
                 
-                if (playerId === roundStarter) {
-                    // Se o jogador que iniciou a rodada terminou a produção, é a vez do outro.
-                    startProductionPhase(otherPlayer);
+                if (playerWhoFinished === starterOfThisRound) {
+                    // CASO 1: O jogador que começou a rodada acabou de produzir.
+                    // Agora, é a vez do segundo jogador produzir.
+                    const secondPlayer = starterOfThisRound === 'player1' ? 'player2' : 'player1';
+                    startProductionPhase(secondPlayer);
                 } else {
-                    // Se o segundo jogador terminou a produção, inicia a fase de Ação com o starter.
-                    startActionPhase(roundStarter);
+                    // CASO 2: O segundo jogador acabou de produzir.
+                    // A fase de produção terminou para ambos.
+                    // A fase de Ação começa, e quem tem a vantagem é quem começou a rodada.
+                    startActionPhase(starterOfThisRound);
                 }
             }
     
@@ -1944,6 +1947,7 @@
     </div>
 </body>
 </html>
+
 
 
 
