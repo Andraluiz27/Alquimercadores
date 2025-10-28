@@ -656,7 +656,10 @@
                 }
             }
             
-            function handleCauldronClick() {
+            // ==========================================================
+            // FUNÇÃO MODIFICADA (handleCauldronClick)
+            // ==========================================================
+            async function handleCauldronClick() { // Adicionamos 'async' para poder usar 'await'
                 if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
                 
                 const playerState = localGameState.players[localPlayerId];
@@ -671,18 +674,33 @@
                 
                 logMessage(`${playerState.name} puxou: ${pulledIngredient}`);
                 
+                // PRIMEIRO: Atualiza o estado para que todos vejam o ingrediente puxado.
+                // A interface será redesenhada mostrando o novo ingrediente no balcão.
+                await updateFirestoreState(localGameState);
+                
+                // SEGUNDO: Agora que o ingrediente está visível, verificamos se a jogada resultou em uma explosão.
                 if (checkExplosion(localGameState.currentPull, playerState)) {
-                    if (playerState.activePotions["Resiliência do Farsante"]) {
-                        logMessage("BOOM! Mas a Resiliência do Farsante salvou um ingrediente!");
-                        handleExplosionWithResilience();
-                    } else {
-                        logMessage("BOOM! O caldeirão explodiu!");
-                        handleExplosion();
-                    }
-                } else { 
-                    updateFirestoreState(localGameState);
+                    
+                    // TERCEIRO: Aguarda um instante para o jogador processar a informação visual.
+                    setTimeout(() => {
+                        // Verificação extra para garantir que o estado ainda é de produção
+                        // Isso evita explosões "fantasmas" se o jogador conseguir parar rápido
+                        if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
+
+                        if (playerState.activePotions["Resiliência do Farsante"]) {
+                            logMessage("BOOM! Mas a Resiliência do Farsante salvou um ingrediente!");
+                            handleExplosionWithResilience();
+                        } else {
+                            logMessage("BOOM! O caldeirão explodiu!");
+                            handleExplosion();
+                        }
+                    }, 1000); // Atraso de 1 segundo (1000ms). Você pode ajustar este valor.
                 }
+                // Não há mais um bloco 'else', porque a atualização do estado já foi feita no início.
             }
+            // ==========================================================
+            // FIM DA MODIFICAÇÃO
+            // ==========================================================
             
             function checkExplosion(currentPull, playerState) {
                 const counts = {};
@@ -2074,10 +2092,3 @@
     </div>
 </body>
 </html>
-
-
-
-
-
-
-
