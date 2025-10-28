@@ -1015,7 +1015,7 @@
                 };
                 
                 const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
-                await updateDoc(lobbyDocRef, { status: "online", invitedBy: null, inviteTo: null });
+                await updateDoc(lobbyDocRef, { status: "online", invitedBy: null, inviteTo: null, currentGameId: null });
                 
                 await updateFirestoreState(finalState);
                 
@@ -1250,7 +1250,8 @@
                         name: localPlayerName,
                         status: "online",
                         invitedBy: null,
-                        inviteTo: null
+                        inviteTo: null,
+                        currentGameId: null // Garante que começa limpo
                     });
                     
                     lobbyScreen.classList.add('hidden');
@@ -1279,6 +1280,22 @@
                         const playerId = doc.id;
                         
                         if (playerId === localUserId) return;
+
+                        // ==========================================================
+                        // NOVA LÓGICA DE LIMPEZA DE JOGADOR OBSOLETO
+                        // ==========================================================
+                        if (player.status === 'ingame' && player.currentGameId) {
+                            // Verifica se o jogo desse jogador ainda existe, em segundo plano.
+                            // Se não existir, ele será removido do lobby.
+                            checkAndCleanStaleGame(playerId, player.currentGameId);
+                        } else if (player.status === 'ingame' && !player.currentGameId) {
+                            // Limpa jogadores "ingame" muito antigos que não têm currentGameId (dados antigos)
+                            // (Esta parte pode ser mais elaborada com timestamps, mas por agora vamos focar no currentGameId)
+                            console.warn(`Jogador ${player.name} está 'ingame' mas sem currentGameId.`);
+                        }
+                        // ==========================================================
+                        // FIM DA NOVA LÓGICA
+                        // ==========================================================
                         
                         playersFound = true;
                         const btn = document.createElement('button');
@@ -1307,6 +1324,28 @@
                     console.error("Erro no listener da lista do lobby:", error);
                     playerListStatus.textContent = "Erro ao carregar jogadores.";
                 });
+            }
+
+            // ==========================================================
+            // NOVA FUNÇÃO: checkAndCleanStaleGame
+            // Esta função é chamada por qualquer jogador no lobby
+            // para limpar jogadores que ficaram presos "Em Jogo".
+            // ==========================================================
+            async function checkAndCleanStaleGame(stalePlayerId, gameIdToCheck) {
+                try {
+                    const gameDocRef = doc(db, gamesCollectionPath, gameIdToCheck);
+                    const gameDoc = await getDoc(gameDocRef);
+            
+                    if (!gameDoc.exists() || gameDoc.data().status === 'finished') {
+                        // O jogo acabou ou não existe, mas o jogador ainda está "ingame".
+                        // Vamos removê-lo do lobby para limpar a lista.
+                        console.log(`Removendo jogador obsoleto ('ingame') do lobby: ${stalePlayerId}`);
+                        const lobbyDocRef = doc(db, lobbyCollectionPath, stalePlayerId);
+                        await deleteDoc(lobbyDocRef);
+                    }
+                } catch (e) {
+                    console.error(`Erro ao verificar jogo obsoleto ${gameIdToCheck} para ${stalePlayerId}:`, e);
+                }
             }
             
            async function listenToLobbyUser() {
@@ -1431,8 +1470,10 @@
                     await setDoc(doc(db, gamesCollectionPath, gameId), initialState);
                     
                     const batch = writeBatch(db);
-                    batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "ingame", invitedBy: null, inviteTo: null }); 
-                    batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "ingame", invitedBy: null, inviteTo: null }); 
+                    // Atualiza P2 (eu)
+                    batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "ingame", invitedBy: null, inviteTo: null, currentGameId: inviterId }); 
+                    // Atualiza P1 (host)
+                    batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "ingame", invitedBy: null, inviteTo: null, currentGameId: inviterId }); 
                     await batch.commit();
                     
                     stopLobbyListeners();
@@ -1527,7 +1568,8 @@
                             name: localPlayerName, 
                             status: "online", 
                             invitedBy: null, 
-                            inviteTo: null 
+                            inviteTo: null,
+                            currentGameId: null // Limpa o ID do jogo
                         });
                     } catch (error) {
                          console.error("Erro ao resetar status no lobby:", error);
@@ -1590,7 +1632,7 @@
                         playerListScreen.classList.remove('hidden');
                         if(localUserId) {
                              const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
-                             setDoc(lobbyDocRef, { name: localPlayerName || "Jogador", status: "online", invitedBy: null, inviteTo: null }, { merge: true })
+                             setDoc(lobbyDocRef, { name: localPlayerName || "Jogador", status: "online", invitedBy: null, inviteTo: null, currentGameId: null }, { merge: true })
                                 .then(() => {
                                       listenToLobbyList();
                                       listenToLobbyUser();
@@ -1661,7 +1703,11 @@
                             playerNameInput.value = localPlayerName;
                             
                             if (lobbyData.status === 'ingame') {
-                                let gameIdToFind = lobbyData.inviteTo ? localUserId : lobbyData.invitedBy;
+                                // ==========================================================
+                                // LÓGICA DE RECONEXÃO CORRIGIDA
+                                // ==========================================================
+                                let gameIdToFind = lobbyData.currentGameId; // Usa o novo ponteiro
+                                // ==========================================================
                         
                                 if (gameIdToFind) {
                                      try { 
@@ -1693,7 +1739,7 @@
                                                         gameData.log.unshift(`${gameData.players[myPlayerId]?.name || 'Jogador'} abandonou a partida.`);
                                                         await setDoc(doc(db, gamesCollectionPath, gameId), gameData);
                                                     }
-                                                    await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
+                                                    await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null, currentGameId: null });
                                                     playerListScreen.classList.remove('hidden');
                                                     listenToLobbyList();
                                                     listenToLobbyUser();
@@ -1701,7 +1747,7 @@
                                                 } catch (abandonError) {
                                                      console.error("Erro ao abandonar partida:", abandonError);
                                                      showMessage("Erro ao abandonar a partida. Tente recarregar.");
-                                                     await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
+                                                     await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null, currentGameId: null });
                                                      playerListScreen.classList.remove('hidden');
                                                      listenToLobbyList();
                                                      listenToLobbyUser();
@@ -1709,7 +1755,7 @@
                                             };
                         
                                         } else {
-                                            await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
+                                            await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null, currentGameId: null });
                                             lobbyScreen.classList.add('hidden');
                                             playerListScreen.classList.remove('hidden');
                                             listenToLobbyList();
@@ -1717,14 +1763,14 @@
                                         }
                                      } catch (gameDocError) {
                                          console.error("Erro ao buscar documento do jogo:", gameDocError);
-                                          await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
+                                          await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null, currentGameId: null });
                                           lobbyScreen.classList.add('hidden');
                                           playerListScreen.classList.remove('hidden');
                                           listenToLobbyList();
                                           listenToLobbyUser();
                                      }
                                 } else {
-                                    await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
+                                    await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null, currentGameId: null });
                                     lobbyScreen.classList.add('hidden');
                                     playerListScreen.classList.remove('hidden');
                                     listenToLobbyList();
@@ -1757,23 +1803,21 @@
                     }
                 }
             });
-
+            
             // ==========================================================
             // LISTENER PARA LIMPAR LOBBY AO SAIR/FECHAR
             // ==========================================================
             function cleanupLobbyEntry() {
                 if (!localUserId) return;
                 
-                // Só deleta o documento do lobby se o usuário estiver na tela da lista de jogadores
-                // (ou seja, não está em jogo, nem na tela de login inicial)
-                if (playerListScreen && !playerListScreen.classList.contains('hidden')) {
-                    console.log("Limpando entrada do lobby ao sair da tela de lista de players...");
-                    // Fire-and-forget delete. Não é 100% garantido que completará
-                    // antes da página fechar, mas é a melhor abordagem client-side.
-                    deleteDoc(doc(db, lobbyCollectionPath, localUserId)).catch(err => {
-                        console.log("Falha ao limpar lobby na saída (ignorado):", err);
-                    });
-                }
+                // Tenta deletar o documento do lobby ao fechar a página.
+                // Isso não é 100% garantido que funcionará, pois o navegador
+                // pode fechar antes da operação de rede completar.
+                // A lógica de "checkAndCleanStaleGame" é a solução principal.
+                console.log("Tentando limpar entrada do lobby ao sair...");
+                deleteDoc(doc(db, lobbyCollectionPath, localUserId)).catch(err => {
+                    console.log("Falha ao limpar lobby na saída (ignorado):", err);
+                });
             }
             window.addEventListener('beforeunload', cleanupLobbyEntry);
             
@@ -2019,3 +2063,4 @@
     </div>
 </body>
 </html>
+
