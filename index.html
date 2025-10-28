@@ -984,6 +984,9 @@
                 updateFirestoreState(localGameState);
             }
             
+            // ==========================================================
+            // INÍCIO DA ALTERAÇÃO
+            // ==========================================================
             function executePotionEffect(potionName, playerId) {
                 const playerState = localGameState.players[playerId];
                 const opponentId = getOpponentId(playerId);
@@ -1001,12 +1004,26 @@
                     case "Estabilizador Cromático": playerState.activePotions["Estabilizador Cromático"] = true; break;
                     case "Pedra Filosofal (Falsa)": playerState.coins += 7; break;
                     case "Poção da Usurpação":
+                        // VERIFICAÇÃO DA BARREIRA
+                        if (opponentState.activePotions["Barreira de Bolhas"]) {
+                            opponentState.activePotions["Barreira de Bolhas"] = false; // Consome a barreira
+                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Poção da Usurpação!`);
+                            break; // Interrompe a ação
+                        }
+                        // Efeito original
                         const coinsToSteal = Math.min(opponentState.coins, 5);
                         opponentState.coins -= coinsToSteal;
                         playerState.coins += coinsToSteal;
                         logMessage(`${playerState.name} roubou ${coinsToSteal} moedas de ${opponentState.name}!`);
                         break;
                     case "Solvente Universal":
+                        // VERIFICAÇÃO DA BARREIRA
+                        if (opponentState.activePotions["Barreira de Bolhas"]) {
+                            opponentState.activePotions["Barreira de Bolhas"] = false; // Consome a barreira
+                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Solvente Universal!`);
+                            break; // Interrompe a ação
+                        }
+                        // Efeito original
                         if (opponentState.shelf.length > 0) {
                             logMessage(`${playerState.name} usou Solvente Universal! A prateleira de ${opponentState.name} foi esvaziada!`);
                             localGameState.cauldron.push(...opponentState.shelf);
@@ -1015,7 +1032,16 @@
                             logMessage("Solvente Universal falhou, a prateleira do oponente já estava vazia.");
                         }
                         break;
-                    case "Maldição do Caldeirão Trincado": opponentState.activePotions["Maldição do Caldeirão Trincado"] = true; break;
+                    case "Maldição do Caldeirão Trincado":
+                        // VERIFICAÇÃO DA BARREIRA
+                        if (opponentState.activePotions["Barreira de Bolhas"]) {
+                            opponentState.activePotions["Barreira de Bolhas"] = false; // Consome a barreira
+                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Maldição do Caldeirão Trincado!`);
+                            break; // Interrompe a ação
+                        }
+                        // Efeito original
+                        opponentState.activePotions["Maldição do Caldeirão Trincado"] = true; 
+                        break;
                     case "Pasta Prismática": playerState.activePotions["Pasta Prismática"] = true; break;
                     case "Fervor do Ousado": playerState.activePotions["Fervor do Ousado"] = true; break;
                     default:
@@ -1024,6 +1050,9 @@
                         break;
                 }
             }
+            // ==========================================================
+            // FIM DA ALTERAÇÃO
+            // ==========================================================
     
             async function handleForfeit() {
                 if (!gameId || !localPlayerId) return;
@@ -1863,7 +1892,6 @@
 
     </script>
     
-    <!-- Estilos -->
     <style>
         body { height: 100vh; width: 100vw; overflow: hidden; font-family: 'Times New Roman', Times, serif; }
         #game-screen { background-image: url('imagens/Fundo.png'); background-size: cover; background-position: center center; background-repeat: no-repeat; }
@@ -1920,23 +1948,19 @@
 </head>
 <body class="bg-gray-900 text-white">
 
-    <!-- TELA 1: LOGIN -->
     <div id="lobby-screen" class="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div class="p-8 rounded-lg w-full max-w-md text-center text-[#3d2a1a]">
             <div class="w-[400px] h-[400px] bg-transparent rounded-full mx-auto mb-6 flex items-center justify-center">
                  <img src="imagens/Logo.png" alt="Logo Alquimercadores" class="w-[350px] h-[350px]">
             </div>
             <div class="mb-4">
-                <!-- MODIFICADO: Estilo do input para fundo claro e texto escuro -->
                 <input type="text" id="player-name-input" placeholder="Insira seu nome" class="w-full p-3 rounded border-2 bg-purple-200 text-purple-900 placeholder-purple-600 border-purple-400">
             </div>
-           <!-- MODIFICADO: Estilo do botão para fundo claro e texto escuro -->
            <button id="start-lobby-btn" class="btn w-1/2 mx-auto mb-4 bg-purple-400 border-purple-600 hover:bg-purple-300">Iniciar Jogo</button>
             <p id="lobby-status" class="text-center text-red-700 h-6 mt-4"></p>
         </div>
     </div>
     
-    <!-- TELA 2: LISTA DE JOGADORES -->
     <div id="player-list-screen" class="hidden fixed inset-0 flex items-center justify-center z-40 p-4">
         <div class="pergaminho-bg p-8 rounded-lg w-full max-w-lg h-[80vh] flex flex-col">
             <h2 class="text-3xl font-bold text-center text-[#3d2a1a] mb-6">Jogadores Online</h2>
@@ -1957,7 +1981,6 @@
         </div>
     </div>
 
-    <!-- TELA DE RECONEXÃO -->
     <div id="reconnect-screen" class="hidden fixed inset-0 flex items-center justify-center z-40 p-4">
         <div class="pergaminho-bg p-8 rounded-lg w-full max-w-md text-center">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Partida em Andamento Detectada!</h2>
@@ -1969,7 +1992,6 @@
         </div>
     </div>
     
-    <!-- TELA 3: JOGO -->
     <div id="game-screen" class="hidden relative w-full h-screen max-w-[1920px] mx-auto">
         <div id="score-display" class="absolute top-4 left-4 bg-black/50 p-4 rounded-lg border-2 border-[#5c3d20] text-shadow">
             <h3 class="text-xl font-bold text-yellow-300 mb-2">Tesouro</h3>
@@ -2039,17 +2061,8 @@
             </div>
         </div>
 
-        <!-- MODAIS -->
         <div id="recipe-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
             <div id="livro-container" class="relative w-full max-w-5xl aspect-[16/9]"> 
-                <!-- 
-                    CLASSES AJUSTADAS: 
-                    top-[10%] -> top-[15%] (mais para baixo)
-                    left-[5%] -> left-[8%] (mais para dentro)
-                    right-[5%] -> right-[8%] (mais para dentro)
-                    w-[42%] -> w-[40%] (mais estreito)
-                    h-[80%] -> h-[75%] (mais baixo)
-                -->
                 <div id="pagina-esquerda" class="absolute top-[15%] left-[23%] w-[28%] h-[63%] p-4 overflow-y-auto"></div>
                 <div id="pagina-direita" class="absolute top-[15%] right-[23%] w-[28%] h-[63%] p-3 overflow-y-auto"></div>
                 
@@ -2058,9 +2071,6 @@
                 <button id="close-recipe-modal-btn" class="absolute top-4 right-6 text-7xl text-white hover:text-white">&times;</button>
             </div>
         </div>
-        
-        <!-- MODAL DE CRIAÇÃO REMOVIDO -->
-        <!-- <div id="create-potion-modal" class="hidden ..."> ... </div> -->
         
         <div id="action-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
             <div class="bg-yellow-100 text-black border-4 border-yellow-800 p-8 rounded-lg w-full max-w-lg text-center">
@@ -2099,4 +2109,3 @@
     </div>
 </body>
 </html>
-
