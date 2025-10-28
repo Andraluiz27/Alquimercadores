@@ -464,8 +464,16 @@
                 logMessage(`${localGameState.players[playerId].name}, sua vez de coletar ingredientes!`);
                 updateFirestoreState(localGameState);
             }
+
+            // COLE A NOVA FUNÇÃO AQUI
+            function startActionPhase(playerId) {
+                localGameState.phase = `ACTION_${playerId.toUpperCase()}`;
+                localGameState.currentPlayer = playerId;
+                logMessage(`${localGameState.players[playerId].name}, sua vez de usar e vender poções!`);
+                updateFirestoreState(localGameState);
+            }
             
-           function endProductionPhase() {
+            function endProductionPhase() {
                 const playerWhoFinished = localGameState.currentPlayer;
                 const starterOfThisRound = localGameState.roundStarter;
 
@@ -1978,6 +1986,7 @@
     </div>
 </body>
 </html>
+
 
 
 
