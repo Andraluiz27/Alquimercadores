@@ -238,6 +238,7 @@
             let recipeCurrentPage = 0;
             const recipesPerPage = 2; 
             let allPotionNames = [];
+            let recipeBookMode = 'view'; // 'view' ou 'create'
     
             // ==========================================================
             // ELEMENTOS DA DOM (Telas)
@@ -270,7 +271,7 @@
             // ==========================================================
             // ELEMENTOS DA DOM (Jogo)
             // ==========================================================
-            const createPotionListEl = document.getElementById('create-potion-list');
+            // const createPotionListEl = document.getElementById('create-potion-list'); // Removido
             const player1ScoreEl = document.getElementById('player1-score');
             const player2ScoreEl = document.getElementById('player2-score');
             const client1Bubble = document.getElementById('client-1-bubble');
@@ -294,8 +295,8 @@
             const player2ActivePotionsEl = document.getElementById('player2-active-potions-list');
             const recipeModal = document.getElementById('recipe-modal');
             const closeRecipeModalBtn = document.getElementById('close-recipe-modal-btn');
-            const createPotionModal = document.getElementById('create-potion-modal');
-            const closeCreatePotionModalBtn = document.getElementById('close-create-potion-modal-btn');
+            // const createPotionModal = document.getElementById('create-potion-modal'); // Removido
+            // const closeCreatePotionModalBtn = document.getElementById('close-create-potion-modal-btn'); // Removido
             const actionModal = document.getElementById('action-modal');
             const actionPotionNameEl = document.getElementById('action-potion-name');
             const actionPotionDescEl = document.getElementById('action-potion-desc');
@@ -355,36 +356,50 @@
                 const paginaDireitaEl = document.getElementById('pagina-direita');
                 paginaEsquerdaEl.innerHTML = '';
                 paginaDireitaEl.innerHTML = '';
-            
+
+                // Determina quais poções podem ser criadas se estivermos no modo de criação
+                let creatablePotions = [];
+                if (recipeBookMode === 'create') {
+                    creatablePotions = findCreatablePotions(localGameState.currentPull || []);
+                }
+
                 const startIndex = recipeCurrentPage * recipesPerPage;
                 const endIndex = startIndex + recipesPerPage;
                 const pagePotions = allPotionNames.slice(startIndex, endIndex);
-            
-                if (pagePotions[0]) {
-                    const potion = ARCANO_POTIONUM[pagePotions[0]];
+
+                // Função auxiliar para renderizar uma única receita
+                const renderRecipe = (potionName) => {
+                    if (!potionName) return ''; // Retorna string vazia se não houver poção
+
+                    const potion = ARCANO_POTIONUM[potionName];
                     const ingredientsText = Object.entries(potion.ingredientes)
                         .map(([name, count]) => `${name} (x${count})`).join(', ');
-                    paginaEsquerdaEl.innerHTML = `
-                        <div class="receita-item">
+                    
+                    const isCreatable = recipeBookMode === 'create' && creatablePotions.includes(potionName);
+                    
+                    let creatableMarker = '';
+                    let className = 'receita-item p-2'; // Adiciona padding para melhor visualização
+                    let onClickHandler = '';
+
+                    if (isCreatable) {
+                        className += ' creatable'; // Adiciona classe para estilo
+                        creatableMarker = '<span class="creatable-marker">Fabricar! (Clique)</span>';
+                        // Adiciona evento de clique globalmente acessível
+                        onClickHandler = `window.handleCreatePotion('${potionName}')`; 
+                    }
+
+                    return `
+                        <div class="${className}" ${onClickHandler}>
                             <h4 class="text-xl font-bold">${potion.nome} [${potion.tipo}]</h4>
                             <p class="text-sm"><strong>Ingredientes:</strong> ${ingredientsText}</p>
                             <p class="text-sm mt-1"><strong>Efeito:</strong> ${potion.descricao}</p>
+                            ${creatableMarker}
                         </div>
                     `;
-                }
-            
-                if (pagePotions[1]) {
-                    const potion = ARCANO_POTIONUM[pagePotions[1]];
-                    const ingredientsText = Object.entries(potion.ingredientes)
-                        .map(([name, count]) => `${name} (x${count})`).join(', ');
-                    paginaDireitaEl.innerHTML = `
-                        <div class="receita-item">
-                            <h4 class="text-xl font-bold">${potion.nome} [${potion.tipo}]</h4>
-                            <p class="text-sm"><strong>Ingredientes:</strong> ${ingredientsText}</p>
-                            <p class="text-sm mt-1"><strong>Efeito:</strong> ${potion.descricao}</p>
-                        </div>
-                    `;
-                }
+                };
+
+                paginaEsquerdaEl.innerHTML = renderRecipe(pagePotions[0]);
+                paginaDireitaEl.innerHTML = renderRecipe(pagePotions[1]);
             
                 document.getElementById('prev-page-btn').disabled = recipeCurrentPage === 0;
                 document.getElementById('next-page-btn').disabled = endIndex >= allPotionNames.length;
@@ -398,7 +413,7 @@
                     status: 'waiting', 
                     phase: 'PREPARATION',
                     currentPlayer: startingPlayer, 
-                    roundStarter: startingPlayer, // <-- ADICIONE ESTA LINHA
+                    roundStarter: startingPlayer, 
                     players: {
                         player1: {
                             uid: player1UID,
@@ -443,7 +458,6 @@
             }
             
             function logMessage(message) {
-                // Certifica-se de que localGameState.log existe
                 if (!localGameState.log) {
                     localGameState.log = [];
                 }
@@ -465,7 +479,6 @@
                 updateFirestoreState(localGameState);
             }
 
-            // COLE A NOVA FUNÇÃO AQUI
             function startActionPhase(playerId) {
                 localGameState.phase = `ACTION_${playerId.toUpperCase()}`;
                 localGameState.currentPlayer = playerId;
@@ -477,20 +490,14 @@
                 const playerWhoFinished = localGameState.currentPlayer;
                 const starterOfThisRound = localGameState.roundStarter;
 
-                // Devolve os ingredientes não usados do balcão para o caldeirão
                 localGameState.cauldron.push(...localGameState.currentPull);
                 localGameState.cauldron = shuffle(localGameState.cauldron);
                 localGameState.currentPull = [];
                 
                 if (playerWhoFinished === starterOfThisRound) {
-                    // CASO 1: O jogador que começou a rodada acabou de produzir.
-                    // Agora, é a vez do segundo jogador produzir.
                     const secondPlayer = starterOfThisRound === 'player1' ? 'player2' : 'player1';
                     startProductionPhase(secondPlayer);
                 } else {
-                    // CASO 2: O segundo jogador acabou de produzir.
-                    // A fase de produção terminou para ambos.
-                    // A fase de Ação começa, e quem tem a vantagem é quem começou a rodada.
                     startActionPhase(starterOfThisRound);
                 }
             }
@@ -500,24 +507,19 @@
                 const roundStarter = localGameState.roundStarter;
                 const otherPlayer = roundStarter === 'player1' ? 'player2' : 'player1';
 
-                // Verifica se o jogo deve terminar
                 if (localGameState.clientsServed >= 10) {
-                    // Se quem acabou de jogar foi o segundo jogador da rodada, o jogo acaba.
                     if (playerId === otherPlayer) {
                         endGame();
-                        return; // Impede o resto da função de rodar
+                        return; 
                     } else {
-                        // Se foi o primeiro, o segundo ainda tem uma chance de jogar antes do fim.
                         startActionPhase(otherPlayer);
                         return;
                     }
                 } 
 
                 if (playerId === roundStarter) {
-                    // Se o jogador que iniciou a rodada terminou a ação, é a vez do outro.
                     startActionPhase(otherPlayer);
                 } else {
-                    // Se o segundo jogador terminou a ação, a rodada inteira acaba.
                     startNewRound();
                 }
             }
@@ -525,21 +527,18 @@
             function startNewRound() {
                 logMessage("Uma nova rodada começa!");
                 
-                // Atualiza os clientes que foram servidos
                 localGameState.clients.forEach((client, index) => {
                     if (client.served) {
                         localGameState.clients[index] = generateClient(CLIENT_TYPES[index]);
                     }
                 });
 
-                // Alterna quem vai começar a próxima rodada
                 const nextStarter = localGameState.roundStarter === 'player1' ? 'player2' : 'player1';
                 localGameState.roundStarter = nextStarter;
                 logMessage(`${localGameState.players[nextStarter].name} começa esta rodada.`);
 
                 selectedPotion = null; 
                 
-                // A nova rodada começa com a fase de produção do novo "starter".
                 startProductionPhase(nextStarter);
             }
             
@@ -630,11 +629,11 @@
             function handleMesaBookClick() {
                 const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
                 if (myPostProdPhase) {
-                    // Se estou na minha fase de pós-produção, abro o modal de criação.
-                    openCreatePotionModal();
+                    // Se estou na minha fase de pós-produção, abro o livro em modo 'create'.
+                    handleBookClick('create');
                 } else {
-                    // Em qualquer outro momento, abro o livro de receitas.
-                    handleBookClick();
+                    // Em qualquer outro momento, abro o livro em modo 'view'.
+                    handleBookClick('view');
                 }
             }
             
@@ -661,7 +660,7 @@
                         logMessage("BOOM! O caldeirão explodiu!");
                         handleExplosion();
                     }
-                } else { // Só atualiza se não explodiu (explosão chama update)
+                } else { 
                     updateFirestoreState(localGameState);
                 }
             }
@@ -686,8 +685,7 @@
                          if (playerState.activePotions["Unguento de Musgo"]) {
                             playerState.activePotions["Unguento de Musgo"] = false; 
                             logMessage("O caldeirão iria explodir, mas o Unguento de Musgo o salvou!");
-                            // Precisamos remover o ingrediente que causaria a explosão
-                            // Encontra o último índice do ingrediente da cor problemática
+                            
                             let lastIndex = -1;
                             for(let i = currentPull.length - 1; i >= 0; i--) {
                                 if(INGREDIENT_DATA[currentPull[i]].cor === color) {
@@ -697,7 +695,7 @@
                             }
                             if (lastIndex > -1) {
                                 const savedIngredient = currentPull.splice(lastIndex, 1)[0];
-                                localGameState.cauldron.push(savedIngredient); // Devolve ao caldeirão
+                                localGameState.cauldron.push(savedIngredient); 
                                 logMessage(`Unguento salvou e devolveu ${savedIngredient}`);
                             }
                             return false; 
@@ -714,7 +712,7 @@
                 localGameState.cauldron.push(...localGameState.currentPull);
                 localGameState.currentPull = [];
                 showMessage("EXPLOSÃO! Você perdeu todos os ingredientes deste turno.");
-                endProductionPhase(); // Atualiza o estado dentro desta função
+                endProductionPhase(); 
             }
     
             function handleExplosionWithResilience() {
@@ -726,7 +724,7 @@
     
                 localGameState.currentPull.forEach((ingredient, index) => {
                     const btn = document.createElement('button');
-                    btn.className = "w-full p-2 rounded bg-gray-700 text-white hover:bg-gray-600 mb-2 disabled:opacity-50"; // Adicionado text-white
+                    btn.className = "w-full p-2 rounded bg-gray-700 text-white hover:bg-gray-600 mb-2 disabled:opacity-50"; 
                     btn.textContent = ingredient;
                     if (!canSave) {
                         btn.disabled = true;
@@ -737,7 +735,7 @@
                         localGameState.cauldron.push(...localGameState.currentPull);
                         localGameState.currentPull = [];
                         decisionModal.classList.add('hidden');
-                        endProductionPhase(); // Atualiza o estado dentro desta função
+                        endProductionPhase(); 
                     };
                     decisionOptionsEl.appendChild(btn);
                 });
@@ -747,13 +745,13 @@
                 }
                 
                 const btnNone = document.createElement('button');
-                btnNone.className = "w-full p-2 rounded bg-red-700 hover:bg-red-600 mt-4 text-white"; // Adicionado text-white
+                btnNone.className = "w-full p-2 rounded bg-red-700 hover:bg-red-600 mt-4 text-white"; 
                 btnNone.textContent = "Não salvar nada";
                 btnNone.onclick = () => {
                     localGameState.cauldron.push(...localGameState.currentPull);
                     localGameState.currentPull = [];
                     decisionModal.classList.add('hidden');
-                    endProductionPhase(); // Atualiza o estado dentro desta função
+                    endProductionPhase(); 
                 };
                 decisionOptionsEl.appendChild(btnNone);
                 
@@ -762,7 +760,7 @@
             
             function handleStopPullingClick() {
                 if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
-                console.log('Parando de puxar, mudando para POST_PRODUCTION'); // Log de depuração
+                console.log('Parando de puxar, mudando para POST_PRODUCTION'); 
                 localGameState.phase = `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
                 logMessage(`${localGameState.players[localPlayerId].name} parou de puxar.`);
                 updateFirestoreState(localGameState);
@@ -770,7 +768,7 @@
     
             function handleFinishProductionClick() {
                 if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) return;
-                endProductionPhase(); // Atualiza o estado dentro desta função
+                endProductionPhase(); 
             }
     
             function handleFinishActionClick() {
@@ -783,7 +781,7 @@
                 }
 
                 actionModal.classList.add('hidden');
-                endActionPhase(); // Atualiza o estado dentro desta função
+                endActionPhase(); 
             }
     
             // ==========================================================
@@ -791,7 +789,6 @@
             // ==========================================================
             
             function showActionModal() {
-                // Só mostra se for a vez do jogador local
                  if (localGameState.currentPlayer !== localPlayerId || localGameState.phase !== `ACTION_${localPlayerId.toUpperCase()}`) {
                      actionModal.classList.add('hidden');
                      return;
@@ -832,8 +829,8 @@
                     playerState.potionsReady.splice(potionIndex, 1);
                 } else {
                     console.error("Tentei usar uma poção que não estava na lista:", potionName);
-                    actionModal.classList.add('hidden'); // Esconde o modal mesmo em caso de erro
-                    showActionModal(); // Tenta mostrar a próxima
+                    actionModal.classList.add('hidden'); 
+                    showActionModal(); 
                     return;
                 }
             
@@ -844,51 +841,20 @@
                 actionModal.classList.add('hidden');
 
                 updateFirestoreState(localGameState).then(() => {
-                    // Pequeno delay para garantir que o estado foi processado antes de mostrar o próximo modal
                     setTimeout(showActionModal, 100); 
                 });
             }
 
-            function handleBookClick() {
+            function handleBookClick(mode = 'view') {
+                recipeBookMode = mode; // Define o modo ('view' or 'create')
                 recipeCurrentPage = 0;
                 allPotionNames = Object.keys(ARCANO_POTIONUM);
-                renderRecipeBookPage();
+                renderRecipeBookPage(); // A renderRecipeBookPage agora usará recipeBookMode
                 recipeModal.classList.remove('hidden');
             }
     
-            function openCreatePotionModal() {
-                // Adiciona verificação explícita da fase
-                if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) {
-                    console.log(`Tentativa de abrir modal de criação na fase errada: ${localGameState.phase}`);
-                    return; // Não abre se não for a fase correta
-                }
-                 console.log('Abrindo modal de criação de poções.'); // Log de depuração
-                
-                const creatablePotions = findCreatablePotions(localGameState.currentPull);
-                createPotionListEl.innerHTML = '';
-                
-                if (creatablePotions.length === 0) {
-                    createPotionListEl.innerHTML = `<p class="text-gray-700">Você não tem os ingredientes necessários para criar nenhuma poção.</p>`;
-                } else {
-                    creatablePotions.forEach(potionName => {
-                        const potion = ARCANO_POTIONUM[potionName];
-                        const ingredientsText = Object.entries(potion.ingredientes)
-                            .map(([name, count]) => `${name} (x${count})`)
-                            .join(', ');
-                            
-                        const btn = document.createElement('button');
-                        btn.className = "w-full text-left p-3 border border-yellow-700/50 rounded bg-yellow-50/50 hover:bg-yellow-100 mb-2";
-                        btn.innerHTML = `
-                            <h4 class="text-xl font-bold text-gray-800">${potion.nome}</h4>
-                            <p class="text-sm text-gray-700"><strong>Ingredientes:</strong> ${ingredientsText}</p>
-                        `;
-                        btn.onclick = () => handleCreatePotion(potionName);
-                        createPotionListEl.appendChild(btn);
-                    });
-                }
-                
-                createPotionModal.classList.remove('hidden');
-            }
+            // Função removida (lógica agora está em handleBookClick e renderRecipeBookPage)
+            // function openCreatePotionModal() { ... }
             
             function findCreatablePotions(currentPull) {
                 const pullCounts = getIngredientCounts(currentPull);
@@ -912,7 +878,17 @@
                 return creatable;
             }
     
-            function handleCreatePotion(potionName) {
+            // Expondo no window para ser acessível pelo onclick do HTML
+            window.handleCreatePotion = function(potionName) {
+                // Esta função é chamada diretamente pelo clique no livro agora
+
+                // Primeiro, verifica se realmente pode criar (como dupla checagem)
+                const creatablePotions = findCreatablePotions(localGameState.currentPull);
+                if (!creatablePotions.includes(potionName)) {
+                    showMessage("Erro! Você não tem os ingredientes para esta poção.");
+                    return;
+                }
+
                 const recipe = ARCANO_POTIONUM[potionName];
                 const pull = localGameState.currentPull;
                 
@@ -929,8 +905,14 @@
                 localGameState.players[localPlayerId].potionsReady.push(potionName);
                 logMessage(`${localGameState.players[localPlayerId].name} criou: ${potionName}!`);
                 
-                createPotionModal.classList.add('hidden');
-                updateFirestoreState(localGameState);
+                recipeModal.classList.add('hidden'); // Fecha o livro
+                
+                updateFirestoreState(localGameState).then(() => {
+                    // Atualiza o livro caso seja aberto novamente (com menos ingredientes)
+                    if (recipeBookMode === 'create') {
+                        renderRecipeBookPage();
+                    }
+                });
             }
     
             function handleIngredientClick(ingredientName, index) {
@@ -1088,13 +1070,11 @@
                 finishProductionBtn.classList.toggle('hidden', !myPostProdPhase);
                 finishActionBtn.classList.toggle('hidden', !myActionPhase);
                 
-                // --- CORREÇÃO: Lógica do botão do livro simplificada ---
                 if (myPostProdPhase) {
                     mesaBook.title = "Criar Poções com Ingredientes do Balcão";
                 } else {
                     mesaBook.title = "Ver Arcano Potionum";
                 }
-                // --- FIM DA CORREÇÃO ---
             }
             
             function renderShelf(shelfEl, shelfItems, ownerId) {
@@ -1111,7 +1091,6 @@
             
             function renderCounter() {
                 counterAreaEl.innerHTML = '';
-                // Verifica se currentPull existe antes de iterar
                 if (localGameState.currentPull && Array.isArray(localGameState.currentPull)) {
                     localGameState.currentPull.forEach((ingredientName, index) => {
                         const img = createIngredientImage(ingredientName, `Balcão`);
@@ -1156,12 +1135,10 @@
             
             function renderActivePotions(listEl, activePotions, ownerId) {
                 listEl.innerHTML = '';
-                // Verifica se activePotions é um objeto antes de iterar
                 if (activePotions && typeof activePotions === 'object') {
                     for (const potionName in activePotions) {
                         if (activePotions[potionName] === true) { 
                             const potion = ARCANO_POTIONUM[potionName];
-                            // Verifica se a poção existe nos dados do jogo
                             if (potion) {
                                 const li = document.createElement('li');
                                 li.className = 'flex items-center gap-2 p-2 bg-gray-800 rounded';
@@ -1183,9 +1160,8 @@
             
             function createIngredientImage(ingredientName, tooltipText) {
                 const img = document.createElement('img');
-                // Adiciona verificação se o ingrediente existe nos dados
                 const imgData = INGREDIENT_DATA[ingredientName];
-                img.src = imgData?.img || 'imagens/placeholder.jpg'; // Usa placeholder se não encontrar
+                img.src = imgData?.img || 'imagens/placeholder.jpg'; 
                 img.title = `${ingredientName} - ${tooltipText}`;
                 img.className = 'w-16 h-16 rounded-full border-2 border-black shadow-md';
                 return img;
@@ -1210,7 +1186,6 @@
     
             function getIngredientCounts(ingredientList) {
                 const counts = {};
-                 // Verifica se ingredientList é um array antes de iterar
                 if (Array.isArray(ingredientList)) {
                     for (const ingredient of ingredientList) {
                         counts[ingredient] = (counts[ingredient] || 0) + 1;
@@ -1296,7 +1271,7 @@
                     if (!playersFound) {
                         playerListEl.innerHTML = `<p class="text-center text-gray-700">Nenhum outro jogador online no momento.</p>`;
                     }
-                }, (error) => { // Adiciona tratamento de erro para o listener
+                }, (error) => { 
                     console.error("Erro no listener da lista do lobby:", error);
                     playerListStatus.textContent = "Erro ao carregar jogadores.";
                 });
@@ -1310,7 +1285,6 @@
                     
                     const lobbyData = docSnap.data();
                     
-                    // Lógica para quem RECEBE o convite
                     if (lobbyData.status === 'invited' && lobbyData.invitedBy) {
                         const inviterId = lobbyData.invitedBy;
                         if (!inviterId) return; 
@@ -1329,19 +1303,16 @@
                              await handleDeclineInvite(inviterId);
                         }
                     } 
-                    // Lógica CORRIGIDA para quem ENVIOU o convite e está sendo puxado para o jogo
                     else if (lobbyData.status === 'ingame') {
-                        // Se o status mudou para 'ingame', e não estamos já em um jogo,
-                        // significa que somos o Player 1 e nosso convite foi aceito.
-                        if (!gameId) { // Evita que a lógica rode múltiplas vezes
-                            gameId = localUserId; // O ID do jogo é o UID do convidante (Player 1)
+                        if (!gameId) { 
+                            gameId = localUserId; 
                             localPlayerId = 'player1';
                             
                             stopLobbyListeners();
                             listenToGameChanges(gameId);
                             
                             playerListScreen.classList.add('hidden');
-                            invitationPopup.classList.add('hidden'); // Garante que o popup suma
+                            invitationPopup.classList.add('hidden'); 
                             gameScreen.classList.remove('hidden');
                         }
                     }
@@ -1349,7 +1320,6 @@
                         invitationPopup.classList.add('hidden');
                         playerListStatus.textContent = "Aguardando convites...";
                     }
-                    // Lógica para quem ENVIOU e está aguardando resposta
                     else if (lobbyData.status === 'invited' && lobbyData.inviteTo) {
                         playerListStatus.textContent = "Convite enviado. Aguardando resposta...";
                     }
@@ -1369,7 +1339,6 @@
                 } catch (e) {
                     console.error("Erro ao convidar:", e);
                     playerListStatus.textContent = "Erro ao enviar convite.";
-                     // Resetar o próprio status se falhar
                     try {
                        await updateDoc(doc(db, lobbyCollectionPath, localUserId), { status: "online", inviteTo: null });
                     } catch (resetError) {
@@ -1379,24 +1348,20 @@
             }
 
             async function handleExitLobby() {
-                if (!localUserId) return; // Segurança para não rodar se o ID não existir
+                if (!localUserId) return; 
 
-                // Para os listeners para evitar qualquer atividade em segundo plano
                 stopLobbyListeners(); 
 
                 try {
-                    // Remove o jogador do banco de dados do lobby
                     const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
                     await deleteDoc(lobbyDocRef);
 
-                    // Troca as telas
                     playerListScreen.classList.add('hidden');
                     lobbyScreen.classList.remove('hidden');
                     lobbyStatus.textContent = "Autenticado. Insira seu nome.";
 
                 } catch (error) {
                     console.error("Erro ao sair do lobby:", error);
-                    // Mesmo com erro, tenta levar o usuário para a tela inicial
                     playerListScreen.classList.add('hidden');
                     lobbyScreen.classList.remove('hidden');
                     lobbyStatus.textContent = "Ocorreu um erro. Tente novamente.";
@@ -1420,21 +1385,20 @@
                     await setDoc(doc(db, gamesCollectionPath, gameId), initialState);
                     
                     const batch = writeBatch(db);
-                    batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "ingame", invitedBy: null, inviteTo: null }); // Limpa invite/invitedBy
-                    batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "ingame", invitedBy: null, inviteTo: null }); // Limpa invite/invitedBy
+                    batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "ingame", invitedBy: null, inviteTo: null }); 
+                    batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "ingame", invitedBy: null, inviteTo: null }); 
                     await batch.commit();
                     
                     stopLobbyListeners();
                     listenToGameChanges(gameId);
                     
-                    invitationPopup.classList.add('hidden'); // Garante que o popup suma
+                    invitationPopup.classList.add('hidden'); 
                     playerListScreen.classList.add('hidden');
                     gameScreen.classList.remove('hidden');
                     
                 } catch (e) {
                     console.error("Erro ao aceitar convite:", e);
                      showMessage("Erro ao iniciar o jogo. Tente novamente.");
-                     // Tentar resetar o estado no lobby
                      try {
                          const batch = writeBatch(db);
                          batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "online", invitedBy: null });
@@ -1450,17 +1414,14 @@
                 try {
                     const batch = writeBatch(db);
                     batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "online", invitedBy: null });
-                    // Verifica se o invitador ainda existe antes de tentar atualizar
-                    if (inviterId) { // Adicionado verificação
+                    if (inviterId) { 
                        batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "online", inviteTo: null });
                     }
                     await batch.commit();
                     invitationPopup.classList.add('hidden');
                 } catch (e) {
                     console.error("Erro ao recusar convite:", e);
-                     // Mesmo se falhar, esconde o popup localmente
                      invitationPopup.classList.add('hidden');
-                     // Tenta resetar o próprio status como fallback
                       try {
                          await updateDoc(doc(db, lobbyCollectionPath, localUserId), { status: "online", invitedBy: null });
                       } catch(selfResetError) {
@@ -1503,7 +1464,7 @@
             
             // Botões de fechar modais
             closeRecipeModalBtn.onclick = () => recipeModal.classList.add('hidden');
-            closeCreatePotionModalBtn.onclick = () => createPotionModal.classList.add('hidden');
+            // closeCreatePotionModalBtn.onclick = () => createPotionModal.classList.add('hidden'); // Removido
             closeMessageModalBtn.onclick = () => messageModal.classList.add('hidden');
             
             // Botão de voltar ao lobby (fim de jogo)
@@ -1513,7 +1474,7 @@
                 gameScreen.classList.add('hidden');
                 playerListScreen.classList.remove('hidden');
             
-                if(localUserId) { // Verifica se localUserId está definido
+                if(localUserId) { 
                     const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
                     try {
                         await setDoc(lobbyDocRef, { 
@@ -1527,7 +1488,7 @@
                     }
                 }
             
-                if (localPlayerId === 'player1' && gameId) { // Verifica se gameId está definido
+                if (localPlayerId === 'player1' && gameId) { 
                    try {
                        await deleteDoc(doc(db, gamesCollectionPath, gameId));
                    } catch(error) {
@@ -1536,8 +1497,8 @@
                 }
                 
                 gameId = null; 
-                localPlayerId = null; // Reseta localPlayerId também
-                if (unsubscribeGame) { // Para o listener do jogo
+                localPlayerId = null; 
+                if (unsubscribeGame) { 
                     unsubscribeGame();
                     unsubscribeGame = null;
                 }
@@ -1572,18 +1533,17 @@
             function listenToGameChanges(id) {
                 if (unsubscribeGame) unsubscribeGame(); 
                 
-                console.log(`Iniciando listener para o jogo: ${id}`); // Log de depuração
+                console.log(`Iniciando listener para o jogo: ${id}`); 
                 unsubscribeGame = onSnapshot(doc(db, gamesCollectionPath, id), (doc) => {
-                    console.log(`Dados do jogo ${id} recebidos.`); // Log de depuração
+                    console.log(`Dados do jogo ${id} recebidos.`); 
                     if (!doc.exists()) {
-                        console.log(`Jogo ${id} não existe mais.`); // Log de depuração
+                        console.log(`Jogo ${id} não existe mais.`); 
                         showMessage("O jogo foi encerrado pelo host ou não existe mais.");
-                        // Volta para o lobby de forma segura
+                        
                         gameScreen.classList.add('hidden');
                         playerListScreen.classList.remove('hidden');
                         if(localUserId) {
                              const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
-                             // Usa setDoc para garantir que o documento exista
                              setDoc(lobbyDocRef, { name: localPlayerName || "Jogador", status: "online", invitedBy: null, inviteTo: null }, { merge: true })
                                 .then(() => {
                                       listenToLobbyList();
@@ -1599,48 +1559,40 @@
                         return;
                     }
                     
-                    const oldState = {...localGameState}; // Clona o estado antigo
+                    const oldState = {...localGameState}; 
                     localGameState = doc.data();
-                    console.log('Novo estado do jogo:', localGameState); // Log de depuração
-                     console.log(`Fase atual: ${localGameState.phase}, Jogador atual: ${localGameState.currentPlayer}, Meu ID: ${localPlayerId}`); // Log detalhado
+                    console.log('Novo estado do jogo:', localGameState); 
+                     console.log(`Fase atual: ${localGameState.phase}, Jogador atual: ${localGameState.currentPlayer}, Meu ID: ${localPlayerId}`); 
                     
-                    // Define/Redefine o localPlayerId
                     if (localUserId === localGameState.players?.player1?.uid) localPlayerId = 'player1';
                     else if (localUserId === localGameState.players?.player2?.uid) localPlayerId = 'player2';
                     else {
-                        // Se não for nenhum dos jogadores, algo está errado (talvez reconectando a um jogo que não é seu)
                         console.error("UID local não corresponde a nenhum jogador no estado do jogo!", localUserId, localGameState.players);
-                        // Poderia voltar ao lobby aqui
-                        // backToLobbyBtn.onclick(); // Simula o clique no botão
                         return;
                     }
     
-                    // Garante que a tela de jogo esteja visível se o jogo estiver ativo
                     if (localGameState.status === 'active' && gameScreen.classList.contains('hidden')) {
-                        console.log("Jogo ativo, mostrando tela do jogo."); // Log de depuração
+                        console.log("Jogo ativo, mostrando tela do jogo."); 
                         lobbyScreen.classList.add('hidden');
                         playerListScreen.classList.add('hidden');
-                        document.getElementById('reconnect-screen').classList.add('hidden'); // Esconde reconexão se estava visível
+                        document.getElementById('reconnect-screen').classList.add('hidden'); 
                         gameScreen.classList.remove('hidden');
                     }
                     
                     updateUI();
                     
-                    // Gatilho da Fase de Ação
                     if (oldState.phase !== localGameState.phase && localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`) {
-                        console.log(`Fase mudou para ACTION do jogador ${localPlayerId}, chamando showActionModal`); // Log de depuração
-                        // Adiciona um pequeno delay para garantir que a UI foi renderizada com o estado mais recente
+                        console.log(`Fase mudou para ACTION do jogador ${localPlayerId}, chamando showActionModal`); 
                         setTimeout(showActionModal, 150); 
                     }
                     
                     if (localGameState.phase === 'GAME_OVER' && oldState.phase !== 'GAME_OVER') {
-                        console.log("Fim de jogo detectado."); // Log de depuração
+                        console.log("Fim de jogo detectado."); 
                         endGame(); 
                     }
-                }, (error) => { // Adiciona tratamento de erro para o listener do jogo
+                }, (error) => { 
                     console.error(`Erro no listener do jogo ${id}:`, error);
                     showMessage("Erro de conexão com o jogo. Tentando reconectar...");
-                    // Poderia tentar reiniciar o listener ou voltar ao lobby
                 });
             }
             
@@ -1652,7 +1604,7 @@
                     lobbyStatus.textContent = "Autenticado. Insira seu nome.";
                     
                     const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
-                    try { // Adiciona try-catch para getDoc
+                    try { 
                         const lobbyDoc = await getDoc(lobbyDocRef);
                         
                         if (lobbyDoc.exists()) {
@@ -1666,7 +1618,7 @@
                                 let gameIdToFind = lobbyData.inviteTo ? localUserId : lobbyData.invitedBy;
                         
                                 if (gameIdToFind) {
-                                     try { // Adiciona try-catch para getDoc do jogo
+                                     try { 
                                         const gameDoc = await getDoc(doc(db, gamesCollectionPath, gameIdToFind));
                                         
                                         if (gameDoc.exists() && gameDoc.data().status !== 'finished') {
@@ -1681,23 +1633,20 @@
                                             };
                         
                                             document.getElementById('reconnect-no-btn').onclick = async () => {
-                                                // --- Lógica de Abandono Refatorada ---
-                                                reconnectScreen.classList.add('hidden'); // Esconde imediatamente
+                                                reconnectScreen.classList.add('hidden'); 
                                                 try {
-                                                    const gameData = gameDoc.data(); // Usa os dados já buscados
+                                                    const gameData = gameDoc.data(); 
                                                     const myPlayerId = gameData.players.player1.uid === localUserId ? 'player1' : 'player2';
                                                     const opponentId = myPlayerId === 'player1' ? 'player2' : 'player1';
                                 
-                                                    // Verifica se o jogo já não foi finalizado por outra ação
                                                     if (gameData.status !== 'finished') {
                                                         gameData.status = 'finished';
                                                         gameData.phase = 'GAME_OVER';
                                                         gameData.winner = opponentId;
-                                                        gameData.log = gameData.log || []; // Garante que log exista
+                                                        gameData.log = gameData.log || []; 
                                                         gameData.log.unshift(`${gameData.players[myPlayerId]?.name || 'Jogador'} abandonou a partida.`);
                                                         await setDoc(doc(db, gamesCollectionPath, gameId), gameData);
                                                     }
-                                                    // Mesmo se já finalizado, reseta o lobby local
                                                     await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
                                                     playerListScreen.classList.remove('hidden');
                                                     listenToLobbyList();
@@ -1706,13 +1655,11 @@
                                                 } catch (abandonError) {
                                                      console.error("Erro ao abandonar partida:", abandonError);
                                                      showMessage("Erro ao abandonar a partida. Tente recarregar.");
-                                                     // Força reset do lobby como fallback
                                                      await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
                                                      playerListScreen.classList.remove('hidden');
                                                      listenToLobbyList();
                                                      listenToLobbyUser();
                                                 }
-                                                // --- Fim Lógica de Abandono ---
                                             };
                         
                                         } else {
@@ -1724,7 +1671,6 @@
                                         }
                                      } catch (gameDocError) {
                                          console.error("Erro ao buscar documento do jogo:", gameDocError);
-                                         // Assume que o jogo não existe ou há problema, reseta para o lobby
                                           await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null });
                                           lobbyScreen.classList.add('hidden');
                                           playerListScreen.classList.remove('hidden');
@@ -1745,7 +1691,6 @@
                                 listenToLobbyUser();
                             }
                         } else {
-                            // Documento do lobby não existe, fica na tela de login
                             console.log("Documento do lobby não encontrado para o usuário.");
                         }
                     } catch(lobbyDocError) {
@@ -1762,13 +1707,13 @@
                     } catch (error) {
                         console.error("Falha na autenticação:", error);
                         lobbyStatus.textContent = "Erro de autenticação. Recarregue a página.";
-                        startLobbyBtn.disabled = true; // Mantém desabilitado se falhar
+                        startLobbyBtn.disabled = true; 
                     }
                 }
             });
             
         } catch (e) {
-            console.error("Erro CRÍTICO ao inicializar o Firebase:", e); // Mensagem mais forte
+            console.error("Erro CRÍTICO ao inicializar o Firebase:", e); 
             document.body.innerHTML = `
                 <div class="fixed inset-0 bg-red-900 text-white flex flex-col items-center justify-center p-8 text-center">
                     <h1 class="text-3xl font-bold mb-4">Erro Crítico ao Inicializar</h1>
@@ -1789,7 +1734,7 @@
         #livro-container { background-image: url('imagens/livro.png'); background-size: 100% 100%; background-repeat: no-repeat; }
         .receita-item { color: #3d2a1a; }
         .text-shadow { text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
-        .speech-bubble { position: relative; background: #f0e6d2; border-radius: .4em; border: 2px solid #5c3d20; padding: 8px 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); transition: visibility 0.2s ease; /* Transição para suavizar */ }
+        .speech-bubble { position: relative; background: #f0e6d2; border-radius: .4em; border: 2px solid #5c3d20; padding: 8px 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); transition: visibility 0.2s ease; }
         .speech-bubble:after { content: ''; position: absolute; bottom: 0; left: 50%; width: 0; height: 0; border: 15px solid transparent; border-top-color: #5c3d20; border-bottom: 0; margin-left: -15px; margin-bottom: -17px; }
         .pergaminho-bg { background-image: url('imagens/pergaminho_fundo.jpg'); background-size: cover; background-position: center; color: #3d2a1a; border: 4px solid #5c3d20; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         #active-potions-board { transition: transform 0.3s ease-in-out; }
@@ -1805,8 +1750,29 @@
         .ingredient-img:hover { @apply shadow-lg scale-105; }
         .ingredient-img.clickable { @apply cursor-pointer hover:border-yellow-400; }
         .potion-img { @apply w-16 h-16 object-contain; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
-        /* Garante que o cursor padrão seja aplicado quando desabilitado */
         #cauldron-btn:disabled { cursor: default; } 
+
+        /* --- NOVOS ESTILOS PARA O LIVRO --- */
+        .receita-item.creatable {
+            background-color: #fefcbf; /* Cor amarela clara */
+            border: 2px solid #b45309; /* Borda âmbar escura */
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .receita-item.creatable:hover {
+            background-color: #fef9c3;
+            transform: scale(1.02);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .creatable-marker { /* Um texto opcional para deixar claro */
+            font-weight: bold;
+            color: #166534; /* Verde escuro */
+            font-size: 0.9rem;
+            display: block;
+            margin-top: 4px;
+        }
+        /* --- FIM DOS NOVOS ESTILOS --- */
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -1931,22 +1897,25 @@
         <!-- MODAIS -->
         <div id="recipe-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
             <div id="livro-container" class="relative w-full max-w-5xl aspect-[16/9]"> 
-                <div id="pagina-esquerda" class="absolute top-[10%] left-[5%] w-[42%] h-[80%] p-4 overflow-y-auto"></div>
-                <div id="pagina-direita" class="absolute top-[10%] right-[5%] w-[42%] h-[80%] p-4 overflow-y-auto"></div>
+                <!-- 
+                    CLASSES AJUSTADAS: 
+                    top-[10%] -> top-[15%] (mais para baixo)
+                    left-[5%] -> left-[8%] (mais para dentro)
+                    right-[5%] -> right-[8%] (mais para dentro)
+                    w-[42%] -> w-[40%] (mais estreito)
+                    h-[80%] -> h-[75%] (mais baixo)
+                -->
+                <div id="pagina-esquerda" class="absolute top-[15%] left-[8%] w-[40%] h-[75%] p-4 overflow-y-auto"></div>
+                <div id="pagina-direita" class="absolute top-[15%] right-[8%] w-[40%] h-[75%] p-4 overflow-y-auto"></div>
+                
                 <button id="prev-page-btn" class="absolute bottom-[5%] left-[3%] text-5xl text-[#5c3d20] hover:text-black disabled:opacity-50" disabled>‹</button>
                 <button id="next-page-btn" class="absolute bottom-[5%] right-[3%] text-5xl text-[#5c3d20] hover:text-black disabled:opacity-50">›</button>
                 <button id="close-recipe-modal-btn" class="absolute top-4 right-6 text-5xl text-[#5c3d20] hover:text-red-700">&times;</button>
             </div>
         </div>
         
-        <div id="create-potion-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
-            <div class="pergaminho-bg p-8 rounded-lg w-full max-w-2xl h-auto max-h-[80vh] overflow-y-auto relative">
-                <h2 class="text-3xl font-bold text-center text-[#3d2a1a] mb-6">Criar Poções</h2>
-                <p class="text-center text-lg text-[#3d2a1a] mb-4">Poções que você pode criar com os ingredientes do balcão:</p>
-                <div id="create-potion-list" class="space-y-4"></div>
-                <button id="close-create-potion-modal-btn" class="absolute top-4 right-6 text-5xl text-[#3d2a1a] hover:text-red-700">&times;</button>
-            </div>
-        </div>
+        <!-- MODAL DE CRIAÇÃO REMOVIDO -->
+        <!-- <div id="create-potion-modal" class="hidden ..."> ... </div> -->
         
         <div id="action-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
             <div class="pergaminho-bg p-8 rounded-lg w-full max-w-lg text-center">
@@ -1957,7 +1926,6 @@
                     <button id="sell-btn" class="btn btn-green w-1/2">Vender</button>
                     <button id="use-btn" class="btn btn-blue w-1/2">Usar Efeito</button>
                 </div>
-                 <!-- Adiciona um botão para fechar o modal sem escolher, caso o jogador mude de ideia -->
                  <button onclick="document.getElementById('action-modal').classList.add('hidden')" class="btn btn-gray w-1/2 mt-4 mx-auto">Fechar</button>
             </div>
         </div>
@@ -1986,11 +1954,3 @@
     </div>
 </body>
 </html>
-
-
-
-
-
-
-
-
