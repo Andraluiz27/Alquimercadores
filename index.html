@@ -390,9 +390,9 @@
 
                     return `
                         <div class="${className}" ${dataAttribute}>
-                            <h4 class="text-xl font-bold">${potion.nome} [${potion.tipo}]</h4>
-                            <p class="text-sm"><strong>Ingredientes:</strong> ${ingredientsText}</p>
-                            <p class="text-sm mt-1"><strong>Efeito:</strong> ${potion.descricao}</p>
+                            <h4 class="text-lg font-bold">${potion.nome} [${potion.tipo}]</h4>
+                            <p class="text-xs"><strong>Ingredientes:</strong> ${ingredientsText}</p>
+                            <p class="text-xs mt-1"><strong>Efeito:</strong> ${potion.descricao}</p>
                             ${creatableMarker}
                         </div>
                     `;
@@ -2014,8 +2014,8 @@
                     w-[42%] -> w-[40%] (mais estreito)
                     h-[80%] -> h-[75%] (mais baixo)
                 -->
-                <div id="pagina-esquerda" class="absolute top-[15%] left-[8%] w-[40%] h-[75%] p-4 overflow-y-auto"></div>
-                <div id="pagina-direita" class="absolute top-[15%] right-[8%] w-[40%] h-[75%] p-4 overflow-y-auto"></div>
+                <div id="pagina-esquerda" class="absolute top-[15%] left-[10%] w-[38%] h-[73%] p-4 overflow-y-auto"></div>
+                <div id="pagina-direita" class="absolute top-[15%] right-[10%] w-[38%] h-[73%] p-3 overflow-y-auto"></div>
                 
                 <button id="prev-page-btn" class="absolute bottom-[5%] left-[3%] text-5xl text-[#5c3d20] hover:text-black disabled:opacity-50" disabled>‹</button>
                 <button id="next-page-btn" class="absolute bottom-[5%] right-[3%] text-5xl text-[#5c3d20] hover:text-black disabled:opacity-50">›</button>
@@ -2063,4 +2063,5 @@
     </div>
 </body>
 </html>
+
 
