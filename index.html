@@ -271,7 +271,6 @@
             // ==========================================================
             // ELEMENTOS DA DOM (Jogo)
             // ==========================================================
-            // const createPotionListEl = document.getElementById('create-potion-list'); // Removido
             const player1ScoreEl = document.getElementById('player1-score');
             const player2ScoreEl = document.getElementById('player2-score');
             const client1Bubble = document.getElementById('client-1-bubble');
@@ -295,8 +294,6 @@
             const player2ActivePotionsEl = document.getElementById('player2-active-potions-list');
             const recipeModal = document.getElementById('recipe-modal');
             const closeRecipeModalBtn = document.getElementById('close-recipe-modal-btn');
-            // const createPotionModal = document.getElementById('create-potion-modal'); // Removido
-            // const closeCreatePotionModalBtn = document.getElementById('close-create-potion-modal-btn'); // Removido
             const actionModal = document.getElementById('action-modal');
             const actionPotionNameEl = document.getElementById('action-potion-name');
             const actionPotionDescEl = document.getElementById('action-potion-desc');
@@ -311,7 +308,7 @@
             const decisionTitleEl = document.getElementById('decision-title');
             const decisionOptionsEl = document.getElementById('decision-options');
             const quitGameBtn = document.getElementById('quit-game-btn');
-            const mesaBook = document.getElementById('mesa-book-btn'); // Referência para o botão do livro na mesa
+            const mesaBook = document.getElementById('mesa-book-btn');
             mesaBook.addEventListener('click', handleMesaBookClick);
             // ==========================================================
             // FUNÇÕES DE LÓGICA DO JOGO (CORE)
@@ -325,19 +322,9 @@
                         cauldron.push(ingredient);
                     }
                 }
-                return cauldron; // REMOVIDO O SHUFFLE DAQUI
+                return cauldron;
             }
-    
-            /* FUNÇÃO NÃO É MAIS NECESSÁRIA
-            function shuffle(array) {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-                return array;
-            }
-            */
-    
+
             function generateClient(clientType) {
                 const allPotionNames = Object.keys(ARCANO_POTIONUM);
                 const randomPotionName = allPotionNames[Math.floor(Math.random() * allPotionNames.length)];
@@ -368,7 +355,6 @@
                 const endIndex = startIndex + recipesPerPage;
                 const pagePotions = allPotionNames.slice(startIndex, endIndex);
 
-                // Esta função interna agora SÓ gera o HTML, sem o onclick
                 const renderRecipeHTML = (potionName) => {
                     if (!potionName) return '';
 
@@ -380,13 +366,11 @@
                     
                     let creatableMarker = '';
                     let className = 'receita-item p-2';
-                    // Usaremos um 'data attribute' para identificar a poção
                     let dataAttribute = ''; 
 
                     if (isCreatable) {
                         className += ' creatable';
                         creatableMarker = '<span class="creatable-marker">Fabricar! (Clique)</span>';
-                        // Adicionamos um identificador que o JavaScript pode ler
                         dataAttribute = `data-potion-name="${potionName}"`;
                     }
 
@@ -400,22 +384,15 @@
                     `;
                 };
 
-                // Primeiro, colocamos o HTML nas páginas
                 paginaEsquerdaEl.innerHTML = renderRecipeHTML(pagePotions[0]);
                 paginaDireitaEl.innerHTML = renderRecipeHTML(pagePotions[1]);
             
-                // AGORA, a parte crucial: adicionamos os cliques com JavaScript
                 if (recipeBookMode === 'create') {
-                    // Encontra todos os elementos que marcamos como 'creatable'
                     const creatableElements = recipeModal.querySelectorAll('.creatable');
-                    // Para cada um deles...
                     creatableElements.forEach(element => {
-                        // ...adicionamos um listener de clique
                         element.addEventListener('click', () => {
-                            // Quando clicado, ele pega o nome da poção do 'data attribute'
                             const potionNameToCreate = element.dataset.potionName;
                             if (potionNameToCreate) {
-                                // E chama a função de criação
                                 window.handleCreatePotion(potionNameToCreate);
                             }
                         });
@@ -477,6 +454,7 @@
                     }
                 }
             }
+            // *** CORREÇÃO PARA TESTE NO CONSOLE ***
             window.updateFirestoreState = updateFirestoreState;
             
             function logMessage(message) {
@@ -513,7 +491,6 @@
                 const starterOfThisRound = localGameState.roundStarter;
 
                 localGameState.cauldron.push(...localGameState.currentPull);
-                // localGameState.cauldron = shuffle(localGameState.cauldron); // REMOVIDO O SHUFFLE
                 localGameState.currentPull = [];
                 
                 if (playerWhoFinished === starterOfThisRound) {
@@ -651,18 +628,13 @@
             function handleMesaBookClick() {
                 const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
                 if (myPostProdPhase) {
-                    // Se estou na minha fase de pós-produção, abro o livro em modo 'create'.
                     handleBookClick('create');
                 } else {
-                    // Em qualquer outro momento, abro o livro em modo 'view'.
                     handleBookClick('view');
                 }
             }
             
-            // ==========================================================
-            // FUNÇÃO MODIFICADA (handleCauldronClick)
-            // ==========================================================
-            async function handleCauldronClick() { // Adicionamos 'async' para poder usar 'await'
+            async function handleCauldronClick() {
                 if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
                 
                 const playerState = localGameState.players[localPlayerId];
@@ -672,9 +644,6 @@
                     return;
                 }
                 
-                // const pulledIngredient = localGameState.cauldron.pop(); // MUDANÇA: Comentado
-                
-                // MUDANÇA: Puxa um item aleatório em vez do último
                 const randomIndex = Math.floor(Math.random() * localGameState.cauldron.length);
                 const pulledIngredient = localGameState.cauldron.splice(randomIndex, 1)[0];
 
@@ -682,17 +651,11 @@
                 
                 logMessage(`${playerState.name} puxou: ${pulledIngredient}`);
                 
-                // PRIMEIRO: Atualiza o estado para que todos vejam o ingrediente puxado.
-                // A interface será redesenhada mostrando o novo ingrediente no balcão.
                 await updateFirestoreState(localGameState);
                 
-                // SEGUNDO: Agora que o ingrediente está visível, verificamos se a jogada resultou em uma explosão.
                 if (checkExplosion(localGameState.currentPull, playerState)) {
                     
-                    // TERCEIRO: Aguarda um instante para o jogador processar a informação visual.
                     setTimeout(() => {
-                        // Verificação extra para garantir que o estado ainda é de produção
-                        // Isso evita explosões "fantasmas" se o jogador conseguir parar rápido
                         if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
 
                         if (playerState.activePotions["Resiliência do Farsante"]) {
@@ -702,13 +665,9 @@
                             logMessage("BOOM! O caldeirão explodiu!");
                             handleExplosion();
                         }
-                    }, 1000); // Atraso de 1 segundo (1000ms). Você pode ajustar este valor.
+                    }, 1000);
                 }
-                // Não há mais um bloco 'else', porque a atualização do estado já foi feita no início.
             }
-            // ==========================================================
-            // FIM DA MODIFICAÇÃO
-            // ==========================================================
             
             function checkExplosion(currentPull, playerState) {
                 const counts = {};
@@ -769,7 +728,6 @@
     
                 localGameState.currentPull.forEach((ingredient, index) => {
                     const btn = document.createElement('button');
-                    // MODIFICADO: classes de botão claro
                     btn.className = "btn btn-gray w-full mb-2 disabled:opacity-50"; 
                     btn.textContent = ingredient;
                     if (!canSave) {
@@ -791,7 +749,6 @@
                 }
                 
                 const btnNone = document.createElement('button');
-                // MODIFICADO: classes de botão claro
                 btnNone.className = "btn btn-red w-full mt-4"; 
                 btnNone.textContent = "Não salvar nada";
                 btnNone.onclick = () => {
@@ -807,7 +764,6 @@
             
             function handleStopPullingClick() {
                 if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
-                console.log('Parando de puxar, mudando para POST_PRODUCTION'); 
                 localGameState.phase = `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
                 logMessage(`${localGameState.players[localPlayerId].name} parou de puxar.`);
                 updateFirestoreState(localGameState);
@@ -893,15 +849,12 @@
             }
 
             function handleBookClick(mode = 'view') {
-                recipeBookMode = mode; // Define o modo ('view' or 'create')
+                recipeBookMode = mode;
                 recipeCurrentPage = 0;
                 allPotionNames = Object.keys(ARCANO_POTIONUM);
-                renderRecipeBookPage(); // A renderRecipeBookPage agora usará recipeBookMode
+                renderRecipeBookPage();
                 recipeModal.classList.remove('hidden');
             }
-    
-            // Função removida (lógica agora está em handleBookClick e renderRecipeBookPage)
-            // function openCreatePotionModal() { ... }
             
             function findCreatablePotions(currentPull) {
                 const pullCounts = getIngredientCounts(currentPull);
@@ -925,11 +878,7 @@
                 return creatable;
             }
     
-            // Expondo no window para ser acessível pelo onclick do HTML
             window.handleCreatePotion = function(potionName) {
-                // Esta função é chamada diretamente pelo clique no livro agora
-
-                // Primeiro, verifica se realmente pode criar (como dupla checagem)
                 const creatablePotions = findCreatablePotions(localGameState.currentPull);
                 if (!creatablePotions.includes(potionName)) {
                     showMessage("Erro! Você não tem os ingredientes para esta poção.");
@@ -952,10 +901,9 @@
                 localGameState.players[localPlayerId].potionsReady.push(potionName);
                 logMessage(`${localGameState.players[localPlayerId].name} criou: ${potionName}!`);
                 
-                recipeModal.classList.add('hidden'); // Fecha o livro
+                recipeModal.classList.add('hidden');
                 
                 updateFirestoreState(localGameState).then(() => {
-                    // Atualiza o livro caso seja aberto novamente (com menos ingredientes)
                     if (recipeBookMode === 'create') {
                         renderRecipeBookPage();
                     }
@@ -985,9 +933,6 @@
                 updateFirestoreState(localGameState);
             }
             
-            // ==========================================================
-            // INÍCIO DA ALTERAÇÃO
-            // ==========================================================
             function executePotionEffect(potionName, playerId) {
                 const playerState = localGameState.players[playerId];
                 const opponentId = getOpponentId(playerId);
@@ -1005,26 +950,22 @@
                     case "Estabilizador Cromático": playerState.activePotions["Estabilizador Cromático"] = true; break;
                     case "Pedra Filosofal (Falsa)": playerState.coins += 7; break;
                     case "Poção da Usurpação":
-                        // VERIFICAÇÃO DA BARREIRA
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false; // Consome a barreira
+                            opponentState.activePotions["Barreira de Bolhas"] = false;
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Poção da Usurpação!`);
-                            break; // Interrompe a ação
+                            break;
                         }
-                        // Efeito original
                         const coinsToSteal = Math.min(opponentState.coins, 5);
                         opponentState.coins -= coinsToSteal;
                         playerState.coins += coinsToSteal;
                         logMessage(`${playerState.name} roubou ${coinsToSteal} moedas de ${opponentState.name}!`);
                         break;
                     case "Solvente Universal":
-                        // VERIFICAÇÃO DA BARREIRA
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false; // Consome a barreira
+                            opponentState.activePotions["Barreira de Bolhas"] = false;
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Solvente Universal!`);
-                            break; // Interrompe a ação
+                            break;
                         }
-                        // Efeito original
                         if (opponentState.shelf.length > 0) {
                             logMessage(`${playerState.name} usou Solvente Universal! A prateleira de ${opponentState.name} foi esvaziada!`);
                             localGameState.cauldron.push(...opponentState.shelf);
@@ -1034,13 +975,11 @@
                         }
                         break;
                     case "Maldição do Caldeirão Trincado":
-                        // VERIFICAÇÃO DA BARREIRA
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false; // Consome a barreira
+                            opponentState.activePotions["Barreira de Bolhas"] = false;
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Maldição do Caldeirão Trincado!`);
-                            break; // Interrompe a ação
+                            break;
                         }
-                        // Efeito original
                         opponentState.activePotions["Maldição do Caldeirão Trincado"] = true; 
                         break;
                     case "Pasta Prismática": playerState.activePotions["Pasta Prismática"] = true; break;
@@ -1051,9 +990,6 @@
                         break;
                 }
             }
-            // ==========================================================
-            // FIM DA ALTERAÇÃO
-            // ==========================================================
     
             async function handleForfeit() {
                 if (!gameId || !localPlayerId) return;
@@ -1076,18 +1012,12 @@
                 
                 await updateFirestoreState(finalState);
                 
-                // ==========================================================
-                // CORREÇÃO: Resetar variáveis de estado do jogo local
-                // ==========================================================
                 gameId = null;
                 localPlayerId = null;
                 if (unsubscribeGame) {
                     unsubscribeGame();
                     unsubscribeGame = null;
                 }
-                // ==========================================================
-                // FIM DA CORREÇÃO
-                // ==========================================================
                 
                 gameScreen.classList.add('hidden');
                 playerListScreen.classList.remove('hidden');
@@ -1148,7 +1078,6 @@
                 renderActivePotions(player1ActivePotionsEl, p1.activePotions, 'player1');
                 renderActivePotions(player2ActivePotionsEl, p2.activePotions, 'player2');
     
-                const myTurn = localGameState.currentPlayer === localPlayerId;
                 const myProdPhase = localGameState.phase === `PRODUCTION_${localPlayerId.toUpperCase()}`;
                 const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
     
@@ -1308,7 +1237,7 @@
                         status: "online",
                         invitedBy: null,
                         inviteTo: null,
-                        currentGameId: null // Garante que começa limpo
+                        currentGameId: null
                     });
                     
                     lobbyScreen.classList.add('hidden');
@@ -1338,25 +1267,14 @@
                         
                         if (playerId === localUserId) return;
 
-                        // ==========================================================
-                        // NOVA LÓGICA DE LIMPEZA DE JOGADOR OBSOLETO
-                        // ==========================================================
                         if (player.status === 'ingame' && player.currentGameId) {
-                            // Verifica se o jogo desse jogador ainda existe, em segundo plano.
-                            // Se não existir, ele será removido do lobby.
                             checkAndCleanStaleGame(playerId, player.currentGameId);
                         } else if (player.status === 'ingame' && !player.currentGameId) {
-                            // Limpa jogadores "ingame" muito antigos que não têm currentGameId (dados antigos)
-                            // (Esta parte pode ser mais elaborada com timestamps, mas por agora vamos focar no currentGameId)
                             console.warn(`Jogador ${player.name} está 'ingame' mas sem currentGameId.`);
                         }
-                        // ==========================================================
-                        // FIM DA NOVA LÓGICA
-                        // ==========================================================
                         
                         playersFound = true;
                         const btn = document.createElement('button');
-                        // MODIFICADO: classes de botão claro
                         btn.className = "w-full text-left p-4 bg-yellow-300 border-yellow-500 rounded-lg hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed text-yellow-900 border-b-4";
                         
                         let statusText = "";
@@ -1384,19 +1302,12 @@
                 });
             }
 
-            // ==========================================================
-            // NOVA FUNÇÃO: checkAndCleanStaleGame
-            // Esta função é chamada por qualquer jogador no lobby
-            // para limpar jogadores que ficaram presos "Em Jogo".
-            // ==========================================================
             async function checkAndCleanStaleGame(stalePlayerId, gameIdToCheck) {
                 try {
                     const gameDocRef = doc(db, gamesCollectionPath, gameIdToCheck);
                     const gameDoc = await getDoc(gameDocRef);
             
                     if (!gameDoc.exists() || gameDoc.data().status === 'finished') {
-                        // O jogo acabou ou não existe, mas o jogador ainda está "ingame".
-                        // Vamos removê-lo do lobby para limpar a lista.
                         console.log(`Removendo jogador obsoleto ('ingame') do lobby: ${stalePlayerId}`);
                         const lobbyDocRef = doc(db, lobbyCollectionPath, stalePlayerId);
                         await deleteDoc(lobbyDocRef);
@@ -1433,20 +1344,8 @@
                         }
                     } 
                     else if (lobbyData.status === 'ingame') {
-                        // Esta é a lógica para PUXAR O JOGADOR para o jogo
-                        // Se aplica tanto ao P1 (que convidou) quanto ao P2 (que aceitou)
                         if (!gameId) { 
-                            // Se eu sou o P1 (host/inviter), meu localUserId É o gameId
-                            // Se eu sou o P2 (guest/invited), meu localUserId NÃO é o gameId
-                            // O P2 já definiu o gameId em handleAcceptInvite.
-                            // Esta lógica é primariamente para o P1.
-                            
-                            // O P1 (inviter) tem o 'inviteTo' preenchido, P2 não
-                            // Mas P2 já saiu desta tela via handleAcceptInvite
-                            // Então, se status é 'ingame' e gameId local é null,
-                            // só pode ser o P1 sendo puxado.
-                            
-                            gameId = localUserId; // P1 é o host, o ID do jogo é o ID dele
+                            gameId = localUserId;
                             localPlayerId = 'player1';
                             
                             console.log(`Jogador 1 (Host) sendo puxado para o jogo: ${gameId}`);
@@ -1492,17 +1391,13 @@
 
             async function handleExitLobby() {
                 if (!localUserId) return; 
-
                 stopLobbyListeners(); 
-
                 try {
                     const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
                     await deleteDoc(lobbyDocRef);
-
                     playerListScreen.classList.add('hidden');
                     lobbyScreen.classList.remove('hidden');
                     lobbyStatus.textContent = "Autenticado. Insira seu nome.";
-
                 } catch (error) {
                     console.error("Erro ao sair do lobby:", error);
                     playerListScreen.classList.add('hidden');
@@ -1528,9 +1423,7 @@
                     await setDoc(doc(db, gamesCollectionPath, gameId), initialState);
                     
                     const batch = writeBatch(db);
-                    // Atualiza P2 (eu)
                     batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "ingame", invitedBy: null, inviteTo: null, currentGameId: inviterId }); 
-                    // Atualiza P1 (host)
                     batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "ingame", invitedBy: null, inviteTo: null, currentGameId: inviterId }); 
                     await batch.commit();
                     
@@ -1592,7 +1485,6 @@
             finishProductionBtn.onclick = handleFinishProductionClick;
             finishActionBtn.onclick = handleFinishActionClick;
             
-            // Navegação do livro de receitas
             document.getElementById('next-page-btn').onclick = () => {
                 const maxPages = Math.ceil(allPotionNames.length / recipesPerPage);
                 if (recipeCurrentPage < maxPages - 1) {
@@ -1607,12 +1499,9 @@
                 }
             };
             
-            // Botões de fechar modais
             closeRecipeModalBtn.onclick = () => recipeModal.classList.add('hidden');
-            // closeCreatePotionModalBtn.onclick = () => createPotionModal.classList.add('hidden'); // Removido
             closeMessageModalBtn.onclick = () => messageModal.classList.add('hidden');
             
-            // Botão de voltar ao lobby (fim de jogo)
             const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
             backToLobbyBtn.onclick = async () => {
                 endGameModal.classList.add('hidden');
@@ -1627,7 +1516,7 @@
                             status: "online", 
                             invitedBy: null, 
                             inviteTo: null,
-                            currentGameId: null // Limpa o ID do jogo
+                            currentGameId: null
                         });
                     } catch (error) {
                          console.error("Erro ao resetar status no lobby:", error);
@@ -1652,7 +1541,6 @@
                 listenToLobbyUser();
             };
     
-            // Botão de desistir
             quitGameBtn.onclick = () => {
                 decisionTitleEl.textContent = "Desistir da Partida?";
                 decisionOptionsEl.innerHTML = `
@@ -1671,7 +1559,6 @@
                 };
             };
             
-            // Painel lateral de poções
             activePotionsToggleBtn.onclick = () => activePotionsBoard.classList.remove('translate-x-full');
             closePotionsBoardBtn.onclick = () => activePotionsBoard.classList.add('translate-x-full');
             
@@ -1679,11 +1566,8 @@
             function listenToGameChanges(id) {
                 if (unsubscribeGame) unsubscribeGame(); 
                 
-                console.log(`Iniciando listener para o jogo: ${id}`); 
                 unsubscribeGame = onSnapshot(doc(db, gamesCollectionPath, id), (doc) => {
-                    console.log(`Dados do jogo ${id} recebidos.`); 
                     if (!doc.exists()) {
-                        console.log(`Jogo ${id} não existe mais.`); 
                         showMessage("O jogo foi encerrado pelo host ou não existe mais.");
                         
                         gameScreen.classList.add('hidden');
@@ -1707,9 +1591,8 @@
                     
                     const oldState = {...localGameState}; 
                     localGameState = doc.data();
-                    window.localGameState = localGameState
-                    console.log('Novo estado do jogo:', localGameState); 
-                     console.log(`Fase atual: ${localGameState.phase}, Jogador atual: ${localGameState.currentPlayer}, Meu ID: ${localPlayerId}`); 
+                    // *** CORREÇÃO PARA TESTE NO CONSOLE ***
+                    window.localGameState = localGameState;
                     
                     if (localUserId === localGameState.players?.player1?.uid) localPlayerId = 'player1';
                     else if (localUserId === localGameState.players?.player2?.uid) localPlayerId = 'player2';
@@ -1719,7 +1602,6 @@
                     }
     
                     if (localGameState.status === 'active' && gameScreen.classList.contains('hidden')) {
-                        console.log("Jogo ativo, mostrando tela do jogo."); 
                         lobbyScreen.classList.add('hidden');
                         playerListScreen.classList.add('hidden');
                         document.getElementById('reconnect-screen').classList.add('hidden'); 
@@ -1729,12 +1611,10 @@
                     updateUI();
                     
                     if (oldState.phase !== localGameState.phase && localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`) {
-                        console.log(`Fase mudou para ACTION do jogador ${localPlayerId}, chamando showActionModal`); 
                         setTimeout(showActionModal, 150); 
                     }
                     
                     if (localGameState.phase === 'GAME_OVER' && oldState.phase !== 'GAME_OVER') {
-                        console.log("Fim de jogo detectado."); 
                         endGame(); 
                     }
                 }, (error) => { 
@@ -1762,11 +1642,7 @@
                             playerNameInput.value = localPlayerName;
                             
                             if (lobbyData.status === 'ingame') {
-                                // ==========================================================
-                                // LÓGICA DE RECONEXÃO CORRIGIDA
-                                // ==========================================================
-                                let gameIdToFind = lobbyData.currentGameId; // Usa o novo ponteiro
-                                // ==========================================================
+                                let gameIdToFind = lobbyData.currentGameId;
                         
                                 if (gameIdToFind) {
                                      try { 
@@ -1863,16 +1739,8 @@
                 }
             });
             
-            // ==========================================================
-            // LISTENER PARA LIMPAR LOBBY AO SAIR/FECHAR
-            // ==========================================================
             function cleanupLobbyEntry() {
                 if (!localUserId) return;
-                
-                // Tenta deletar o documento do lobby ao fechar a página.
-                // Isso não é 100% garantido que funcionará, pois o navegador
-                // pode fechar antes da operação de rede completar.
-                // A lógica de "checkAndCleanStaleGame" é a solução principal.
                 console.log("Tentando limpar entrada do lobby ao sair...");
                 deleteDoc(doc(db, lobbyCollectionPath, localUserId)).catch(err => {
                     console.log("Falha ao limpar lobby na saída (ignorado):", err);
@@ -1908,16 +1776,12 @@
         .potion-tooltip .tooltip-text { visibility: hidden; width: 200px; background-color: #5c3d20; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -100px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         .potion-tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
         
-        /* ========================================================== */
-        /* BOTÕES COM CORES CLARAS E TEXTO ESCURO PARA MELHOR LEITURA */
-        /* ========================================================== */
         .btn { @apply py-2 px-4 rounded font-bold shadow-lg transition-all duration-200 transform hover:scale-105 border-b-4 disabled:opacity-50 disabled:cursor-not-allowed text-[#3d2a1a]; }
         .btn-green { @apply bg-green-400 border-green-600 hover:bg-green-300; }
         .btn-red { @apply bg-red-400 border-red-600 hover:bg-red-300; }
         .btn-blue { @apply bg-blue-400 border-blue-600 hover:bg-blue-300; }
         .btn-gray { @apply bg-gray-300 border-gray-500 hover:bg-gray-200; }
         .btn-yellow { @apply bg-yellow-400 border-yellow-600 hover:bg-yellow-300; }
-        /* ========================================================== */
 
         .ingredient-img { @apply w-16 h-16 rounded-full border-4 shadow-md object-cover; border-color: #3d2a1a; transition: all 0.2s ease; }
         .ingredient-img:hover { @apply shadow-lg scale-105; }
@@ -1925,10 +1789,9 @@
         .potion-img { @apply w-16 h-16 object-contain; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
         #cauldron-btn:disabled { cursor: default; } 
 
-        /* --- NOVOS ESTILOS PARA O LIVRO --- */
         .receita-item.creatable {
-            background-color: #fefcbf; /* Cor amarela clara */
-            border: 2px solid #b45309; /* Borda âmbar escura */
+            background-color: #fefcbf;
+            border: 2px solid #b45309;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -1938,14 +1801,13 @@
             transform: scale(1.02);
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
-        .creatable-marker { /* Um texto opcional para deixar claro */
+        .creatable-marker {
             font-weight: bold;
-            color: #166534; /* Verde escuro */
+            color: #166534;
             font-size: 0.9rem;
             display: block;
             margin-top: 4px;
         }
-        /* --- FIM DOS NOVOS ESTILOS --- */
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -2111,5 +1973,3 @@
     </div>
 </body>
 </html>
-
-
