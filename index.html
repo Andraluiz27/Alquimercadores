@@ -1019,6 +1019,19 @@
                 
                 await updateFirestoreState(finalState);
                 
+                // ==========================================================
+                // CORREÇÃO: Resetar variáveis de estado do jogo local
+                // ==========================================================
+                gameId = null;
+                localPlayerId = null;
+                if (unsubscribeGame) {
+                    unsubscribeGame();
+                    unsubscribeGame = null;
+                }
+                // ==========================================================
+                // FIM DA CORREÇÃO
+                // ==========================================================
+                
                 gameScreen.classList.add('hidden');
                 playerListScreen.classList.remove('hidden');
                 listenToLobbyList();
@@ -1323,9 +1336,23 @@
                         }
                     } 
                     else if (lobbyData.status === 'ingame') {
+                        // Esta é a lógica para PUXAR O JOGADOR para o jogo
+                        // Se aplica tanto ao P1 (que convidou) quanto ao P2 (que aceitou)
                         if (!gameId) { 
-                            gameId = localUserId; 
+                            // Se eu sou o P1 (host/inviter), meu localUserId É o gameId
+                            // Se eu sou o P2 (guest/invited), meu localUserId NÃO é o gameId
+                            // O P2 já definiu o gameId em handleAcceptInvite.
+                            // Esta lógica é primariamente para o P1.
+                            
+                            // O P1 (inviter) tem o 'inviteTo' preenchido, P2 não
+                            // Mas P2 já saiu desta tela via handleAcceptInvite
+                            // Então, se status é 'ingame' e gameId local é null,
+                            // só pode ser o P1 sendo puxado.
+                            
+                            gameId = localUserId; // P1 é o host, o ID do jogo é o ID dele
                             localPlayerId = 'player1';
+                            
+                            console.log(`Jogador 1 (Host) sendo puxado para o jogo: ${gameId}`);
                             
                             stopLobbyListeners();
                             listenToGameChanges(gameId);
@@ -1730,6 +1757,25 @@
                     }
                 }
             });
+
+            // ==========================================================
+            // LISTENER PARA LIMPAR LOBBY AO SAIR/FECHAR
+            // ==========================================================
+            function cleanupLobbyEntry() {
+                if (!localUserId) return;
+                
+                // Só deleta o documento do lobby se o usuário estiver na tela da lista de jogadores
+                // (ou seja, não está em jogo, nem na tela de login inicial)
+                if (playerListScreen && !playerListScreen.classList.contains('hidden')) {
+                    console.log("Limpando entrada do lobby ao sair da tela de lista de players...");
+                    // Fire-and-forget delete. Não é 100% garantido que completará
+                    // antes da página fechar, mas é a melhor abordagem client-side.
+                    deleteDoc(doc(db, lobbyCollectionPath, localUserId)).catch(err => {
+                        console.log("Falha ao limpar lobby na saída (ignorado):", err);
+                    });
+                }
+            }
+            window.addEventListener('beforeunload', cleanupLobbyEntry);
             
         } catch (e) {
             console.error("Erro CRÍTICO ao inicializar o Firebase:", e); 
@@ -1973,4 +2019,3 @@
     </div>
 </body>
 </html>
-
