@@ -333,11 +333,11 @@
                 localGameState.clients.forEach((client, index) => {
                     if (client && !client.served) {
                         if (client.contract) {
-                            // Se o contrato já existe, mostra quem o detém.
+                            // Se o cliente já tem um contrato, mostra um botão desabilitado
                             const ownerName = localGameState.players[client.contract].name;
                             optionsHTML += `<button class="btn btn-gray w-full mb-2" disabled>Cliente ${index + 1} - Já reservado por ${ownerName}</button>`;
                         } else {
-                            // Cliente disponível para contrato.
+                            // Se o cliente está livre, cria um botão clicável
                             canReserve = true;
                             const clientType = client.type;
                             const clientWants = client.wants;
@@ -353,6 +353,7 @@
 
                 decisionOptionsEl.innerHTML = optionsHTML;
 
+                // Adiciona o evento de clique aos botões que foram criados
                 decisionOptionsEl.querySelectorAll('button[data-index]').forEach(button => {
                     button.onclick = () => {
                         const index = parseInt(button.dataset.index, 10);
@@ -360,30 +361,34 @@
                     };
                 });
 
+                // Linha crucial que exibe o painel de decisão para o jogador
                 decisionModal.classList.remove('hidden');
             }
 
             function handleContractSelection(playerId, clientIndex) {
+                // Garante que o índice é válido
                 if (clientIndex < 0 || clientIndex >= localGameState.clients.length) return;
                 
                 const client = localGameState.clients[clientIndex];
                 
-                // Dupla verificação para garantir que não estamos sobrescrevendo um contrato
+                // Verificação de segurança: não permite reservar um cliente já reservado
                 if (client.contract) {
                     showMessage("Este cliente já foi reservado!");
                     decisionModal.classList.add('hidden');
                     return;
                 }
 
+                // A linha mais importante: marca o cliente com o ID do jogador
                 client.contract = playerId;
 
                 const playerName = localGameState.players[playerId].name;
                 logMessage(`${playerName} assinou um Contrato de Exclusividade com o cliente que deseja "${client.wants}".`);
 
+                // Esconde o painel de decisão e salva o jogo
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
-
+            
             function triggerElixirDecision(playerId) {
                 decisionTitleEl.textContent = "Elixir do Mercador";
                 let optionsHTML = `<p class="mb-4">Escolha um cliente do mercado para dispensar e revelar um novo:</p>`;
@@ -1099,12 +1104,6 @@
                     case "Amuleto do Colecionador": playerState.activePotions["Amuleto do Colecionador"] = true; break;
                     case "Parasita Mortífero": playerState.activePotions["Parasita Mortífero"] = true; break;
                     case "Contrato de Exclusividade":
-                        // Bloqueia o uso se o oponente já tiver um contrato ativo.
-                        if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false;
-                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Contrato de Exclusividade!`);
-                            break;
-                        }
                         triggerContractDecision(playerId);
                         break;
                     case "Caldeirão Expansivo": playerState.shelfLimit++; playerState.activePotions["Caldeirão Expansivo"] = true; break;
@@ -2176,6 +2175,7 @@
     </div>
 </body>
 </html>
+
 
 
 
