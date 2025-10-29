@@ -61,7 +61,7 @@
                 nome: "Soro da Clarividência",
                 tipo: "Fácil",
                 efeito: "Ação",
-                descricao: "Pegue qualquer ingrediente que precisar (exceto Sal Negro) diretamente do caldeirão e guarde na sua prateleira.",
+                descricao: "Pegue qualquer ingrediente que precisar diretamente do caldeirão e guarde na sua prateleira.",
                 ingredientes: { "Olhos de Jiboia": 1, "Perna de Sapo": 1 }
             },
             "Amuleto do Colecionador": {
@@ -336,7 +336,7 @@
                 }
 
                 decisionTitleEl.textContent = "Soro da Clarividência";
-                let optionsHTML = `<p class="mb-4">Você enxerga o conteúdo do caldeirão! Escolha 1 ingrediente para pegar (exceto Sal Negro):</p>`;
+                let optionsHTML = `<p class="mb-4">Você enxerga o conteúdo do caldeirão! Escolha 1 ingrediente para pegar:</p>`;
 
                 const cauldronCounts = getIngredientCounts(localGameState.cauldron);
                 let availableIngredients = false;
@@ -345,8 +345,8 @@
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 max-h-64 overflow-y-auto p-2 bg-black/10 rounded">`;
 
                 for (const ingredientName in INGREDIENT_DATA) {
-                    // Verifica se o ingrediente existe no caldeirão e não é Sal Negro
-                    if (ingredientName !== "Sal Negro" && cauldronCounts[ingredientName] > 0) {
+                    // Verifica se o ingrediente existe no caldeirão
+                    if (cauldronCounts[ingredientName] > 0) {
                         availableIngredients = true;
                         const imgData = INGREDIENT_DATA[ingredientName];
                         const count = cauldronCounts[ingredientName];
@@ -2269,6 +2269,7 @@
     </div>
 </body>
 </html>
+
 
 
 
