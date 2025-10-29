@@ -325,6 +325,62 @@
                 return cauldron;
             }
 
+            function triggerMageHandDecision(playerId) {
+                const opponentId = getOpponentId(playerId);
+                const opponentState = localGameState.players[opponentId];
+
+                decisionTitleEl.textContent = "Mão do Mago";
+                let optionsHTML = `<p class="mb-4">Escolha um ingrediente para roubar da prateleira de ${opponentState.name}:</p>`;
+
+                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
+                opponentState.shelf.forEach((ingredientName, index) => {
+                    const imgData = INGREDIENT_DATA[ingredientName];
+                    ingredientsGridHTML += `
+                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-index="${index}">
+                            <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
+                            <span class="font-bold text-sm mt-1">${ingredientName}</span>
+                        </button>
+                    `;
+                });
+                ingredientsGridHTML += `</div>`;
+                optionsHTML += ingredientsGridHTML;
+
+                decisionOptionsEl.innerHTML = optionsHTML;
+
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const index = parseInt(button.dataset.index, 10);
+                        handleMageHandSelection(playerId, index);
+                    };
+                });
+
+                decisionModal.classList.remove('hidden');
+            }
+
+            function handleMageHandSelection(playerId, ingredientIndex) {
+                const playerState = localGameState.players[playerId];
+                const opponentId = getOpponentId(playerId);
+                const opponentState = localGameState.players[opponentId];
+
+                // Verificação final de segurança (embora já feita antes)
+                if (playerState.shelf.length >= playerState.shelfLimit || ingredientIndex >= opponentState.shelf.length) {
+                    showMessage("Não foi possível roubar o ingrediente. (Prateleira cheia ou item inválido).");
+                    decisionModal.classList.add('hidden');
+                    return;
+                }
+
+                // Remove o ingrediente da prateleira do oponente usando o índice
+                const stolenIngredient = opponentState.shelf.splice(ingredientIndex, 1)[0];
+
+                // Adiciona o ingrediente à sua prateleira
+                playerState.shelf.push(stolenIngredient);
+
+                logMessage(`${playerState.name} usou Mão do Mago e roubou ${stolenIngredient} de ${opponentState.name}!`);
+
+                decisionModal.classList.add('hidden');
+                updateFirestoreState(localGameState);
+            }
+
             function triggerClairvoyanceDecision(playerId) {
                 const playerState = localGameState.players[playerId];
 
@@ -1177,7 +1233,7 @@
                         triggerElixirDecision(playerId);
                         break;
                         
-                    
+        
                     case "Pó da Corrosão":
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false;
@@ -1196,6 +1252,28 @@
                         break;
 
                     case "Amuleto do Colecionador": playerState.activePotions["Amuleto do Colecionador"] = true; break;
+                    case "Mão do Mago":
+                        // 1. Oponente se defende com a Barreira de Bolhas
+                        if (opponentState.activePotions["Barreira de Bolhas"]) {
+                            opponentState.activePotions["Barreira de Bolhas"] = false; // Barreira é consumida
+                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Mão do Mago!`);
+                            break;
+                        }
+                        // 2. Verifica se a prateleira do oponente está vazia
+                        if (opponentState.shelf.length === 0) {
+                            logMessage(`Mão do Mago falhou! A prateleira de ${opponentState.name} está vazia.`);
+                            break;
+                        }
+                        // 3. Verifica se a sua própria prateleira está cheia
+                        if (playerState.shelf.length >= playerState.shelfLimit) {
+                            logMessage(`Mão do Mago falhou! Sua prateleira está cheia.`);
+                            // Devolve a poção, pois o uso foi impedido por falta de espaço
+                            playerState.potionsReady.unshift("Mão do Mago");
+                            break;
+                        }
+                        // Se tudo estiver certo, mostra a tela de escolha
+                        triggerMageHandDecision(playerId);
+                        break;
                     case "Parasita Mortífero": playerState.activePotions["Parasita Mortífero"] = true; break;
                     case "Contrato de Exclusividade":
                         triggerContractDecision(playerId);
@@ -2269,6 +2347,7 @@
     </div>
 </body>
 </html>
+
 
 
 
