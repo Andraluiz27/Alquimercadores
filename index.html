@@ -325,6 +325,48 @@
                 return cauldron;
             }
 
+            function triggerCorrosionDecision() {
+                const opponentState = localGameState.players[localPlayerId];
+                if (opponentState.shelf.length === 0) {
+                    // Se, por algum motivo, o alvo não tem mais itens, cancela a ação
+                    if(localPlayerId === localGameState.pendingAction.target) {
+                       localGameState.pendingAction = null;
+                       updateFirestoreState(localGameState);
+                    }
+                    return;
+                }
+
+                decisionTitleEl.textContent = "Pó da Corrosão!";
+                let optionsHTML = `<p class="mb-4">Seu oponente usou Pó da Corrosão. Escolha 1 ingrediente da sua prateleira para descartar:</p>`;
+                
+                opponentState.shelf.forEach((ingredient, index) => {
+                    optionsHTML += `<button class="btn btn-gray w-full mb-2" data-index="${index}">${ingredient}</button>`;
+                });
+                decisionOptionsEl.innerHTML = optionsHTML;
+
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const index = parseInt(button.dataset.index, 10);
+                        handleCorrosionDiscard(index);
+                    };
+                });
+
+                decisionModal.classList.remove('hidden');
+            }
+
+            function handleCorrosionDiscard(index) {
+                const playerState = localGameState.players[localPlayerId];
+                if (index < 0 || index >= playerState.shelf.length) return;
+
+                const discardedIngredient = playerState.shelf.splice(index, 1)[0];
+                localGameState.cauldron.push(discardedIngredient);
+                logMessage(`${playerState.name} descartou ${discardedIngredient}.`);
+
+                localGameState.pendingAction = null; // Limpa a ação pendente
+                decisionModal.classList.add('hidden');
+                updateFirestoreState(localGameState);
+            }
+
             function generateClient(clientType) {
                 const allPotionNames = Object.keys(ARCANO_POTIONUM);
                 const randomPotionName = allPotionNames[Math.floor(Math.random() * allPotionNames.length)];
@@ -932,6 +974,24 @@
                     case "Unguento de Musgo": playerState.activePotions["Unguento de Musgo"] = true; break;
                     case "Infusão de Foco": playerState.shelfLimit++; playerState.activePotions["Infusão de Foco"] = true; break;
                     case "Tônico Dourado": playerState.coins += 2; break;
+                    
+                    case "Pó da Corrosão":
+                        if (opponentState.activePotions["Barreira de Bolhas"]) {
+                            opponentState.activePotions["Barreira de Bolhas"] = false;
+                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Pó da Corrosão!`);
+                            break;
+                        }
+                        if (opponentState.shelf.length === 0) {
+                            logMessage(`Pó da Corrosão falhou, a prateleira de ${opponentState.name} já estava vazia.`);
+                            break;
+                        }
+                        localGameState.pendingAction = {
+                            type: "Pó da Corrosão",
+                            target: opponentId
+                        };
+                        logMessage(`${playerState.name} usou Pó da Corrosão! Aguardando ${opponentState.name} descartar um ingrediente.`);
+                        break;
+
                     case "Amuleto do Colecionador": playerState.activePotions["Amuleto do Colecionador"] = true; break;
                     case "Parasita Mortífero": playerState.activePotions["Parasita Mortífero"] = true; break;
                     case "Caldeirão Expansivo": playerState.shelfLimit++; playerState.activePotions["Caldeirão Expansivo"] = true; break;
@@ -1051,6 +1111,8 @@
             function updateUI() {
                 if (!localGameState || !localGameState.players) return;
                 
+                // --- (O resto da função continua igual, apenas adicione o bloco abaixo no final) ---
+
                 const p1 = localGameState.players.player1;
                 const p2 = localGameState.players.player2;
                 const amIPlayer1 = localPlayerId === 'player1';
@@ -1100,17 +1162,24 @@
                 const myProdPhase = localGameState.phase === `PRODUCTION_${localPlayerId.toUpperCase()}`;
                 const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
     
-                cauldronBtn.disabled = !myProdPhase;
-                cauldronBtn.style.cursor = myProdPhase ? 'pointer' : 'default';
-
-                stopPullingBtn.classList.toggle('hidden', !myProdPhase);
-                finishProductionBtn.classList.toggle('hidden', !myPostProdPhase);
-                finishActionBtn.classList.toggle('hidden', !myActionPhase);
+                cauldronBtn.disabled = !myProdPhase || localGameState.pendingAction; // Desativa botões durante ação pendente
+                stopPullingBtn.classList.toggle('hidden', !myProdPhase || localGameState.pendingAction);
+                finishProductionBtn.classList.toggle('hidden', !myPostProdPhase || localGameState.pendingAction);
+                finishActionBtn.classList.toggle('hidden', !myActionPhase || localGameState.pendingAction);
                 
                 if (myPostProdPhase) {
                     mesaBook.title = "Criar Poções com Ingredientes do Balcão";
                 } else {
                     mesaBook.title = "Ver Arcano Potionum";
+                }
+
+                // >>> BLOCO ADICIONADO ABAIXO <<<
+                // Verifica se há uma ação pendente direcionada a este jogador
+                if (localGameState.pendingAction && localGameState.pendingAction.type === "Pó da Corrosão" && localGameState.pendingAction.target === localPlayerId) {
+                    triggerCorrosionDecision();
+                } else if (!localGameState.pendingAction && !decisionTitleEl.textContent.includes("Resiliência")) {
+                    // Esconde o modal de decisão se a ação pendente for resolvida
+                    decisionModal.classList.add('hidden');
                 }
             }
             
@@ -1992,3 +2061,4 @@
     </div>
 </body>
 </html>
+
