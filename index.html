@@ -1111,8 +1111,6 @@
             function updateUI() {
                 if (!localGameState || !localGameState.players) return;
                 
-                // --- (O resto da função continua igual, apenas adicione o bloco abaixo no final) ---
-
                 const p1 = localGameState.players.player1;
                 const p2 = localGameState.players.player2;
                 const amIPlayer1 = localPlayerId === 'player1';
@@ -1162,10 +1160,15 @@
                 const myProdPhase = localGameState.phase === `PRODUCTION_${localPlayerId.toUpperCase()}`;
                 const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
     
-                cauldronBtn.disabled = !myProdPhase || localGameState.pendingAction; // Desativa botões durante ação pendente
-                stopPullingBtn.classList.toggle('hidden', !myProdPhase || localGameState.pendingAction);
-                finishProductionBtn.classList.toggle('hidden', !myPostProdPhase || localGameState.pendingAction);
-                finishActionBtn.classList.toggle('hidden', !myActionPhase || localGameState.pendingAction);
+                // --- CÓDIGO CORRIGIDO ABAIXO ---
+                const isGamePaused = !!localGameState.pendingAction;
+
+                cauldronBtn.disabled = !myProdPhase || isGamePaused; // O caldeirão é desativado se o jogo estiver pausado.
+                cauldronBtn.style.cursor = cauldronBtn.disabled ? 'default' : 'pointer';
+
+                stopPullingBtn.classList.toggle('hidden', !myProdPhase || isGamePaused);
+                finishProductionBtn.classList.toggle('hidden', !myPostProdPhase || isGamePaused);
+                finishActionBtn.classList.toggle('hidden', !myActionPhase || isGamePaused);
                 
                 if (myPostProdPhase) {
                     mesaBook.title = "Criar Poções com Ingredientes do Balcão";
@@ -1173,7 +1176,6 @@
                     mesaBook.title = "Ver Arcano Potionum";
                 }
 
-                // >>> BLOCO ADICIONADO ABAIXO <<<
                 // Verifica se há uma ação pendente direcionada a este jogador
                 if (localGameState.pendingAction && localGameState.pendingAction.type === "Pó da Corrosão" && localGameState.pendingAction.target === localPlayerId) {
                     triggerCorrosionDecision();
@@ -2061,4 +2063,5 @@
     </div>
 </body>
 </html>
+
 
