@@ -1291,9 +1291,6 @@
                 // Verifica se há uma ação pendente direcionada a este jogador
                 if (localGameState.pendingAction && localGameState.pendingAction.type === "Pó da Corrosão" && localGameState.pendingAction.target === localPlayerId) {
                     triggerCorrosionDecision();
-                } else if (!localGameState.pendingAction && !decisionTitleEl.textContent.includes("Resiliência")) {
-                    // Esconde o modal de decisão se a ação pendente for resolvida
-                    decisionModal.classList.add('hidden');
                 }
             }
             
@@ -2175,6 +2172,7 @@
     </div>
 </body>
 </html>
+
 
 
 
