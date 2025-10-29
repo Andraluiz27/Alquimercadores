@@ -782,6 +782,20 @@
             // ==========================================================
     
             function startProductionPhase(playerId) {
+                // --- LÓGICA DE EXPIRAÇÃO DA BARREIRA DE BOLHAS ---
+                const playerState = localGameState.players[playerId];
+                const barrierStatus = playerState.activePotions["Barreira de Bolhas"];
+
+                if (barrierStatus === "active") {
+                    // A barreira sobreviveu uma rodada completa e agora expira.
+                    playerState.activePotions["Barreira de Bolhas"] = false;
+                    logMessage(`A Barreira de Bolhas de ${playerState.name} se dissipou com o tempo.`);
+                } else if (barrierStatus === "new") {
+                    // A barreira foi recém-criada, agora se torna 'ativa' para esta rodada.
+                    playerState.activePotions["Barreira de Bolhas"] = "active";
+                }
+                // --- FIM DA LÓGICA DE EXPIRAÇÃO ---
+                
                 localGameState.phase = `PRODUCTION_${playerId.toUpperCase()}`;
                 localGameState.currentPlayer = playerId;
                 localGameState.currentPull = [];
@@ -1238,7 +1252,10 @@
                 const opponentState = localGameState.players[opponentId];
     
                 switch (potionName) {
-                    case "Barreira de Bolhas": playerState.activePotions["Barreira de Bolhas"] = true; break;
+                    case "Barreira de Bolhas": 
+                        playerState.activePotions["Barreira de Bolhas"] = "new"; // Marca a barreira como recém-criada
+                        logMessage(`${playerState.name} ergueu uma Barreira de Bolhas!`);
+                        break;
                     case "Unguento de Musgo": playerState.activePotions["Unguento de Musgo"] = true; break;
                     case "Infusão de Foco": playerState.shelfLimit++; playerState.activePotions["Infusão de Foco"] = true; break;
                     case "Tônico Dourado": playerState.coins += 2; break;
@@ -2360,6 +2377,7 @@
     </div>
 </body>
 </html>
+
 
 
 
