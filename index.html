@@ -1559,7 +1559,7 @@
                 listEl.innerHTML = '';
                 if (activePotions && typeof activePotions === 'object') {
                     for (const potionName in activePotions) {
-                        if (activePotions[potionName] === true) { 
+                        if (activePotions[potionName]) { 
                             const potion = ARCANO_POTIONUM[potionName];
                             if (potion) {
                                 const li = document.createElement('li');
@@ -2377,6 +2377,7 @@
     </div>
 </body>
 </html>
+
 
 
 
