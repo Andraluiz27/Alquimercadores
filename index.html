@@ -324,6 +324,106 @@
                 }
                 return cauldron;
             }
+            
+            function triggerContractDecision(playerId) {
+                decisionTitleEl.textContent = "Contrato de Exclusividade";
+                let optionsHTML = `<p class="mb-4">Escolha um cliente para reservar apenas para você. O oponente não poderá vender para ele.</p>`;
+                let canReserve = false;
+
+                localGameState.clients.forEach((client, index) => {
+                    if (client && !client.served) {
+                        if (client.contract) {
+                            // Se o contrato já existe, mostra quem o detém.
+                            const ownerName = localGameState.players[client.contract].name;
+                            optionsHTML += `<button class="btn btn-gray w-full mb-2" disabled>Cliente ${index + 1} - Já reservado por ${ownerName}</button>`;
+                        } else {
+                            // Cliente disponível para contrato.
+                            canReserve = true;
+                            const clientType = client.type;
+                            const clientWants = client.wants;
+                            const clientPrice = client.price;
+                            optionsHTML += `<button class="btn btn-blue w-full mb-2" data-index="${index}">[ Cliente ${clientType} quer 1 ${clientWants} por ${clientPrice} moedas ]</button>`;
+                        }
+                    }
+                });
+
+                if (!canReserve) {
+                    optionsHTML += `<p class="text-red-600 mt-4">Não há clientes disponíveis para reservar no momento!</p>`;
+                }
+
+                decisionOptionsEl.innerHTML = optionsHTML;
+
+                decisionOptionsEl.querySelectorAll('button[data-index]').forEach(button => {
+                    button.onclick = () => {
+                        const index = parseInt(button.dataset.index, 10);
+                        handleContractSelection(playerId, index);
+                    };
+                });
+
+                decisionModal.classList.remove('hidden');
+            }
+
+            function handleContractSelection(playerId, clientIndex) {
+                if (clientIndex < 0 || clientIndex >= localGameState.clients.length) return;
+                
+                const client = localGameState.clients[clientIndex];
+                
+                // Dupla verificação para garantir que não estamos sobrescrevendo um contrato
+                if (client.contract) {
+                    showMessage("Este cliente já foi reservado!");
+                    decisionModal.classList.add('hidden');
+                    return;
+                }
+
+                client.contract = playerId;
+
+                const playerName = localGameState.players[playerId].name;
+                logMessage(`${playerName} assinou um Contrato de Exclusividade com o cliente que deseja "${client.wants}".`);
+
+                decisionModal.classList.add('hidden');
+                updateFirestoreState(localGameState);
+            }
+
+            function triggerElixirDecision(playerId) {
+                decisionTitleEl.textContent = "Elixir do Mercador";
+                let optionsHTML = `<p class="mb-4">Escolha um cliente do mercado para dispensar e revelar um novo:</p>`;
+
+                localGameState.clients.forEach((client, index) => {
+                    if (client && !client.served) {
+                        const clientType = client.type;
+                        const clientWants = client.wants;
+                        const clientPrice = client.price;
+                        optionsHTML += `<button class="btn btn-gray w-full mb-2" data-index="${index}">[ Cliente ${clientType} quer 1 ${clientWants} por ${clientPrice} moedas ]</button>`;
+                    }
+                });
+                decisionOptionsEl.innerHTML = optionsHTML;
+
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const index = parseInt(button.dataset.index, 10);
+                        handleElixirDiscard(playerId, index);
+                    };
+                });
+
+                decisionModal.classList.remove('hidden');
+            }
+
+            function handleElixirDiscard(playerId, clientIndex) {
+                if (clientIndex < 0 || clientIndex >= localGameState.clients.length) return;
+
+                const originalClientType = CLIENT_TYPES[clientIndex];
+                const discardedPotion = localGameState.clients[clientIndex].wants;
+                
+                // Gera um novo cliente do mesmo tipo (Comum, Rico ou Nobre)
+                localGameState.clients[clientIndex] = generateClient(originalClientType);
+                
+                const newPotion = localGameState.clients[clientIndex].wants;
+
+                logMessage(`${localGameState.players[playerId].name} usou o Elixir, dispensou o cliente que queria "${discardedPotion}" e atraiu um novo que quer "${newPotion}".`);
+
+                decisionModal.classList.add('hidden');
+                updateFirestoreState(localGameState);
+            }
 
             function triggerCorrosionDecision() {
                 const opponentState = localGameState.players[localPlayerId];
@@ -974,6 +1074,10 @@
                     case "Unguento de Musgo": playerState.activePotions["Unguento de Musgo"] = true; break;
                     case "Infusão de Foco": playerState.shelfLimit++; playerState.activePotions["Infusão de Foco"] = true; break;
                     case "Tônico Dourado": playerState.coins += 2; break;
+                    case "Elixir do Mercador":
+                        triggerElixirDecision(playerId);
+                        break;
+                        
                     
                     case "Pó da Corrosão":
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
@@ -994,6 +1098,15 @@
 
                     case "Amuleto do Colecionador": playerState.activePotions["Amuleto do Colecionador"] = true; break;
                     case "Parasita Mortífero": playerState.activePotions["Parasita Mortífero"] = true; break;
+                    case "Contrato de Exclusividade":
+                        // Bloqueia o uso se o oponente já tiver um contrato ativo.
+                        if (opponentState.activePotions["Barreira de Bolhas"]) {
+                            opponentState.activePotions["Barreira de Bolhas"] = false;
+                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Contrato de Exclusividade!`);
+                            break;
+                        }
+                        triggerContractDecision(playerId);
+                        break;
                     case "Caldeirão Expansivo": playerState.shelfLimit++; playerState.activePotions["Caldeirão Expansivo"] = true; break;
                     case "Resiliência do Farsante": playerState.activePotions["Resiliência do Farsante"] = true; break;
                     case "Estabilizador Cromático": playerState.activePotions["Estabilizador Cromático"] = true; break;
@@ -2063,5 +2176,6 @@
     </div>
 </body>
 </html>
+
 
 
