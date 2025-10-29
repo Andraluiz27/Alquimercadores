@@ -654,7 +654,7 @@
                 
                 await updateFirestoreState(localGameState);
                 
-                if (checkExplosion(localGameState.currentPull, playerState)) {
+                if (checkExplosion(localGameState.currentPull, playerState, pulledIngredient)) {
                     
                     setTimeout(() => {
                         if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
@@ -670,47 +670,54 @@
                 }
             }
             
-            function checkExplosion(currentPull, playerState) {
-                const counts = {};
-                let salNegroCount = 0;
-                
-                const colorLimit = playerState.activePotions["Estabilizador Cromático"] ? 3 : 2;
-                
-                for (const ingredient of currentPull) {
-                    if (ingredient === "Sal Negro") {
-                        salNegroCount++;
-                    } else {
-                        const color = INGREDIENT_DATA[ingredient].cor;
-                        counts[color] = (counts[color] || 0) + 1;
-                    }
+            function checkExplosion(currentPull, playerState, newlyPulledIngredient) {
+                // Se por algum motivo não recebermos o ingrediente novo, não fazemos nada.
+                if (!newlyPulledIngredient) return false;
+
+                // --- Verificação de Sal Negro (continua igual e tem prioridade) ---
+                if (newlyPulledIngredient === "Sal Negro") {
+                    const salNegroCount = currentPull.filter(i => i === "Sal Negro").length;
+                    if (salNegroCount >= 2) return true; // Explode e não é salvo.
                 }
 
-                // Nova lógica para o Unguento de Musgo
-                for (const color in counts) {
-                    if (counts[color] >= colorLimit) {
-                        // Se uma cor já foi salva neste turno, qualquer outra explosão (ou a terceira da mesma cor) acontece normalmente.
-                        if (localGameState.unguentoSavedColorThisTurn) {
-                            return true; // Explode!
-                        }
+                // --- Verificação por Cor, focada no NOVO ingrediente ---
+                const colorLimit = playerState.activePotions["Estabilizador Cromático"] ? 3 : 2;
+                const newIngredientColor = INGREDIENT_DATA[newlyPulledIngredient].cor;
 
-                        // Se nenhuma cor foi salva AINDA, e o jogador TEM a poção ativa...
-                        if (playerState.activePotions["Unguento de Musgo"]) {
-                            playerState.activePotions["Unguento de Musgo"] = false; // 1. Consome a poção
-                            localGameState.unguentoSavedColorThisTurn = color;      // 2. Registra a cor que foi salva
-                            logMessage(`O caldeirão tremeu, mas o Unguento de Musgo evitou a explosão da cor ${color}!`);
-                            // 3. Atualiza o estado imediatamente para que todos vejam que a poção foi consumida
-                            updateFirestoreState(localGameState); 
-                            return false; // 4. NÃO EXPLODE. O ingrediente fica na mesa.
-                        }
+                // Ignoramos a cor 'coringa' do Sal Negro aqui.
+                if (newIngredientColor === 'coringa') return false;
 
-                        // Se não tem a poção e o limite foi atingido, explode.
+                // Contamos quantas vezes a cor do NOVO ingrediente aparece na mesa.
+                const colorCount = currentPull.filter(ing => INGREDIENT_DATA[ing]?.cor === newIngredientColor).length;
+
+                if (colorCount >= colorLimit) {
+                    // Se a trava do Unguento já foi usada neste turno, explode.
+                    if (localGameState.unguentoSavedColorThisTurn) {
                         return true;
                     }
-                }
-                
-                // A regra do Sal Negro não muda e não é protegida.
-                if (salNegroCount >= 2) return true;
 
+                    // Se a poção estiver ativa...
+                    if (playerState.activePotions["Unguento de Musgo"]) {
+                        // 1. CONSUMIR A POÇÃO
+                        playerState.activePotions["Unguento de Musgo"] = false;
+                        
+                        // 2. ATIVAR A "TRAVA" DO TURNO
+                        localGameState.unguentoSavedColorThisTurn = newIngredientColor;
+
+                        logMessage(`O caldeirão tremeu, mas o Unguento de Musgo evitou a explosão da cor ${newIngredientColor}!`);
+                        
+                        // Enviamos a atualização para o servidor
+                        updateFirestoreState(localGameState);
+                        
+                        // 3. NÃO EXPLODE
+                        return false;
+                    }
+
+                    // Se não tem a poção e o limite foi atingido, explode.
+                    return true;
+                }
+
+                // Se nenhuma condição de explosão foi atingida pelo novo ingrediente.
                 return false;
             }
     
@@ -1975,4 +1982,5 @@
     </div>
 </body>
 </html>
+
 
