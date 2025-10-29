@@ -8,7 +8,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, deleteDoc, collection, query, where, writeBatch, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, deleteDoc, collection, query, where, writeBatch, setLogLevel, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // ==========================================================
         // DADOS GLOBAIS DO JOGO (ARCANO POTIONUM E INGREDIENTES)
@@ -475,7 +475,7 @@
                 localGameState.phase = `PRODUCTION_${playerId.toUpperCase()}`;
                 localGameState.currentPlayer = playerId;
                 localGameState.currentPull = [];
-                localGameState.unguentoSavedColorThisTurn = null;
+                localGameState.unguentoSavedColorThisTurn = null; 
                 logMessage(`${localGameState.players[playerId].name}, sua vez de coletar ingredientes!`);
                 updateFirestoreState(localGameState);
             }
@@ -654,7 +654,7 @@
                 
                 await updateFirestoreState(localGameState);
                 
-                if (checkExplosion(localGameState.currentPull, playerState, pulledIngredient)) {
+                if (await checkExplosion(localGameState.currentPull, playerState, pulledIngredient)) {
                     
                     setTimeout(() => {
                         if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
@@ -670,54 +670,34 @@
                 }
             }
             
-            function checkExplosion(currentPull, playerState, newlyPulledIngredient) {
-                // Se por algum motivo não recebermos o ingrediente novo, não fazemos nada.
+            async function checkExplosion(currentPull, playerState, newlyPulledIngredient) {
                 if (!newlyPulledIngredient) return false;
 
-                // --- Verificação de Sal Negro (continua igual e tem prioridade) ---
                 if (newlyPulledIngredient === "Sal Negro") {
                     const salNegroCount = currentPull.filter(i => i === "Sal Negro").length;
-                    if (salNegroCount >= 2) return true; // Explode e não é salvo.
+                    if (salNegroCount >= 2) return true;
                 }
 
-                // --- Verificação por Cor, focada no NOVO ingrediente ---
                 const colorLimit = playerState.activePotions["Estabilizador Cromático"] ? 3 : 2;
                 const newIngredientColor = INGREDIENT_DATA[newlyPulledIngredient].cor;
 
-                // Ignoramos a cor 'coringa' do Sal Negro aqui.
                 if (newIngredientColor === 'coringa') return false;
 
-                // Contamos quantas vezes a cor do NOVO ingrediente aparece na mesa.
                 const colorCount = currentPull.filter(ing => INGREDIENT_DATA[ing]?.cor === newIngredientColor).length;
 
                 if (colorCount >= colorLimit) {
-                    // Se a trava do Unguento já foi usada neste turno, explode.
                     if (localGameState.unguentoSavedColorThisTurn) {
                         return true;
                     }
 
-                    // Se a poção estiver ativa...
                     if (playerState.activePotions["Unguento de Musgo"]) {
-                        // 1. CONSUMIR A POÇÃO
-                        playerState.activePotions["Unguento de Musgo"] = false;
-                        
-                        // 2. ATIVAR A "TRAVA" DO TURNO
-                        localGameState.unguentoSavedColorThisTurn = newIngredientColor;
-
-                        logMessage(`O caldeirão tremeu, mas o Unguento de Musgo evitou a explosão da cor ${newIngredientColor}!`);
-                        
-                        // Enviamos a atualização para o servidor
-                        updateFirestoreState(localGameState);
-                        
-                        // 3. NÃO EXPLODE
+                        await consumeUnguentoDeMusgo(localPlayerId, newIngredientColor);
                         return false;
                     }
-
-                    // Se não tem a poção e o limite foi atingido, explode.
+                    
                     return true;
                 }
 
-                // Se nenhuma condição de explosão foi atingida pelo novo ingrediente.
                 return false;
             }
     
@@ -729,7 +709,7 @@
             }
     
             function handleExplosionWithResilience() {
-                decisionTitleEl.textContent = "EXPLOSÃO! Resiliência do Farsante ativada!";
+                decisionTitleEl.textContent = "EXPLOSão! Resiliência do Farsante ativada!";
                 decisionOptionsEl.innerHTML = `<p class="mb-4">Escolha 1 ingrediente para salvar na sua prateleira (se houver espaço):</p>`;
                 
                 const playerState = localGameState.players[localPlayerId];
@@ -1000,6 +980,36 @@
                 }
             }
     
+            async function consumeUnguentoDeMusgo(playerId, savedColor) {
+                const gameDocRef = doc(db, gamesCollectionPath, gameId);
+                try {
+                    await runTransaction(db, async (transaction) => {
+                        const gameDoc = await transaction.get(gameDocRef);
+                        if (!gameDoc.exists()) {
+                            throw "Documento do jogo não existe!";
+                        }
+
+                        const currentActivePotions = gameDoc.data().players[playerId].activePotions;
+
+                        if (currentActivePotions["Unguento de Musgo"] === true) {
+                            console.log("TRANSAÇÃO: Consumindo Unguento de Musgo no servidor.");
+                            
+                            const updatePath = `players.${playerId}.activePotions.Unguento de Musgo`;
+                            
+                            transaction.update(gameDocRef, {
+                                [updatePath]: false,
+                                "unguentoSavedColorThisTurn": savedColor
+                            });
+                        }
+                    });
+                    logMessage(`O caldeirão tremeu, mas o Unguento de Musgo evitou a explosão da cor ${savedColor}!`);
+                    return true;
+                } catch (e) {
+                    console.error("Falha na transação do Unguento de Musgo:", e);
+                    return false;
+                }
+            }
+
             async function handleForfeit() {
                 if (!gameId || !localPlayerId) return;
             
@@ -1982,5 +1992,3 @@
     </div>
 </body>
 </html>
-
-
