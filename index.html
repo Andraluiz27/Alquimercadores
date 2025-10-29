@@ -581,9 +581,10 @@
             }
 
             function triggerCorrosionDecision() {
-                const opponentState = localGameState.players[localPlayerId];
-                if (opponentState.shelf.length === 0) {
-                    // Se, por algum motivo, o alvo não tem mais itens, cancela a ação
+                // Renomeado para 'playerState' para maior clareza, pois é o jogador local que está tomando a decisão
+                const playerState = localGameState.players[localPlayerId];
+                
+                if (playerState.shelf.length === 0) {
                     if(localPlayerId === localGameState.pendingAction.target) {
                        localGameState.pendingAction = null;
                        updateFirestoreState(localGameState);
@@ -593,10 +594,22 @@
 
                 decisionTitleEl.textContent = "Pó da Corrosão!";
                 let optionsHTML = `<p class="mb-4">Seu oponente usou Pó da Corrosão. Escolha 1 ingrediente da sua prateleira para descartar:</p>`;
-                
-                opponentState.shelf.forEach((ingredient, index) => {
-                    optionsHTML += `<button class="btn btn-gray w-full mb-2" data-index="${index}">${ingredient}</button>`;
+
+                // --- NOVO BLOCO VISUAL ---
+                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
+                playerState.shelf.forEach((ingredientName, index) => {
+                    const imgData = INGREDIENT_DATA[ingredientName];
+                    ingredientsGridHTML += `
+                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-index="${index}">
+                            <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
+                            <span class="font-bold text-sm mt-1">${ingredientName}</span>
+                        </button>
+                    `;
                 });
+                ingredientsGridHTML += `</div>`;
+                optionsHTML += ingredientsGridHTML;
+                // --- FIM DO NOVO BLOCO VISUAL ---
+
                 decisionOptionsEl.innerHTML = optionsHTML;
 
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
@@ -2347,6 +2360,7 @@
     </div>
 </body>
 </html>
+
 
 
 
