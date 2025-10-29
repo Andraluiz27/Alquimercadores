@@ -324,6 +324,100 @@
                 }
                 return cauldron;
             }
+
+            function triggerClairvoyanceDecision(playerId) {
+                const playerState = localGameState.players[playerId];
+
+                if (playerState.shelf.length >= playerState.shelfLimit) {
+                    showMessage("Sua prateleira está cheia! Você não pode usar o Soro da Clarividência agora.");
+                    playerState.potionsReady.unshift("Soro da Clarividência");
+                    updateFirestoreState(localGameState);
+                    return;
+                }
+
+                decisionTitleEl.textContent = "Soro da Clarividência";
+                let optionsHTML = `<p class="mb-4">Você enxerga o conteúdo do caldeirão! Escolha 1 ingrediente para pegar (exceto Sal Negro):</p>`;
+
+                const cauldronCounts = getIngredientCounts(localGameState.cauldron);
+                let availableIngredients = false;
+
+                // --- NOVO BLOCO VISUAL ---
+                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 max-h-64 overflow-y-auto p-2 bg-black/10 rounded">`;
+
+                for (const ingredientName in INGREDIENT_DATA) {
+                    // Verifica se o ingrediente existe no caldeirão e não é Sal Negro
+                    if (ingredientName !== "Sal Negro" && cauldronCounts[ingredientName] > 0) {
+                        availableIngredients = true;
+                        const imgData = INGREDIENT_DATA[ingredientName];
+                        const count = cauldronCounts[ingredientName];
+                        
+                        // Cria um "card" clicável para cada ingrediente
+                        ingredientsGridHTML += `
+                            <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-ingredient="${ingredientName}">
+                                <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
+                                <span class="font-bold text-sm mt-1">${ingredientName}</span>
+                                <span class="text-xs">(${count} no caldeirão)</span>
+                            </button>
+                        `;
+                    }
+                }
+                ingredientsGridHTML += `</div>`;
+                // --- FIM DO NOVO BLOCO VISUAL ---
+
+                if (!availableIngredients) {
+                    optionsHTML += `<p class="text-red-600 mt-4">Não há ingredientes válidos no caldeirão para pegar!</p>`;
+                } else {
+                    optionsHTML += ingredientsGridHTML;
+                }
+                
+                optionsHTML += `<button class="btn btn-red w-full mt-4" data-ingredient="cancel">Cancelar</button>`;
+
+                decisionOptionsEl.innerHTML = optionsHTML;
+
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const ingredient = button.dataset.ingredient;
+                        if (ingredient === "cancel") {
+                            playerState.potionsReady.unshift("Soro da Clarividência");
+                            logMessage(`${playerState.name} decidiu não usar o Soro da Clarividência.`);
+                            decisionModal.classList.add('hidden');
+                            updateFirestoreState(localGameState);
+                        } else if (ingredient) { // Garante que não é um clique em outro lugar
+                            handleClairvoyanceSelection(playerId, ingredient);
+                        }
+                    };
+                });
+
+                decisionModal.classList.remove('hidden');
+            }
+            
+            function handleClairvoyanceSelection(playerId, ingredientName) {
+                const playerState = localGameState.players[playerId];
+
+                // Verificação final de segurança
+                if (playerState.shelf.length >= playerState.shelfLimit) {
+                    showMessage("Sua prateleira ficou cheia! Ação cancelada.");
+                    decisionModal.classList.add('hidden');
+                    return;
+                }
+
+                const cauldron = localGameState.cauldron;
+                const ingredientIndex = cauldron.indexOf(ingredientName);
+
+                // Verifica se o ingrediente realmente existe no caldeirão
+                if (ingredientIndex > -1) {
+                    // Remove do caldeirão e adiciona na prateleira
+                    const takenIngredient = cauldron.splice(ingredientIndex, 1)[0];
+                    playerState.shelf.push(takenIngredient);
+
+                    logMessage(`${playerState.name} usou o Soro da Clarividência e pegou ${takenIngredient} do caldeirão!`);
+                } else {
+                    logMessage(`Tentativa de pegar ${ingredientName} falhou, ingrediente não encontrado no caldeirão.`);
+                }
+
+                decisionModal.classList.add('hidden');
+                updateFirestoreState(localGameState);
+            }
             
             function triggerContractDecision(playerId) {
                 decisionTitleEl.textContent = "Contrato de Exclusividade";
@@ -1148,6 +1242,9 @@
                     default:
                         console.warn(`Ação interativa para ${potionName} precisa ser implementada.`);
                         showMessage(`Ação para ${potionName} ainda não implementada.`);
+                        break;
+                    case "Soro da Clarividência":
+                        triggerClairvoyanceDecision(playerId);
                         break;
                 }
             }
@@ -2172,6 +2269,7 @@
     </div>
 </body>
 </html>
+
 
 
 
