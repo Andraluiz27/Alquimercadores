@@ -1060,6 +1060,9 @@
                         curse.status = 'ACTIVE_THIS_TURN';
                         const curseMessage = `O caldeirão de ${playerState.name} está amaldiçoado! Cuidado com ingredientes da cor ${curse.color.toUpperCase()}!`;
                         logMessage(curseMessage);
+                        if (playerId === localPlayerId) {
+                            showMessage(`Seu caldeirão foi amaldiçoado! Cuidado com ingredientes da cor ${curse.color.toUpperCase()}!`);
+                        }
                     }
                 }
                 // --- FIM DA LÓGICA DA MALDIÇÃO ---
@@ -2888,6 +2891,7 @@
         </div>
 </body>
 </html>
+
 
 
 
