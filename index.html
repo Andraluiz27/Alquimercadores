@@ -1582,6 +1582,7 @@
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false;
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Pó da Corrosão!`);
+                            showBarrierBlockMessage("Pó da Corrosão");
                             break;
                         }
                         if (opponentState.shelf.length === 0) {
@@ -1601,6 +1602,7 @@
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false; // Barreira é consumida
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Mão do Mago!`);
+                            showBarrierBlockMessage("Mão do Mago");
                             break;
                         }
                         // 2. Verifica se a prateleira do oponente está vazia
@@ -1624,6 +1626,7 @@
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false; // Barreira é consumida
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Ferrugem Alquímica!`);
+                            showBarrierBlockMessage("Ferrugem Alquímica");
                             break;
                         }
 
@@ -1662,6 +1665,7 @@
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false;
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Poção da Usurpação!`);
+                            showBarrierBlockMessage("Poção da Usurpação");
                             break;
                         }
                         const coinsToSteal = Math.min(opponentState.coins, 5);
@@ -1673,6 +1677,7 @@
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false;
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Solvente Universal!`);
+                            showBarrierBlockMessage("Solvente Universal");
                             break;
                         }
                         if (opponentState.shelf.length > 0) {
@@ -1687,6 +1692,7 @@
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false;
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Maldição do Caldeirão Trincado!`);
+                            showBarrierBlockMessage("Maldição do Caldeirão Trincado");
                             break;
                         }
                         opponentState.activePotions["Maldição do Caldeirão Trincado"] = true; 
@@ -1705,6 +1711,7 @@
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false; // Barreira é consumida
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Ingrediente Contaminado!`);
+                            showBarrierBlockMessage("Ingrediente Contaminado");
                             break;
                         }
                         // 2. Verifica se a sua própria prateleira está vazia
@@ -1866,6 +1873,20 @@
                 if (localGameState.pendingAction && localGameState.pendingAction.type === "Pó da Corrosão" && localGameState.pendingAction.target === localPlayerId) {
                     triggerCorrosionDecision();
                 }
+            }
+
+            function showBarrierBlockMessage(blockedPotionName) {
+                const modal = document.getElementById('barrier-block-modal');
+                const messageEl = document.getElementById('barrier-message-text');
+
+                // Define a mensagem e mostra o modal
+                messageEl.textContent = `Barreira de Bolhas bloqueou: ${blockedPotionName}!`;
+                modal.classList.remove('hidden');
+
+                // Agenda o desaparecimento do modal após 2.5 segundos
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 2500); // 2500 milissegundos = 2.5 segundos
             }
             
             function renderShelf(shelfEl, shelfItems, ownerId) {
@@ -2754,8 +2775,14 @@
             </div>
         </div>
     </div>
+    <div id="barrier-block-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-8 z-50 transition-opacity duration-500 ease-in-out">
+            <div class="bg-blue-200 text-blue-900 border-4 border-blue-500 p-8 rounded-lg w-full max-w-md text-center shadow-2xl">
+                <h2 id="barrier-message-text" class="text-3xl font-bold">...</h2>
+            </div>
+        </div>
 </body>
 </html>
+
 
 
 
