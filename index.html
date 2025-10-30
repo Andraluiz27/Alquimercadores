@@ -2005,33 +2005,57 @@
             }
     
             function renderReadyPotions() {
-                readyPotionsBoardListEl.innerHTML = '';
-                const playerPotions = localGameState.players[localPlayerId]?.potionsReady || [];
+                // Pega os novos elementos do HTML que criamos no Passo 1
+                const p1ListEl = document.getElementById('player1-ready-potions-list');
+                const p2ListEl = document.getElementById('player2-ready-potions-list');
+                const p1TitleEl = document.getElementById('player1-ready-potions-title');
+                const p2TitleEl = document.getElementById('player2-ready-potions-title');
             
-                if (playerPotions.length === 0) {
-                    readyPotionsBoardListEl.innerHTML = `<p class="text-gray-400 text-sm">Nenhuma poção pronta.</p>`;
-                    return;
-                }
+                // Verificação de segurança para evitar erros
+                if (!localGameState.players) return;
             
-                playerPotions.forEach(potionName => {
-                    const potionContainer = document.createElement('div');
-                    potionContainer.className = 'relative text-center';
+                const p1 = localGameState.players.player1;
+                const p2 = localGameState.players.player2;
             
-                    const img = createPotionImage(potionName);
-                    img.className += ' w-16 h-16';
+                // Atualiza os títulos das seções com os nomes corretos dos jogadores
+                p1TitleEl.textContent = `${p1.name}` + (localPlayerId === 'player1' ? " (Você)" : "");
+                p2TitleEl.textContent = `${p2.name}` + (localPlayerId === 'player2' ? " (Você)" : "");
+            
+                // Esta é uma função interna para desenhar a lista de poções de um jogador.
+                // Usamos isso para não ter que escrever o mesmo código duas vezes.
+                const renderListForPlayer = (element, potions, ownerId) => {
+                    element.innerHTML = ''; // Limpa a lista antes de adicionar os itens novos
                     
-                    if (selectedPotion === potionName) {
-                        img.classList.add('border-4', 'border-yellow-400', 'rounded-lg');
+                    if (!potions || potions.length === 0) {
+                        element.innerHTML = `<p class="text-gray-400 text-sm">Nenhuma poção pronta.</p>`;
+                        return;
                     }
-                    potionContainer.appendChild(img);
-                    
-                    const nameEl = document.createElement('p');
-                    nameEl.className = 'text-xs text-white truncate w-16';
-                    nameEl.textContent = potionName;
-                    potionContainer.appendChild(nameEl);
-
-                    readyPotionsBoardListEl.appendChild(potionContainer);
-                });
+            
+                    potions.forEach(potionName => {
+                        const potionContainer = document.createElement('div');
+                        potionContainer.className = 'relative text-center';
+            
+                        const img = createPotionImage(potionName);
+                        img.className += ' w-16 h-16';
+                        
+                        // Adiciona a borda amarela de seleção apenas na lista do jogador local
+                        if (localPlayerId === ownerId && selectedPotion === potionName) {
+                            img.classList.add('border-4', 'border-yellow-400', 'rounded-lg');
+                        }
+                        potionContainer.appendChild(img);
+                        
+                        const nameEl = document.createElement('p');
+                        nameEl.className = 'text-xs text-white truncate w-16';
+                        nameEl.textContent = potionName;
+                        potionContainer.appendChild(nameEl);
+            
+                        element.appendChild(potionContainer);
+                    });
+                };
+            
+                // Chama a função para desenhar as poções para cada jogador
+                renderListForPlayer(p1ListEl, p1.potionsReady, 'player1');
+                renderListForPlayer(p2ListEl, p2.potionsReady, 'player2');
             }
             
            function renderActivePotions(listEl, activePotions, ownerId) {
@@ -2815,13 +2839,28 @@
             <img src="imagens/Poção.png" alt="Poções Ativas" class="w-10 h-10">
         </div>
 
-        <div id="active-potions-board" class="absolute top-0 right-0 w-80 h-full bg-black/80 backdrop-blur-sm p-4 border-l-4 border-[#5c3d20] z-30 translate-x-full">
+       <div id="active-potions-board" class="absolute top-0 right-0 w-80 h-full bg-black/80 backdrop-blur-sm p-4 border-l-4 border-[#5c3d20] z-30 translate-x-full">
             <button id="close-potions-board-btn" class="absolute top-2 right-3 text-4xl text-yellow-300 hover:text-white">&times;</button>
             <h3 class="text-2xl font-bold text-yellow-300 mb-4 border-b-2 border-yellow-400 pb-2">Poções</h3>
+            
             <div class="mb-6">
-                <h4 class="text-xl font-semibold text-yellow-500">Prontas para Uso:</h4>
-                <div id="ready-potions-board-list" class="flex flex-wrap gap-2 mt-2 min-h-[70px] bg-black/20 p-2 rounded"></div>
+                <h4 class="text-xl font-semibold text-yellow-500 mb-2">Prontas para Uso:</h4>
+                
+                <div>
+                    <h5 id="player1-ready-potions-title" class="text-lg font-semibold text-blue-300">Jogador 1:</h5>
+                    <div id="player1-ready-potions-list" class="flex flex-wrap gap-2 mt-1 min-h-[70px] bg-black/20 p-2 rounded">
+                        <p class="text-gray-400 text-sm">Nenhuma poção pronta.</p>
+                    </div>
+                </div>
+        
+                <div class="mt-4">
+                    <h5 id="player2-ready-potions-title" class="text-lg font-semibold text-red-300">Jogador 2:</h5>
+                    <div id="player2-ready-potions-list" class="flex flex-wrap gap-2 mt-1 min-h-[70px] bg-black/20 p-2 rounded">
+                        <p class="text-gray-400 text-sm">Nenhuma poção pronta.</p>
+                    </div>
+                </div>
             </div>
+        
             <div>
                 <h4 class="text-xl font-semibold text-gray-300">Efeitos Ativos:</h4>
                 <div id="player1-active-potions" class="mt-2">
@@ -2834,7 +2873,7 @@
                 </div>
             </div>
         </div>
-
+        
         <div id="recipe-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
             <div id="livro-container" class="relative w-full max-w-5xl aspect-[16/9]"> 
                 <div id="pagina-esquerda" class="absolute top-[15%] left-[23%] w-[28%] h-[63%] p-4 overflow-y-auto"></div>
@@ -2888,6 +2927,7 @@
         </div>
 </body>
 </html>
+
 
 
 
