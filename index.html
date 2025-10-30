@@ -772,7 +772,7 @@
 
                 let creatablePotions = [];
                 if (recipeBookMode === 'create') {
-                    creatablePotions = findCreatablePotions(localGameState.currentPull || []);
+                    creatablePotions = findCreatablePotions(localGameState.currentPull || [], localPlayerId);
                 }
 
                 const startIndex = recipeCurrentPage * recipesPerPage;
@@ -1340,22 +1340,35 @@
                 recipeModal.classList.remove('hidden');
             }
             
-            function findCreatablePotions(currentPull) {
+            function findCreatablePotions(currentPull, playerId) {
+                const playerState = localGameState.players[playerId];
+                const hasPrismaticPaste = playerState.activePotions["Pasta Prismática"];
                 const pullCounts = getIngredientCounts(currentPull);
+                const totalAvailable = currentPull.length;
                 const creatable = [];
-                
+
                 for (const potionName in ARCANO_POTIONUM) {
-                    const recipe = ARCANO_POTIONUM[potionName];
-                    let canCreate = true;
-                    
-                    for (const ingredientName in recipe.ingredientes) {
-                        const requiredCount = recipe.ingredientes[ingredientName];
-                        if ((pullCounts[ingredientName] || 0) < requiredCount) {
-                            canCreate = false;
-                            break;
+                    const recipe = ARCANO_POTIONUM[potionName].ingredientes;
+                    let missingIngredients = 0;
+                    let totalRequired = 0;
+
+                    // Conta quantos ingredientes faltam e quantos são necessários no total
+                    for (const ingredientName in recipe) {
+                        const requiredCount = recipe[ingredientName];
+                        const haveCount = pullCounts[ingredientName] || 0;
+                        totalRequired += requiredCount;
+                        if (haveCount < requiredCount) {
+                            // Conta apenas a "dívida" de ingredientes
+                            missingIngredients += (requiredCount - haveCount);
                         }
                     }
-                    if (canCreate) {
+
+                    // Caso 1: Tem todos os ingredientes. Sempre criável.
+                    if (missingIngredients === 0) {
+                        creatable.push(potionName);
+                    } 
+                    // Caso 2: Falta SÓ UM ingrediente, tem a Pasta Prismática E tem ingredientes sobrando para substituir.
+                    else if (missingIngredients === 1 && hasPrismaticPaste && totalAvailable > (totalRequired - 1)) {
                         creatable.push(potionName);
                     }
                 }
@@ -1363,35 +1376,47 @@
             }
     
             window.handleCreatePotion = function(potionName) {
-                const creatablePotions = findCreatablePotions(localGameState.currentPull);
-                if (!creatablePotions.includes(potionName)) {
-                    showMessage("Erro! Você não tem os ingredientes para esta poção.");
-                    return;
+                const playerState = localGameState.players[localPlayerId];
+                const recipe = ARCANO_POTIONUM[potionName].ingredientes;
+                const pullCounts = getIngredientCounts(localGameState.currentPull);
+                let missingIngredients = [];
+
+                // Verifica se e quais ingredientes estão faltando
+                for (const ingredientName in recipe) {
+                    const requiredCount = recipe[ingredientName];
+                    const haveCount = pullCounts[ingredientName] || 0;
+                    if (haveCount < requiredCount) {
+                        // Adiciona o nome do ingrediente que falta
+                        missingIngredients.push(ingredientName);
+                    }
                 }
 
-                const recipe = ARCANO_POTIONUM[potionName];
-                const pull = localGameState.currentPull;
-                
-                for (const ingredientName in recipe.ingredientes) {
-                    let countToRemove = recipe.ingredientes[ingredientName];
-                    for (let i = pull.length - 1; i >= 0; i--) {
-                        if (pull[i] === ingredientName && countToRemove > 0) {
-                            pull.splice(i, 1);
-                            countToRemove--;
+                // Se não falta nada, cria a poção normalmente
+                if (missingIngredients.length === 0) {
+                    const pull = localGameState.currentPull;
+                    for (const ingredientName in recipe) {
+                        let countToRemove = recipe[ingredientName];
+                        for (let i = pull.length - 1; i >= 0; i--) {
+                            if (pull[i] === ingredientName && countToRemove > 0) {
+                                pull.splice(i, 1);
+                                countToRemove--;
+                            }
                         }
                     }
+                    playerState.potionsReady.push(potionName);
+                    logMessage(`${playerState.name} criou: ${potionName}!`);
+                    recipeModal.classList.add('hidden');
+                    updateFirestoreState(localGameState);
+
+                } 
+                // Se falta SÓ UM e tem a pasta, abre o modal de substituição
+                else if (missingIngredients.length === 1 && playerState.activePotions["Pasta Prismática"]) {
+                    triggerPrismaticSubstitutionDecision(potionName, missingIngredients[0]);
+                } 
+                // Caso contrário, é um erro
+                else {
+                    showMessage("Erro! Você não tem os ingredientes para esta poção.");
                 }
-                
-                localGameState.players[localPlayerId].potionsReady.push(potionName);
-                logMessage(`${localGameState.players[localPlayerId].name} criou: ${potionName}!`);
-                
-                recipeModal.classList.add('hidden');
-                
-                updateFirestoreState(localGameState).then(() => {
-                    if (recipeBookMode === 'create') {
-                        renderRecipeBookPage();
-                    }
-                });
             }
     
             function handleIngredientClick(ingredientName, index) {
@@ -1428,6 +1453,10 @@
                         logMessage(`${playerState.name} ergueu uma Barreira de Bolhas!`);
                         break;
                     case "Unguento de Musgo": playerState.activePotions["Unguento de Musgo"] = true; break;
+                    case "Pasta Prismática": 
+                        playerState.activePotions["Pasta Prismática"] = true; 
+                        logMessage(`${playerState.name} agora pode substituir ingredientes graças à Pasta Prismática!`);
+                        break;
                     case "Infusão de Foco":
                         if (playerState.shelfLimit < 6) {
                             playerState.shelfLimit++;
@@ -2623,6 +2652,7 @@
     </div>
 </body>
 </html>
+
 
 
 
