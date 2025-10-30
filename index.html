@@ -1257,7 +1257,16 @@
                         logMessage(`${playerState.name} ergueu uma Barreira de Bolhas!`);
                         break;
                     case "Unguento de Musgo": playerState.activePotions["Unguento de Musgo"] = true; break;
-                    case "Infusão de Foco": playerState.shelfLimit++; playerState.activePotions["Infusão de Foco"] = true; break;
+                    case "Infusão de Foco":
+                        if (playerState.shelfLimit < 6) {
+                            playerState.shelfLimit++;
+                            playerState.activePotions["Infusão de Foco"] = true;
+                            logMessage(`${playerState.name} usou Infusão de Foco e expandiu sua prateleira para ${playerState.shelfLimit} espaços!`);
+                        } else {
+                            showMessage("Sua prateleira já atingiu a capacidade máxima (6 espaços)!");
+                            logMessage(`${playerState.name} tentou usar Infusão de Foco, mas sua prateleira já está no máximo. A poção foi desperdiçada!`);
+                        }
+                        break;
                     case "Tônico Dourado": playerState.coins += 2; break;
                     case "Elixir do Mercador":
                         triggerElixirDecision(playerId);
@@ -1308,7 +1317,16 @@
                     case "Contrato de Exclusividade":
                         triggerContractDecision(playerId);
                         break;
-                    case "Caldeirão Expansivo": playerState.shelfLimit++; playerState.activePotions["Caldeirão Expansivo"] = true; break;
+                    case "Caldeirão Expansivo":
+                        if (playerState.shelfLimit < 6) {
+                            playerState.shelfLimit++;
+                            playerState.activePotions["Caldeirão Expansivo"] = true;
+                            logMessage(`${playerState.name} usou Caldeirão Expansivo e expandiu sua prateleira para ${playerState.shelfLimit} espaços!`);
+                        } else {
+                            showMessage("Sua prateleira já atingiu a capacidade máxima (6 espaços)!");
+                            logMessage(`${playerState.name} tentou usar Caldeirão Expansivo, mas sua prateleira já está no máximo. A poção foi desperdiçada!`);
+                        }
+                        break;
                     case "Resiliência do Farsante": playerState.activePotions["Resiliência do Farsante"] = true; break;
                     case "Estabilizador Cromático": playerState.activePotions["Estabilizador Cromático"] = true; break;
                     case "Pedra Filosofal (Falsa)": playerState.coins += 7; break;
@@ -2377,6 +2395,7 @@
     </div>
 </body>
 </html>
+
 
 
 
