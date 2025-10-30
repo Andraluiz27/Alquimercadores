@@ -2839,11 +2839,13 @@
             <img src="imagens/Poção.png" alt="Poções Ativas" class="w-10 h-10">
         </div>
 
-       <div id="active-potions-board" class="absolute top-0 right-0 w-80 h-full bg-black/80 backdrop-blur-sm p-4 border-l-4 border-[#5c3d20] z-30 translate-x-full">
-            <button id="close-potions-board-btn" class="absolute top-2 right-3 text-4xl text-yellow-300 hover:text-white">&times;</button>
-            <h3 class="text-2xl font-bold text-yellow-300 mb-4 border-b-2 border-yellow-400 pb-2">Poções</h3>
-            
-            <div class="mb-6">
+      <div id="active-potions-board" class="absolute top-0 right-0 w-80 h-full bg-black/80 backdrop-blur-sm p-4 border-l-4 border-[#5c3d20] z-30 translate-x-full">
+        <button id="close-potions-board-btn" class="absolute top-2 right-3 text-4xl text-yellow-300 hover:text-white">&times;</button>
+        <h3 class="text-2xl font-bold text-yellow-300 mb-2 border-b-2 border-yellow-400 pb-2">Poções</h3>
+        
+        <div class="h-full overflow-y-auto pb-16">
+    
+            <div class="mb-6 pt-2">
                 <h4 class="text-xl font-semibold text-yellow-500 mb-2">Prontas para Uso:</h4>
                 
                 <div>
@@ -2852,7 +2854,7 @@
                         <p class="text-gray-400 text-sm">Nenhuma poção pronta.</p>
                     </div>
                 </div>
-        
+    
                 <div class="mt-4">
                     <h5 id="player2-ready-potions-title" class="text-lg font-semibold text-red-300">Jogador 2:</h5>
                     <div id="player2-ready-potions-list" class="flex flex-wrap gap-2 mt-1 min-h-[70px] bg-black/20 p-2 rounded">
@@ -2860,7 +2862,7 @@
                     </div>
                 </div>
             </div>
-        
+    
             <div>
                 <h4 class="text-xl font-semibold text-gray-300">Efeitos Ativos:</h4>
                 <div id="player1-active-potions" class="mt-2">
@@ -2872,6 +2874,8 @@
                     <ul id="player2-active-potions-list" class="flex flex-col gap-2 mt-1"></ul>
                 </div>
             </div>
+    
+        </div>
         </div>
         
         <div id="recipe-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
@@ -2927,6 +2931,7 @@
         </div>
 </body>
 </html>
+
 
 
 
