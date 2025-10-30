@@ -1284,7 +1284,6 @@
                 // Agora verifica a cor armazenada no objeto da maldição
                 if (curseStatus && curseStatus.status === 'ACTIVE_THIS_TURN' && ingredientColor === curseStatus.color) {
                     logMessage(`BOOM! A Maldição do Caldeirão Trincado foi ativada pelo ingrediente ${pulledIngredient}!`);
-                    showMessage(`A Maldição da cor ${curseStatus.color.toUpperCase()} foi Ativada!`);
                     
                     delete playerState.activePotions["Maldição do Caldeirão Trincado"];
                     
@@ -2891,6 +2890,7 @@
         </div>
 </body>
 </html>
+
 
 
 
