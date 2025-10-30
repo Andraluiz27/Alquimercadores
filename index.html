@@ -1260,7 +1260,8 @@
                     case "Infusão de Foco":
                         if (playerState.shelfLimit < 6) {
                             playerState.shelfLimit++;
-                            playerState.activePotions["Infusão de Foco"] = true;
+                            // Incrementa o contador da poção. Se não existir, começa em 1.
+                            playerState.activePotions["Infusão de Foco"] = (playerState.activePotions["Infusão de Foco"] || 0) + 1;
                             logMessage(`${playerState.name} usou Infusão de Foco e expandiu sua prateleira para ${playerState.shelfLimit} espaços!`);
                         } else {
                             showMessage("Sua prateleira já atingiu a capacidade máxima (6 espaços)!");
@@ -1320,7 +1321,8 @@
                     case "Caldeirão Expansivo":
                         if (playerState.shelfLimit < 6) {
                             playerState.shelfLimit++;
-                            playerState.activePotions["Caldeirão Expansivo"] = true;
+                            // Incrementa o contador da poção. Se não existir, começa em 1.
+                            playerState.activePotions["Caldeirão Expansivo"] = (playerState.activePotions["Caldeirão Expansivo"] || 0) + 1;
                             logMessage(`${playerState.name} usou Caldeirão Expansivo e expandiu sua prateleira para ${playerState.shelfLimit} espaços!`);
                         } else {
                             showMessage("Sua prateleira já atingiu a capacidade máxima (6 espaços)!");
@@ -2395,6 +2397,7 @@
     </div>
 </body>
 </html>
+
 
 
 
