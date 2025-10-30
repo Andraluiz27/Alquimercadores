@@ -546,6 +546,54 @@
                 decisionModal.classList.remove('hidden');
             }
 
+            function triggerCurseColorDecision(playerId) {
+                decisionTitleEl.textContent = "Maldição do Caldeirão Trincado";
+                let optionsHTML = `<p class="mb-4">Escolha uma cor para amaldiçoar o caldeirão do seu oponente. Se ele puxar um ingrediente desta cor no próximo turno, o caldeirão explodirá.</p>`;
+                
+                const colors = {
+                    "vermelho": "bg-red-500 hover:bg-red-400 border-red-700",
+                    "verde": "bg-green-500 hover:bg-green-400 border-green-700",
+                    "azul": "bg-blue-500 hover:bg-blue-400 border-blue-700",
+                    "amarelo": "bg-yellow-500 hover:bg-yellow-400 border-yellow-700"
+                };
+
+                optionsHTML += `<div class="grid grid-cols-2 gap-4">`;
+                for (const color in colors) {
+                    optionsHTML += `<button class="btn text-white ${colors[color]}" data-color="${color}">${color.charAt(0).toUpperCase() + color.slice(1)}</button>`;
+                }
+                optionsHTML += `</div>`;
+                
+                decisionOptionsEl.innerHTML = optionsHTML;
+
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const chosenColor = button.dataset.color;
+                        handleCurseColorSelection(playerId, chosenColor);
+                    };
+                });
+
+                decisionModal.classList.remove('hidden');
+            }
+
+            function handleCurseColorSelection(playerId, chosenColor) {
+                const playerState = localGameState.players[playerId];
+                const opponentId = getOpponentId(playerId);
+                const opponentState = localGameState.players[opponentId];
+
+                // Aplica a maldição no oponente com a cor escolhida
+                opponentState.activePotions["Maldição do Caldeirão Trincado"] = { 
+                    status: 'PENDING_ACTIVATION', 
+                    color: chosenColor 
+                };
+
+                const message = `${playerState.name} usou a Maldição do Caldeirão Trincado e escolheu a cor: ${chosenColor.toUpperCase()}!`;
+                logMessage(message);
+                showMessage(message); // Mostra para o jogador que usou
+
+                decisionModal.classList.add('hidden');
+                updateFirestoreState(localGameState);
+            }
+
             function handleMageHandSelection(playerId, ingredientIndex) {
                 const playerState = localGameState.players[playerId];
                 const opponentId = getOpponentId(playerId);
@@ -999,6 +1047,24 @@
                 }
                 // --- FIM DA LÓGICA DE REVERSÃO ---
 
+                // --- LÓGICA DA MALDIÇÃO DO CALDEIRÃO TRINCADO ---
+                const curse = playerState.activePotions["Maldição do Caldeirão Trincado"];
+                if (curse) {
+                    // Se a maldição sobreviveu ao turno, ela se dissipa agora.
+                    if (curse.status === 'ACTIVE_THIS_TURN') {
+                        delete playerState.activePotions["Maldição do Caldeirão Trincado"];
+                        logMessage(`A Maldição do Caldeirão Trincado em ${playerState.name} se dissipou.`);
+                    } 
+                    // Se estava pendente, ela é "armada" para este turno.
+                    else if (curse.status === 'PENDING_ACTIVATION') {
+                        curse.status = 'ACTIVE_THIS_TURN';
+                        const curseMessage = `O caldeirão de ${playerState.name} está amaldiçoado! Cuidado com ingredientes da cor ${curse.color.toUpperCase()}!`;
+                        logMessage(curseMessage);
+                        showMessage(curseMessage); // Avisa o jogador amaldiçoado
+                    }
+                }
+                // --- FIM DA LÓGICA DA MALDIÇÃO ---
+
                 // --- LÓGICA DE EXPIRAÇÃO DA BARREIRA DE BOLHAS ---
                 const barrierStatus = playerState.activePotions["Barreira de Bolhas"];
 
@@ -1208,6 +1274,29 @@
                 localGameState.currentPull.push(pulledIngredient);
                 
                 logMessage(`${playerState.name} puxou: ${pulledIngredient}`);
+                
+                // --- LÓGICA DA MALDIÇÃO DO CALDEIRÃO TRINCADO ---
+                const curseStatus = playerState.activePotions["Maldição do Caldeirão Trincado"];
+                const ingredientColor = INGREDIENT_DATA[pulledIngredient].cor;
+
+                // Agora verifica a cor armazenada no objeto da maldição
+                if (curseStatus && curseStatus.status === 'ACTIVE_THIS_TURN' && ingredientColor === curseStatus.color) {
+                    logMessage(`BOOM! A Maldição do Caldeirão Trincado foi ativada pelo ingrediente ${pulledIngredient}!`);
+                    showMessage(`A Maldição da cor ${curseStatus.color.toUpperCase()} foi Ativada!`);
+                    
+                    delete playerState.activePotions["Maldição do Caldeirão Trincado"];
+                    
+                    setTimeout(() => {
+                        if (playerState.activePotions["Resiliência do Farsante"]) {
+                            handleExplosionWithResilience();
+                        } else {
+                            handleExplosion();
+                        }
+                    }, 1000);
+                    
+                    return; 
+                }
+                // --- FIM DA LÓGICA DA MALDIÇÃO ---
                 
                 await updateFirestoreState(localGameState);
                 
@@ -1695,7 +1784,8 @@
                             showBarrierBlockMessage("Maldição do Caldeirão Trincado");
                             break;
                         }
-                        opponentState.activePotions["Maldição do Caldeirão Trincado"] = true; 
+                        // Em vez de aplicar o efeito, agora chamamos o modal de decisão
+                        triggerCurseColorDecision(playerId);
                         break;
                     case "Pasta Prismática": playerState.activePotions["Pasta Prismática"] = true; break;
                     case "Fervor do Ousado": playerState.activePotions["Fervor do Ousado"] = true; break;
@@ -2782,6 +2872,7 @@
         </div>
 </body>
 </html>
+
 
 
 
