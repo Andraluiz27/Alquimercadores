@@ -326,6 +326,63 @@
                 return cauldron;
             }
 
+            function triggerRustDecision(playerId, targetPotions) {
+                const opponentState = localGameState.players[getOpponentId(playerId)];
+                decisionTitleEl.textContent = "Ferrugem Alquímica";
+                let optionsHTML = `<p class="mb-4">Escolha um aprimoramento de ${opponentState.name} para desativar por uma rodada:</p>`;
+
+                let potionsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
+                targetPotions.forEach(potionName => {
+                    potionsGridHTML += `
+                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-potion-name="${potionName}">
+                            <img src="imagens/Poção.png" alt="${potionName}" class="w-16 h-16">
+                            <span class="font-bold text-sm mt-1">${potionName}</span>
+                        </button>
+                    `;
+                });
+                potionsGridHTML += `</div>`;
+                optionsHTML += potionsGridHTML;
+                decisionOptionsEl.innerHTML = optionsHTML;
+
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const potionToDisable = button.dataset.potionName;
+                        handleRustSelection(playerId, potionToDisable);
+                    };
+                });
+                decisionModal.classList.remove('hidden');
+            }
+
+            function handleRustSelection(playerId, potionToDisable) {
+                const opponentId = getOpponentId(playerId);
+                const opponentState = localGameState.players[opponentId];
+                const playerState = localGameState.players[playerId];
+
+                // Guarda o valor original (que é a contagem de usos)
+                const originalValue = opponentState.activePotions[potionToDisable];
+
+                // Desativa a poção alvo
+                opponentState.activePotions[potionToDisable] = false;
+
+                // --- NOVA LÓGICA ADICIONADA ---
+                // Se a poção desativada era de expansão, reverte o bônus
+                if (potionToDisable === "Infusão de Foco" || potionToDisable === "Caldeirão Expansivo") {
+                    opponentState.shelfLimit -= originalValue;
+                    logMessage(`A prateleira de ${opponentState.name} foi reduzida para ${opponentState.shelfLimit} espaços!`);
+                }
+                // --- FIM DA NOVA LÓGICA ---
+
+                // Armazena qual efeito foi desativado para poder reativá-lo depois
+                opponentState.disabledEffect = {
+                    name: potionToDisable,
+                    originalValue: originalValue
+                };
+
+                logMessage(`${playerState.name} usou Ferrugem Alquímica e desativou a poção "${potionToDisable}" de ${opponentState.name} por uma rodada!`);
+                decisionModal.classList.add('hidden');
+                updateFirestoreState(localGameState);
+            }
+
             function triggerContaminatedDecision(playerId) {
                 const playerState = localGameState.players[playerId];
                 const opponentState = localGameState.players[getOpponentId(playerId)];
@@ -839,8 +896,29 @@
             // ==========================================================
     
             function startProductionPhase(playerId) {
-                // --- LÓGICA DE EXPIRAÇÃO DA BARREIRA DE BOLHAS ---
                 const playerState = localGameState.players[playerId];
+
+                // --- LÓGICA DE REVERSÃO DA FERRUGEM ALQUÍMICA (ATUALIZADA) ---
+                if (playerState.disabledEffect) {
+                    const effect = playerState.disabledEffect;
+                    
+                    // Restaura o valor original do contador da poção
+                    playerState.activePotions[effect.name] = effect.originalValue;
+
+                    // Se a poção era de expansão, restaura o limite da prateleira
+                    if (effect.name === "Infusão de Foco" || effect.name === "Caldeirão Expansivo") {
+                        playerState.shelfLimit += effect.originalValue;
+                        logMessage(`A prateleira de ${playerState.name} voltou a ter ${playerState.shelfLimit} espaços!`);
+                    }
+
+                    logMessage(`O efeito da Ferrugem Alquímica passou e a poção "${effect.name}" de ${playerState.name} foi reativada!`);
+                    
+                    // Remove o registro do efeito desativado
+                    delete playerState.disabledEffect;
+                }
+                // --- FIM DA LÓGICA DE REVERSÃO ---
+
+                // --- LÓGICA DE EXPIRAÇÃO DA BARREIRA DE BOLHAS ---
                 const barrierStatus = playerState.activePotions["Barreira de Bolhas"];
 
                 if (barrierStatus === "active") {
@@ -853,6 +931,7 @@
                 }
                 // --- FIM DA LÓGICA DE EXPIRAÇÃO ---
                 
+                // Lógica original da função para iniciar a fase
                 localGameState.phase = `PRODUCTION_${playerId.toUpperCase()}`;
                 localGameState.currentPlayer = playerId;
                 localGameState.currentPull = [];
@@ -1407,6 +1486,28 @@
                         triggerMageHandDecision(playerId);
                         break;
                     case "Parasita Mortífero": playerState.activePotions["Parasita Mortífero"] = true; break;
+                    case "Ferrugem Alquímica":
+                        // 1. Oponente se defende com a Barreira de Bolhas
+                        if (opponentState.activePotions["Barreira de Bolhas"]) {
+                            opponentState.activePotions["Barreira de Bolhas"] = false; // Barreira é consumida
+                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Ferrugem Alquímica!`);
+                            break;
+                        }
+
+                        // 2. Encontra quais poções permanentes o oponente tem ativas
+                        const permanentPotions = ["Infusão de Foco", "Amuleto do Colecionador", "Caldeirão Expansivo", "Resiliência do Farsante", "Estabilizador Cromático", "Pasta Prismática", "Fervor do Ousado"];
+                        const opponentActivePermanents = permanentPotions.filter(potion => opponentState.activePotions[potion]);
+
+                        // 3. Verifica se o oponente tem algum alvo válido
+                        if (opponentActivePermanents.length === 0) {
+                            logMessage(`${playerState.name} tentou usar Ferrugem Alquímica, mas ${opponentState.name} não tem efeitos permanentes ativos. A poção foi desperdiçada!`);
+                            showMessage(`${opponentState.name} não possui aprimoramentos permanentes para desativar!`);
+                            break;
+                        }
+
+                        // 4. Se houver alvos, mostra a tela de escolha
+                        triggerRustDecision(playerId, opponentActivePermanents);
+                        break;
                     case "Contrato de Exclusividade":
                         triggerContractDecision(playerId);
                         break;
@@ -2522,6 +2623,7 @@
     </div>
 </body>
 </html>
+
 
 
 
