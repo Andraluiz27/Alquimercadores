@@ -1060,7 +1060,6 @@
                         curse.status = 'ACTIVE_THIS_TURN';
                         const curseMessage = `O caldeirão de ${playerState.name} está amaldiçoado! Cuidado com ingredientes da cor ${curse.color.toUpperCase()}!`;
                         logMessage(curseMessage);
-                        showMessage(curseMessage); // Avisa o jogador amaldiçoado
                     }
                 }
                 // --- FIM DA LÓGICA DA MALDIÇÃO ---
@@ -2485,6 +2484,23 @@
                     
                     const oldState = {...localGameState}; 
                     localGameState = doc.data();
+
+                    // V--- COLE O NOVO CÓDIGO AQUI ---V
+                    if (localPlayerId && oldState.players) { // Garante que temos dados para comparar
+                        const oldPlayerState = oldState.players[localPlayerId];
+                        const newPlayerState = localGameState.players[localPlayerId];
+        
+                        const oldCurse = oldPlayerState.activePotions?.["Maldição do Caldeirão Trincado"];
+                        const newCurse = newPlayerState.activePotions?.["Maldição do Caldeirão Trincado"];
+        
+                        // Se a maldição acabou de ser ativada para MIM neste turno, mostra o aviso.
+                        if (newCurse && newCurse.status === 'ACTIVE_THIS_TURN' && oldCurse?.status !== 'ACTIVE_THIS_TURN') {
+                            const curseMessage = `Seu caldeirão foi amaldiçoado! Cuidado com ingredientes da cor ${newCurse.color.toUpperCase()}!`;
+                            showMessage(curseMessage);
+                        }
+                    }
+                    // ^--- FIM DO CÓDIGO NOVO ---^
+
                     // *** CORREÇÃO PARA TESTE NO CONSOLE ***
                     window.localGameState = localGameState;
                     
@@ -2872,6 +2888,7 @@
         </div>
 </body>
 </html>
+
 
 
 
