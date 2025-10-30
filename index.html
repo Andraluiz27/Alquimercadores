@@ -1255,8 +1255,8 @@
                     return; 
                 }
                 // Ativa a trava para bloquear cliques futuros.
-                isProcessingClick = true;
-
+                isProcessingClick = true; // <-- TRAVA ENGATADA AQUI
+            
                 if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) {
                     isProcessingClick = false; // Libera a trava se a fase estiver errada
                     return;
@@ -1272,19 +1272,22 @@
                 
                 const randomIndex = Math.floor(Math.random() * localGameState.cauldron.length);
                 const pulledIngredient = localGameState.cauldron.splice(randomIndex, 1)[0];
-
+            
                 localGameState.currentPull.push(pulledIngredient);
                 
                 logMessage(`${playerState.name} puxou: ${pulledIngredient}`);
                 
-                // --- LÓGICA DA MALDIÇÃO DO CALDEIRÃO TRINCADO ---
+                // ATUALIZA O ESTADO IMEDIATAMENTE.
+                // Isso renderiza o ingrediente na tela ANTES de checar a explosão.
+                await updateFirestoreState(localGameState);
+                
+                // Agora, verificamos as condições de explosão.
                 const curseStatus = playerState.activePotions["Maldição do Caldeirão Trincado"];
                 const ingredientColor = INGREDIENT_DATA[pulledIngredient].cor;
-
-                // Agora verifica a cor armazenada no objeto da maldição
+            
+                // 1. Checa a explosão pela maldição
                 if (curseStatus && curseStatus.status === 'ACTIVE_THIS_TURN' && ingredientColor === curseStatus.color) {
                     logMessage(`BOOM! A Maldição do Caldeirão Trincado foi ativada pelo ingrediente ${pulledIngredient}!`);
-                    
                     delete playerState.activePotions["Maldição do Caldeirão Trincado"];
                     
                     setTimeout(() => {
@@ -1294,21 +1297,15 @@
                             handleExplosion();
                         }
                     }, 1000);
-                    
-                    return; 
-                }
-                // --- FIM DA LÓGICA DA MALDIÇÃO ---
-                
-                await updateFirestoreState(localGameState);
-                
-                if (await checkExplosion(localGameState.currentPull, playerState, pulledIngredient)) {
-                    
+                } 
+                // 2. Se não explodiu pela maldição, checa a explosão normal
+                else if (await checkExplosion(localGameState.currentPull, playerState, pulledIngredient)) {
                     setTimeout(() => {
                         if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) {
-                            isProcessingClick = false; // Libera a trava se a fase mudou
+                            isProcessingClick = false;
                             return;
                         }
-
+            
                         if (playerState.activePotions["Resiliência do Farsante"]) {
                             logMessage("BOOM! Mas a Resiliência do Farsante salvou um ingrediente!");
                             handleExplosionWithResilience();
@@ -1317,9 +1314,10 @@
                             handleExplosion();
                         }
                     }, 1000);
-                } else {
-                    // Libera a trava somente se nenhuma explosão foi acionada.
-                    isProcessingClick = false;
+                } 
+                // 3. Se nada explodiu, libera o clique para a próxima puxada
+                else {
+                    isProcessingClick = false; // <-- TRAVA LIBERADA AQUI (ÚNICO CAMINHO SEM EXPLOSÃO)
                 }
             }
             
@@ -2890,6 +2888,7 @@
         </div>
 </body>
 </html>
+
 
 
 
