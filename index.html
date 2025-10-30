@@ -1033,44 +1033,57 @@
             }
     
             function handleExplosionWithResilience() {
-                decisionTitleEl.textContent = "EXPLOSão! Resiliência do Farsante ativada!";
-                decisionOptionsEl.innerHTML = `<p class="mb-4">Escolha 1 ingrediente para salvar na sua prateleira (se houver espaço):</p>`;
+                decisionTitleEl.textContent = "EXPLOSÃO! Resiliência do Farsante ativada!";
+                let optionsHTML = `<p class="mb-4">Escolha 1 ingrediente para salvar na sua prateleira (se houver espaço):</p>`;
                 
                 const playerState = localGameState.players[localPlayerId];
                 const canSave = playerState.shelf.length < playerState.shelfLimit;
-    
-                localGameState.currentPull.forEach((ingredient, index) => {
-                    const btn = document.createElement('button');
-                    btn.className = "btn btn-gray w-full mb-2 disabled:opacity-50"; 
-                    btn.textContent = ingredient;
-                    if (!canSave) {
-                        btn.disabled = true;
-                        btn.title = "Sua prateleira está cheia!";
-                    }
-                    btn.onclick = () => {
-                        playerState.shelf.push(localGameState.currentPull.splice(index, 1)[0]);
-                        localGameState.cauldron.push(...localGameState.currentPull);
+
+                // --- NOVO BLOCO VISUAL ---
+                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
+                localGameState.currentPull.forEach((ingredientName, index) => {
+                    const imgData = INGREDIENT_DATA[ingredientName];
+                    const disabledAttribute = !canSave ? 'disabled title="Sua prateleira está cheia!"' : '';
+                    
+                    ingredientsGridHTML += `
+                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" data-index="${index}" ${disabledAttribute}>
+                            <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
+                            <span class="font-bold text-sm mt-1">${ingredientName}</span>
+                        </button>
+                    `;
+                });
+                ingredientsGridHTML += `</div>`;
+                optionsHTML += ingredientsGridHTML;
+
+                if (!canSave) {
+                    optionsHTML += `<p class="text-red-600 mt-2">Sua prateleira está cheia! Você não pode salvar nenhum ingrediente.</p>`;
+                }
+                
+                // Botão "Não salvar nada" integrado à lógica
+                optionsHTML += `<button class="btn btn-red w-full mt-4" data-index="-1">Não salvar nada</button>`;
+                // --- FIM DO NOVO BLOCO VISUAL ---
+
+                decisionOptionsEl.innerHTML = optionsHTML;
+
+                // Event listener unificado para todos os botões
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const index = parseInt(button.dataset.index, 10);
+
+                        // Se o botão "Não salvar nada" for clicado (index = -1)
+                        if (index === -1) {
+                            localGameState.cauldron.push(...localGameState.currentPull);
+                        } else {
+                            // Se um ingrediente for escolhido, salva-o e devolve o resto
+                            playerState.shelf.push(localGameState.currentPull.splice(index, 1)[0]);
+                            localGameState.cauldron.push(...localGameState.currentPull);
+                        }
+                        
                         localGameState.currentPull = [];
                         decisionModal.classList.add('hidden');
                         endProductionPhase(); 
                     };
-                    decisionOptionsEl.appendChild(btn);
                 });
-                
-                if (!canSave) {
-                    decisionOptionsEl.innerHTML += `<p class="text-red-600">Sua prateleira está cheia! Você não pode salvar nenhum ingrediente.</p>`;
-                }
-                
-                const btnNone = document.createElement('button');
-                btnNone.className = "btn btn-red w-full mt-4"; 
-                btnNone.textContent = "Não salvar nada";
-                btnNone.onclick = () => {
-                    localGameState.cauldron.push(...localGameState.currentPull);
-                    localGameState.currentPull = [];
-                    decisionModal.classList.add('hidden');
-                    endProductionPhase(); 
-                };
-                decisionOptionsEl.appendChild(btnNone);
                 
                 decisionModal.classList.remove('hidden');
             }
@@ -2407,6 +2420,7 @@
     </div>
 </body>
 </html>
+
 
 
 
