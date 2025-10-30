@@ -1375,24 +1375,29 @@
                 return creatable;
             }
     
-            window.handleCreatePotion = function(potionName) {
+           window.handleCreatePotion = function(potionName) {
                 const playerState = localGameState.players[localPlayerId];
                 const recipe = ARCANO_POTIONUM[potionName].ingredientes;
                 const pullCounts = getIngredientCounts(localGameState.currentPull);
-                let missingIngredients = [];
+                
+                let totalMissingCount = 0;
+                let missingIngredientType = null;
+                let typesMissing = 0;
 
-                // Verifica se e quais ingredientes estão faltando
+                // Re-calcula a falta de ingredientes usando a lógica correta e unificada
                 for (const ingredientName in recipe) {
                     const requiredCount = recipe[ingredientName];
                     const haveCount = pullCounts[ingredientName] || 0;
                     if (haveCount < requiredCount) {
-                        // Adiciona o nome do ingrediente que falta
-                        missingIngredients.push(ingredientName);
+                        const missingAmount = requiredCount - haveCount;
+                        totalMissingCount += missingAmount;
+                        missingIngredientType = ingredientName; // Guarda o nome do tipo que falta
+                        typesMissing++;
                     }
                 }
 
-                // Se não falta nada, cria a poção normalmente
-                if (missingIngredients.length === 0) {
+                // CASO 1: Não falta nenhum ingrediente, fabricação normal.
+                if (totalMissingCount === 0) {
                     const pull = localGameState.currentPull;
                     for (const ingredientName in recipe) {
                         let countToRemove = recipe[ingredientName];
@@ -1407,15 +1412,15 @@
                     logMessage(`${playerState.name} criou: ${potionName}!`);
                     recipeModal.classList.add('hidden');
                     updateFirestoreState(localGameState);
-
                 } 
-                // Se falta SÓ UM e tem a pasta, abre o modal de substituição
-                else if (missingIngredients.length === 1 && playerState.activePotions["Pasta Prismática"]) {
-                    triggerPrismaticSubstitutionDecision(potionName, missingIngredients[0]);
+                // CASO 2: Falta apenas 1 ingrediente no total, e o jogador tem a Pasta Prismática.
+                else if (totalMissingCount === 1 && typesMissing === 1 && playerState.activePotions["Pasta Prismática"]) {
+                    // Chama a função para abrir o modal de escolha de substituto.
+                    triggerPrismaticSubstitutionDecision(potionName, missingIngredientType);
                 } 
-                // Caso contrário, é um erro
+                // CASO 3: Qualquer outra situação é um erro ou não é possível fabricar.
                 else {
-                    showMessage("Erro! Você não tem os ingredientes para esta poção.");
+                    showMessage("Erro! Você não tem os ingredientes necessários para esta poção.");
                 }
             }
     
@@ -2652,6 +2657,7 @@
     </div>
 </body>
 </html>
+
 
 
 
