@@ -224,7 +224,8 @@
             // ==========================================================
             // VARIÁVEIS DE ESTADO GLOBAIS
             // ==========================================================
-    
+
+            let isProcessingClick = false;
             let selectedPotion = null; 
             let localGameState = {}; 
             let localPlayerId = null; 
@@ -960,12 +961,24 @@
             }
             
             async function handleCauldronClick() {
-                if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
+                // Se uma ação já está em andamento, ignora este clique.
+                if (isProcessingClick) {
+                    console.log("Ação já em processamento, clique ignorado.");
+                    return; 
+                }
+                // Ativa a trava para bloquear cliques futuros.
+                isProcessingClick = true;
+
+                if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) {
+                    isProcessingClick = false; // Libera a trava se a fase estiver errada
+                    return;
+                }
                 
                 const playerState = localGameState.players[localPlayerId];
                 
                 if (localGameState.cauldron.length === 0) {
                     showMessage("O Caldeirão está vazio!");
+                    isProcessingClick = false; // Libera a trava
                     return;
                 }
                 
@@ -981,7 +994,10 @@
                 if (await checkExplosion(localGameState.currentPull, playerState, pulledIngredient)) {
                     
                     setTimeout(() => {
-                        if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
+                        if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) {
+                            isProcessingClick = false; // Libera a trava se a fase mudou
+                            return;
+                        }
 
                         if (playerState.activePotions["Resiliência do Farsante"]) {
                             logMessage("BOOM! Mas a Resiliência do Farsante salvou um ingrediente!");
@@ -991,6 +1007,9 @@
                             handleExplosion();
                         }
                     }, 1000);
+                } else {
+                    // Libera a trava somente se nenhuma explosão foi acionada.
+                    isProcessingClick = false;
                 }
             }
             
@@ -1029,6 +1048,7 @@
                 localGameState.cauldron.push(...localGameState.currentPull);
                 localGameState.currentPull = [];
                 showMessage("EXPLOSÃO! Você perdeu todos os ingredientes deste turno.");
+                isProcessingClick = false; // Libera a trava
                 endProductionPhase(); 
             }
     
@@ -1039,7 +1059,7 @@
                 const playerState = localGameState.players[localPlayerId];
                 const canSave = playerState.shelf.length < playerState.shelfLimit;
 
-                // --- NOVO BLOCO VISUAL ---
+                // Bloco que cria a grade visual de ingredientes
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
                 localGameState.currentPull.forEach((ingredientName, index) => {
                     const imgData = INGREDIENT_DATA[ingredientName];
@@ -1059,28 +1079,31 @@
                     optionsHTML += `<p class="text-red-600 mt-2">Sua prateleira está cheia! Você não pode salvar nenhum ingrediente.</p>`;
                 }
                 
-                // Botão "Não salvar nada" integrado à lógica
+                // Botão "Não salvar nada"
                 optionsHTML += `<button class="btn btn-red w-full mt-4" data-index="-1">Não salvar nada</button>`;
-                // --- FIM DO NOVO BLOCO VISUAL ---
 
                 decisionOptionsEl.innerHTML = optionsHTML;
 
-                // Event listener unificado para todos os botões
+                // Event listener para todos os botões do modal
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
                     button.onclick = () => {
                         const index = parseInt(button.dataset.index, 10);
 
-                        // Se o botão "Não salvar nada" for clicado (index = -1)
+                        // Se clicou em "Não salvar nada", devolve tudo ao caldeirão
                         if (index === -1) {
                             localGameState.cauldron.push(...localGameState.currentPull);
                         } else {
-                            // Se um ingrediente for escolhido, salva-o e devolve o resto
+                            // Se escolheu um ingrediente, salva-o e devolve o resto
                             playerState.shelf.push(localGameState.currentPull.splice(index, 1)[0]);
                             localGameState.cauldron.push(...localGameState.currentPull);
                         }
                         
+                        // Limpa o balcão, fecha o modal e libera a trava
                         localGameState.currentPull = [];
                         decisionModal.classList.add('hidden');
+                        isProcessingClick = false; // <<< PONTO CRÍTICO DA CORREÇÃO
+                        
+                        // Finaliza a fase de produção
                         endProductionPhase(); 
                     };
                 });
@@ -1513,7 +1536,7 @@
                 // --- CÓDIGO CORRIGIDO ABAIXO ---
                 const isGamePaused = !!localGameState.pendingAction;
 
-                cauldronBtn.disabled = !myProdPhase || isGamePaused; // O caldeirão é desativado se o jogo estiver pausado.
+                cauldronBtn.disabled = !myProdPhase || isGamePaused || isProcessingClick;
                 cauldronBtn.style.cursor = cauldronBtn.disabled ? 'default' : 'pointer';
 
                 stopPullingBtn.classList.toggle('hidden', !myProdPhase || isGamePaused);
@@ -2420,6 +2443,7 @@
     </div>
 </body>
 </html>
+
 
 
 
