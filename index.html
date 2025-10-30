@@ -326,6 +326,86 @@
                 return cauldron;
             }
 
+            function triggerPrismaticSubstitutionDecision(potionName, missingIngredient) {
+                const recipe = ARCANO_POTIONUM[potionName].ingredientes;
+                const pull = localGameState.currentPull;
+                let spareIngredients = [...pull];
+
+                // Remove os ingredientes que já estão sendo usados na receita para descobrir os "sobras"
+                for (const ingredientName in recipe) {
+                    if (ingredientName !== missingIngredient) {
+                        let countToRemove = recipe[ingredientName];
+                        for (let i = spareIngredients.length - 1; i >= 0; i--) {
+                            if (spareIngredients[i] === ingredientName && countToRemove > 0) {
+                                spareIngredients.splice(i, 1);
+                                countToRemove--;
+                            }
+                        }
+                    }
+                }
+
+                decisionTitleEl.textContent = "Pasta Prismática";
+                let optionsHTML = `<p class="mb-4">Você precisa de 1 <strong>${missingIngredient}</strong>. Escolha um ingrediente sobrando para usar no lugar:</p>`;
+                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
+                
+                // Mostra as opções de ingredientes que podem ser usados como substitutos
+                spareIngredients.forEach(ingredientName => {
+                    const imgData = INGREDIENT_DATA[ingredientName];
+                    ingredientsGridHTML += `
+                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-substitute="${ingredientName}">
+                            <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
+                            <span class="font-bold text-sm mt-1">${ingredientName}</span>
+                        </button>
+                    `;
+                });
+                ingredientsGridHTML += `</div>`;
+                optionsHTML += ingredientsGridHTML;
+                decisionOptionsEl.innerHTML = optionsHTML;
+
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const substituteIngredient = button.dataset.substitute;
+                        handlePrismaticSubstitution(potionName, substituteIngredient);
+                    };
+                });
+
+                recipeModal.classList.add('hidden');
+                decisionModal.classList.remove('hidden');
+            }
+
+            function handlePrismaticSubstitution(potionName, substituteIngredient) {
+                const recipe = ARCANO_POTIONUM[potionName].ingredientes;
+                const pull = localGameState.currentPull;
+                const playerState = localGameState.players[localPlayerId];
+
+                // Remove o ingrediente substituto do balcão
+                const substituteIndex = pull.indexOf(substituteIngredient);
+                if (substituteIndex > -1) {
+                    pull.splice(substituteIndex, 1);
+                }
+
+                // Remove os outros ingredientes normais da receita
+                for (const ingredientName in recipe) {
+                    // Ignora o ingrediente que foi substituído
+                    const isMissingIngredient = (pull.filter(i => i === ingredientName).length < recipe[ingredientName]);
+                    if (!isMissingIngredient) {
+                        let countToRemove = recipe[ingredientName];
+                        for (let i = pull.length - 1; i >= 0; i--) {
+                            if (pull[i] === ingredientName && countToRemove > 0) {
+                                pull.splice(i, 1);
+                                countToRemove--;
+                            }
+                        }
+                    }
+                }
+
+                playerState.potionsReady.push(potionName);
+                logMessage(`${playerState.name} usou ${substituteIngredient} como coringa para criar: ${potionName}!`);
+                
+                decisionModal.classList.add('hidden');
+                updateFirestoreState(localGameState);
+            }
+
             function triggerRustDecision(playerId, targetPotions) {
                 const opponentState = localGameState.players[getOpponentId(playerId)];
                 decisionTitleEl.textContent = "Ferrugem Alquímica";
@@ -2657,6 +2737,7 @@
     </div>
 </body>
 </html>
+
 
 
 
