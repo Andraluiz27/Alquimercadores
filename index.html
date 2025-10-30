@@ -1575,7 +1575,7 @@
                 });
             }
             
-            function renderActivePotions(listEl, activePotions, ownerId) {
+           function renderActivePotions(listEl, activePotions, ownerId) {
                 listEl.innerHTML = '';
                 if (activePotions && typeof activePotions === 'object') {
                     for (const potionName in activePotions) {
@@ -1584,10 +1584,20 @@
                             if (potion) {
                                 const li = document.createElement('li');
                                 li.className = 'flex items-center gap-2 p-2 bg-gray-800 rounded';
+                                
+                                // --- NOVA LÓGICA DE EXIBIÇÃO ---
+                                let displayText = potion.nome;
+                                // Verifica se é uma das poções de expansão para adicionar o contador
+                                if ((potionName === "Infusão de Foco" || potionName === "Caldeirão Expansivo") && typeof activePotions[potionName] === 'number') {
+                                    const count = activePotions[potionName];
+                                    displayText += ` (${count}x)`;
+                                }
+                                // --- FIM DA NOVA LÓGICA ---
+
                                 li.innerHTML = `
                                     <img src="imagens/Poção.png" class="w-8 h-8">
                                     <span class="potion-tooltip relative">
-                                        ${potion.nome}
+                                        ${displayText}
                                         <span class="tooltip-text">${potion.descricao}</span>
                                     </span>
                                 `;
@@ -2397,6 +2407,7 @@
     </div>
 </body>
 </html>
+
 
 
 
