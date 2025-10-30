@@ -438,24 +438,19 @@
                 const opponentState = localGameState.players[opponentId];
                 const playerState = localGameState.players[playerId];
 
-                // Guarda o valor original (que é a contagem de usos)
                 const originalValue = opponentState.activePotions[potionToDisable];
-
-                // Desativa a poção alvo
                 opponentState.activePotions[potionToDisable] = false;
 
-                // --- NOVA LÓGICA ADICIONADA ---
-                // Se a poção desativada era de expansão, reverte o bônus
                 if (potionToDisable === "Infusão de Foco" || potionToDisable === "Caldeirão Expansivo") {
                     opponentState.shelfLimit -= originalValue;
                     logMessage(`A prateleira de ${opponentState.name} foi reduzida para ${opponentState.shelfLimit} espaços!`);
                 }
-                // --- FIM DA NOVA LÓGICA ---
 
-                // Armazena qual efeito foi desativado para poder reativá-lo depois
+                // Armazena o efeito com um status inicial
                 opponentState.disabledEffect = {
                     name: potionToDisable,
-                    originalValue: originalValue
+                    originalValue: originalValue,
+                    status: 'PENDING_REACTIVATION' // <<< MUDANÇA PRINCIPAL AQUI
                 };
 
                 logMessage(`${playerState.name} usou Ferrugem Alquímica e desativou a poção "${potionToDisable}" de ${opponentState.name} por uma rodada!`);
@@ -978,23 +973,27 @@
             function startProductionPhase(playerId) {
                 const playerState = localGameState.players[playerId];
 
-                // --- LÓGICA DE REVERSÃO DA FERRUGEM ALQUÍMICA (ATUALIZADA) ---
+                // --- LÓGICA DE REVERSÃO DA FERRUGEM ALQUÍMICA (CORRIGIDA) ---
                 if (playerState.disabledEffect) {
                     const effect = playerState.disabledEffect;
                     
-                    // Restaura o valor original do contador da poção
-                    playerState.activePotions[effect.name] = effect.originalValue;
+                    // Se o efeito já durou um turno, agora é a hora de reativá-lo.
+                    if (effect.status === 'READY_TO_CLEAR') {
+                        playerState.activePotions[effect.name] = effect.originalValue;
 
-                    // Se a poção era de expansão, restaura o limite da prateleira
-                    if (effect.name === "Infusão de Foco" || effect.name === "Caldeirão Expansivo") {
-                        playerState.shelfLimit += effect.originalValue;
-                        logMessage(`A prateleira de ${playerState.name} voltou a ter ${playerState.shelfLimit} espaços!`);
+                        if (effect.name === "Infusão de Foco" || effect.name === "Caldeirão Expansivo") {
+                            playerState.shelfLimit += effect.originalValue;
+                            logMessage(`A prateleira de ${playerState.name} voltou a ter ${playerState.shelfLimit} espaços!`);
+                        }
+
+                        logMessage(`O efeito da Ferrugem Alquímica passou e a poção "${effect.name}" de ${playerState.name} foi reativada!`);
+                        delete playerState.disabledEffect;
+                    } 
+                    // Se este é o turno em que o efeito deve estar ativo, apenas marcamos para ser limpo na próxima vez.
+                    else if (effect.status === 'PENDING_REACTIVATION') {
+                        playerState.disabledEffect.status = 'READY_TO_CLEAR';
+                        logMessage(`A poção "${effect.name}" de ${playerState.name} continua desativada neste turno devido à Ferrugem Alquímica.`);
                     }
-
-                    logMessage(`O efeito da Ferrugem Alquímica passou e a poção "${effect.name}" de ${playerState.name} foi reativada!`);
-                    
-                    // Remove o registro do efeito desativado
-                    delete playerState.disabledEffect;
                 }
                 // --- FIM DA LÓGICA DE REVERSÃO ---
 
@@ -2738,6 +2737,7 @@
     </div>
 </body>
 </html>
+
 
 
 
