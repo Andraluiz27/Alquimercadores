@@ -326,6 +326,62 @@
                 return cauldron;
             }
 
+            function triggerContaminatedDecision(playerId) {
+                const playerState = localGameState.players[playerId];
+                const opponentState = localGameState.players[getOpponentId(playerId)];
+
+                decisionTitleEl.textContent = "Ingrediente Contaminado";
+                let optionsHTML = `<p class="mb-4">Escolha um ingrediente da sua prateleira para dar para ${opponentState.name}:</p>`;
+
+                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
+                playerState.shelf.forEach((ingredientName, index) => {
+                    const imgData = INGREDIENT_DATA[ingredientName];
+                    ingredientsGridHTML += `
+                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-index="${index}">
+                            <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
+                            <span class="font-bold text-sm mt-1">${ingredientName}</span>
+                        </button>
+                    `;
+                });
+                ingredientsGridHTML += `</div>`;
+                optionsHTML += ingredientsGridHTML;
+
+                decisionOptionsEl.innerHTML = optionsHTML;
+
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const index = parseInt(button.dataset.index, 10);
+                        handleContaminatedSelection(playerId, index);
+                    };
+                });
+
+                decisionModal.classList.remove('hidden');
+            }
+
+            function handleContaminatedSelection(playerId, ingredientIndex) {
+                const playerState = localGameState.players[playerId];
+                const opponentId = getOpponentId(playerId);
+                const opponentState = localGameState.players[opponentId];
+
+                // Verificação final de segurança
+                if (opponentState.shelf.length >= opponentState.shelfLimit || ingredientIndex >= playerState.shelf.length) {
+                    showMessage("Não foi possível dar o ingrediente. (Prateleira do oponente ficou cheia ou item inválido).");
+                    decisionModal.classList.add('hidden');
+                    return;
+                }
+
+                // Remove o ingrediente da sua prateleira
+                const givenIngredient = playerState.shelf.splice(ingredientIndex, 1)[0];
+
+                // Adiciona o ingrediente à prateleira do oponente
+                opponentState.shelf.push(givenIngredient);
+
+                logMessage(`${playerState.name} usou Ingrediente Contaminado e deu ${givenIngredient} para ${opponentState.name}!`);
+
+                decisionModal.classList.add('hidden');
+                updateFirestoreState(localGameState);
+            }
+
             function triggerMageHandDecision(playerId) {
                 const opponentId = getOpponentId(playerId);
                 const opponentState = localGameState.players[opponentId];
@@ -1410,6 +1466,29 @@
                     case "Soro da Clarividência":
                         triggerClairvoyanceDecision(playerId);
                         break;
+                    case "Ingrediente Contaminado":
+                        // 1. Oponente se defende com a Barreira de Bolhas
+                        if (opponentState.activePotions["Barreira de Bolhas"]) {
+                            opponentState.activePotions["Barreira de Bolhas"] = false; // Barreira é consumida
+                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Ingrediente Contaminado!`);
+                            break;
+                        }
+                        // 2. Verifica se a sua própria prateleira está vazia
+                        if (playerState.shelf.length === 0) {
+                            logMessage(`${playerState.name} tentou usar Ingrediente Contaminado, mas sua prateleira está vazia. A poção foi desperdiçada!`);
+                            showMessage("Você não tem ingredientes na sua prateleira para dar!");
+                            break;
+                        }
+                        // 3. Verifica se a prateleira do oponente está cheia
+                        if (opponentState.shelf.length >= opponentState.shelfLimit) {
+                            logMessage(`${playerState.name} tentou usar Ingrediente Contaminado, mas a prateleira de ${opponentState.name} está cheia. A poção foi desperdiçada!`);
+                            showMessage(`A prateleira de ${opponentState.name} está cheia!`);
+                            break;
+                        }
+                        // Se todas as verificações passarem, mostra a tela de escolha
+                        triggerContaminatedDecision(playerId);
+                        break;
+                
                 }
             }
     
@@ -2443,6 +2522,7 @@
     </div>
 </body>
 </html>
+
 
 
 
