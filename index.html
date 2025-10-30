@@ -919,7 +919,8 @@
                             shelf: [], 
                             shelfLimit: 2,
                             potionsReady: [], 
-                            activePotions: {} 
+                            activePotions: {},
+                            fervorBonusThisTurn: false // <<< ADICIONE ESTA LINHA
                         },
                         player2: {
                             uid: null,
@@ -928,7 +929,8 @@
                             shelf: [],
                             shelfLimit: 2,
                             potionsReady: [],
-                            activePotions: {}
+                            activePotions: {},
+                            fervorBonusThisTurn: false // <<< E ADICIONE ESTA LINHA
                         }
                     },
                     cauldron: generateCauldron(),
@@ -1141,6 +1143,10 @@
             
                 let finalPrice = potionPrice;
                 if (playerState.activePotions["Amuleto do Colecionador"]) finalPrice++;
+                if (playerState.fervorBonusThisTurn) {
+                    finalPrice *= 2;
+                    logMessage(`Bônus do Fervor do Ousado dobrou o preço para ${finalPrice} moedas!`);
+                }
                 const opponentState = localGameState.players[getOpponentId()];
                 if (opponentState.activePotions["Parasita Mortífero"]) {
                     const halfPrice = Math.ceil(finalPrice / 2);
@@ -1327,6 +1333,19 @@
             
             function handleStopPullingClick() {
                 if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
+                
+                const playerState = localGameState.players[localPlayerId];
+                
+                // Reseta o bônus no início para garantir que não venha de turnos passados
+                playerState.fervorBonusThisTurn = false; 
+
+                // Verifica se o jogador tem o Fervor ativo E se puxou mais de 5 ingredientes
+                if (playerState.activePotions["Fervor do Ousado"] && localGameState.currentPull.length > 5) {
+                    playerState.fervorBonusThisTurn = true; // Ativa o bônus para este turno
+                    logMessage(`Fervor do Ousado ativado! As vendas de ${playerState.name} serão dobradas neste turno!`);
+                    showMessage("Fervor do Ousado Ativado! Suas vendas valerão o dobro!");
+                }
+                
                 localGameState.phase = `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
                 logMessage(`${localGameState.players[localPlayerId].name} parou de puxar.`);
                 updateFirestoreState(localGameState);
@@ -2737,6 +2756,7 @@
     </div>
 </body>
 </html>
+
 
 
 
