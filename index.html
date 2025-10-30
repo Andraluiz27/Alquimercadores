@@ -1455,28 +1455,27 @@
                 return creatable;
             }
     
-           window.handleCreatePotion = function(potionName) {
+            window.handleCreatePotion = function(potionName) {
                 const playerState = localGameState.players[localPlayerId];
                 const recipe = ARCANO_POTIONUM[potionName].ingredientes;
                 const pullCounts = getIngredientCounts(localGameState.currentPull);
                 
+                // A lógica agora é mais simples e robusta.
+                // 1. Vamos descobrir exatamente o que falta.
+                let missingIngredientsMap = {};
                 let totalMissingCount = 0;
-                let missingIngredientType = null;
-                let typesMissing = 0;
 
-                // Re-calcula a falta de ingredientes usando a lógica correta e unificada
                 for (const ingredientName in recipe) {
                     const requiredCount = recipe[ingredientName];
                     const haveCount = pullCounts[ingredientName] || 0;
                     if (haveCount < requiredCount) {
                         const missingAmount = requiredCount - haveCount;
+                        missingIngredientsMap[ingredientName] = missingAmount;
                         totalMissingCount += missingAmount;
-                        missingIngredientType = ingredientName; // Guarda o nome do tipo que falta
-                        typesMissing++;
                     }
                 }
 
-                // CASO 1: Não falta nenhum ingrediente, fabricação normal.
+                // 2. Se não falta nada, fabricação normal.
                 if (totalMissingCount === 0) {
                     const pull = localGameState.currentPull;
                     for (const ingredientName in recipe) {
@@ -1493,12 +1492,14 @@
                     recipeModal.classList.add('hidden');
                     updateFirestoreState(localGameState);
                 } 
-                // CASO 2: Falta apenas 1 ingrediente no total, e o jogador tem a Pasta Prismática.
-                else if (totalMissingCount === 1 && typesMissing === 1 && playerState.activePotions["Pasta Prismática"]) {
-                    // Chama a função para abrir o modal de escolha de substituto.
+                // 3. Se falta EXATAMENTE 1 ingrediente no total, e o jogador tem a Pasta Prismática...
+                else if (totalMissingCount === 1 && playerState.activePotions["Pasta Prismática"]) {
+                    // O ingrediente que falta é a única chave no nosso mapa de "faltantes".
+                    const missingIngredientType = Object.keys(missingIngredientsMap)[0];
+                    // Aciona a tela para o jogador escolher o substituto.
                     triggerPrismaticSubstitutionDecision(potionName, missingIngredientType);
                 } 
-                // CASO 3: Qualquer outra situação é um erro ou não é possível fabricar.
+                // 4. Qualquer outra situação é um erro (não deveria acontecer se o botão apareceu).
                 else {
                     showMessage("Erro! Você não tem os ingredientes necessários para esta poção.");
                 }
@@ -2737,6 +2738,7 @@
     </div>
 </body>
 </html>
+
 
 
 
