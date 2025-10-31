@@ -1541,7 +1541,7 @@
                             return;
                         }
             
-                        if (playerState.activePotions["Resiliência do Farsante"]) {
+                        if (playerState.activePotions["Resiliência do Farsante"] || playerState.copiedEffect?.name === "Resiliência do Farsante") {
                             logMessage("BOOM! Mas a Resiliência do Farsante salvou um ingrediente!");
                             handleExplosionWithResilience();
                         } else {
@@ -1862,7 +1862,7 @@
                     updateFirestoreState(localGameState);
                 } 
                 // 3. Se falta EXATAMENTE 1 ingrediente no total, e o jogador tem a Pasta Prismática...
-                else if (totalMissingCount === 1 && playerState.activePotions["Pasta Prismática"]) {
+                else if (totalMissingCount === 1 && (playerState.activePotions["Pasta Prismática"] || playerState.copiedEffect?.name === "Pasta Prismática")) {
                     // O ingrediente que falta é a única chave no nosso mapa de "faltantes".
                     const missingIngredientType = Object.keys(missingIngredientsMap)[0];
                     // Aciona a tela para o jogador escolher o substituto.
@@ -3249,6 +3249,7 @@
         </div>
 </body>
 </html>
+
 
 
 
