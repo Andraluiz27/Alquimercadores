@@ -1731,11 +1731,37 @@
                 
                 actionModal.classList.add('hidden');
 
+                // --- INÍCIO DA CORREÇÃO ---
+                // Esta lista contém TODAS as poções que abrem um modal de decisão.
+                // A sua poção "Eco Alquímico" está nela.
+                const potionsWithOwnUpdate = [
+                    "Eco Alquímico",
+                    "Ferrugem Alquímica",
+                    "Mão do Mago",
+                    "Contrato de Exclusividade",
+                    "Elixir do Mercador",
+                    "Soro da Clarividência",
+                    "Ingrediente Contaminado",
+                    "Maldição do Caldeirão Trincado"
+                    // "Pó da Corrosão" não entra aqui, pois ele afeta o oponente,
+                    // a ação do jogador atual é instantânea.
+                ];
+
+                // Se a poção usada for uma dessas da lista, nós paramos aqui.
+                // A própria função de seleção do modal (ex: handleEchoSelection)
+                // será responsável por chamar o updateFirestoreState.
+                if (potionsWithOwnUpdate.includes(potionName)) {
+                    return; // Impede a "race condition"
+                }
+                // --- FIM DA CORREÇÃO ---
+
+                // Se a poção for instantânea (ex: Tônico Dourado), ela continua
+                // funcionando exatamente como antes, salvando o estado imediatamente.
                 updateFirestoreState(localGameState).then(() => {
                     setTimeout(showActionModal, 100); 
                 });
             }
-
+            
             function handleBookClick(mode = 'view') {
                 recipeBookMode = mode;
                 recipeCurrentPage = 0;
@@ -3166,6 +3192,7 @@
         </div>
 </body>
 </html>
+
 
 
 
