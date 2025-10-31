@@ -1782,6 +1782,7 @@
                 const playerState = localGameState.players[playerId];
                 const opponentId = getOpponentId(playerId);
                 const opponentState = localGameState.players[opponentId];
+                const permanentPotions = ["Infusão de Foco", "Amuleto do Colecionador", "Caldeirão Expansivo", "Resiliência do Farsante", "Estabilizador Cromático", "Pasta Prismática", "Fervor do Ousado"];
     
                 switch (potionName) {
                     case "Barreira de Bolhas": 
@@ -1864,7 +1865,7 @@
                         }
 
                         // Encontra os alvos válidos (poções permanentes do oponente)
-                        const permanentPotions = ["Infusão de Foco", "Amuleto do Colecionador", "Caldeirão Expansivo", "Resiliência do Farsante", "Estabilizador Cromático", "Pasta Prismática", "Fervor do Ousado"];
+        
                         const opponentActivePermanents = permanentPotions.filter(potion => opponentState.activePotions[potion]);
 
                         // Verifica se há algo para copiar
@@ -1889,7 +1890,7 @@
                         }
 
                         // 2. Encontra quais poções permanentes o oponente tem ativas
-                        const permanentPotions = ["Infusão de Foco", "Amuleto do Colecionador", "Caldeirão Expansivo", "Resiliência do Farsante", "Estabilizador Cromático", "Pasta Prismática", "Fervor do Ousado"];
+        
                         const opponentActivePermanents = permanentPotions.filter(potion => opponentState.activePotions[potion]);
 
                         // 3. Verifica se o oponente tem algum alvo válido
@@ -3121,6 +3122,7 @@
         </div>
 </body>
 </html>
+
 
 
 
