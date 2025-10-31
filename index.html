@@ -3109,11 +3109,21 @@
     </div>
     
     <div id="game-screen" class="hidden relative w-full h-screen max-w-[1920px] mx-auto">
-        <div id="score-display" class="absolute top-4 left-4 bg-black/50 p-4 rounded-lg border-2 border-[#5c3d20] text-shadow">
-            <h3 class="text-xl font-bold text-yellow-300 mb-2">Tesouro</h3>
-            <div id="player1-score" class="text-lg text-white">Jogador 1: 0 💰</div>
-            <div id="player2-score" class="text-lg text-white">Jogador 2: 0 💰</div>
-        </div>
+        <div id="top-left-ui-container" class="absolute top-4 left-4 flex flex-row items-start gap-4 z-10">
+
+            <div id="score-display" class="bg-black/50 p-4 rounded-lg border-2 border-[#5c3d20] text-shadow">
+                <h3 class="text-xl font-bold text-yellow-300 mb-2">Tesouro</h3>
+                <div id="player1-score" class="text-lg text-white">Jogador 1: 0 💰</div>
+                <div id="player2-score" class="text-lg text-white">Jogador 2: 0 💰</div>
+            </div>
+        
+            <div id="action-buttons-container" class="flex flex-col gap-2">
+                <button id="stop-pulling-btn" class="btn btn-red hidden">Parar de Puxar</button>
+                <button id="finish-production-btn" class="btn btn-yellow hidden">Finalizar Produção</button>
+                <button id="finish-action-btn" class="btn btn-green hidden">Finalizar Ações</button>
+            </div>
+        
+        </div> ```
         
         <button id="quit-game-btn" class="absolute top-4 right-4 btn btn-red z-20">Desistir</button>
         
@@ -3146,12 +3156,6 @@
         <div id="counter-area" class="absolute top-[85%] left-[13%] w-[50%] h-[15%] flex justify-center items-center gap-2 p-2 bg-black/10 rounded"></div>
         <div id="cauldron-btn" class="absolute top-[64%] right-[21%] w-[20%] h-[35%] rounded-full" title="Puxar Ingrediente"></div>
         <div id="mesa-book-btn" class="absolute top-[77%] left-[6%] w-[8%] h-[18%] cursor-pointer rounded-lg" title="Abrir Arcano Potionum"></div>
-        
-        <div id="action-buttons-container" class="absolute bottom-4 left-4 flex flex-col gap-2 z-10">
-            <button id="stop-pulling-btn" class="btn btn-red hidden">Parar de Puxar</button>
-            <button id="finish-production-btn" class="btn btn-yellow hidden">Finalizar Produção</button>
-            <button id="finish-action-btn" class="btn btn-green hidden">Finalizar Ações</button>
-        </div>
 
         <div id="active-potions-toggle" class="absolute bottom-5 right-5 bg-[#5c3d20] p-3 rounded-full cursor-pointer border-2 border-yellow-300 hover:bg-[#7a5532] z-20">
             <img src="imagens/Poção.png" alt="Poções Ativas" class="w-10 h-10">
@@ -3249,6 +3253,7 @@
         </div>
 </body>
 </html>
+
 
 
 
