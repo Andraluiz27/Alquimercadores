@@ -561,16 +561,17 @@
 
                 playerState.copiedEffect = {
                     name: potionToCopy,
-                    status: 'ACTIVE_THIS_TURN'
+                    // status: 'ACTIVE_THIS_TURN' // <-- LINHA ANTIGA
+                    status: 'PENDING_ACTIVATION' // <-- LINHA NOVA
                 };
 
-                // Lógica especial para poções de prateleira
-                if (potionToCopy === "Infusão de Foco" || potionToCopy === "Caldeirão Expansivo") {
-                    playerState.shelfLimit++;
-                    logMessage(`${playerState.name} copiou ${potionToCopy} e sua prateleira foi expandida temporariamente!`);
-                }
+                // Lógica especial para poções de prateleira (FOI MOVIDA PARA startProductionPhase)
+                // if (potionToCopy === "Infusão de Foco" || potionToCopy === "Caldeirão Expansivo") {
+                //    playerState.shelfLimit++;
+                //    logMessage(`${playerState.name} copiou ${potionToCopy} e sua prateleira foi expandida temporariamente!`);
+                // }
 
-                logMessage(`${playerState.name} usou Eco Alquímico e copiou o efeito de "${potionToCopy}"!`);
+                logMessage(`${playerState.name} usou Eco Alquímico e vai copiar o efeito de "${potionToCopy}" no seu próximo turno!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -1277,6 +1278,19 @@
                     playerState.activePotions["Barreira de Bolhas"] = "active";
                 }
                 // --- FIM DA LÓGICA DE EXPIRAÇÃO ---
+
+                // --- BLOCO NOVO: LÓGICA DE ATIVAÇÃO DO ECO ALQUÍMICO ---
+                if (playerState.copiedEffect && playerState.copiedEffect.status === 'PENDING_ACTIVATION') {
+                    playerState.copiedEffect.status = 'ACTIVE_THIS_TURN';
+                    logMessage(`O Eco Alquímico de ${playerState.name} para ${playerState.copiedEffect.name} está agora ATIVO para este turno!`);
+
+                    // Aplica efeitos imediatos (como prateleira) QUANDO é ativado
+                    if (playerState.copiedEffect.name === "Infusão de Foco" || playerState.copiedEffect.name === "Caldeirão Expansivo") {
+                        playerState.shelfLimit++;
+                        logMessage(`${playerState.name} copiou ${playerState.copiedEffect.name} e sua prateleira foi expandida temporariamente!`);
+                    }
+                }
+                // --- FIM DO BLOCO NOVO ---
                 
                 // Lógica original da função para iniciar a fase
                 localGameState.phase = `PRODUCTION_${playerId.toUpperCase()}`;
@@ -1311,22 +1325,27 @@
     
             function endActionPhase() {
                 const playerId = localGameState.currentPlayer;
-                const playerState = localGameState.players[playerId]; // Adicionado para facilitar
+                const playerState = localGameState.players[playerId]; 
             
-                // NOVO CÓDIGO COMEÇA AQUI: LÓGICA DE CONTROLE DO ECO ALQUÍMICO
+                // LÓGICA DE CONTROLE DO ECO ALQUÍMICO (MODIFICADA)
                 if (playerState.copiedEffect) {
-                    if (playerState.copiedEffect.status === "READY_TO_CLEAR") {
+                    
+                    // Se o efeito estava 'ativo neste turno' (definido no startProductionPhase),
+                    // ele deve ser removido no final desta fase de ação.
+                    if (playerState.copiedEffect.status === "ACTIVE_THIS_TURN") {
                         logMessage(`O Eco Alquímico de ${playerState.copiedEffect.name} se dissipou.`);
+                        
                         // Reverte o efeito de prateleira se for o caso
                         if (playerState.copiedEffect.name === "Infusão de Foco" || playerState.copiedEffect.name === "Caldeirão Expansivo") {
                             playerState.shelfLimit--;
                         }
                         delete playerState.copiedEffect;
-                    } else if (playerState.copiedEffect.status === "ACTIVE_THIS_TURN") {
-                        playerState.copiedEffect.status = "READY_TO_CLEAR";
-                    }
+                    
+                    } 
+                    // A lógica antiga 'else if (status === "ACTIVE_THIS_TURN")' 
+                    // que mudava para "READY_TO_CLEAR" foi removida.
                 }
-                // NOVO CÓDIGO TERMINA AQUI
+                // FIM DA LÓGICA MODIFICADA
             
                 // O resto da sua lógica original continua normalmente
                 const roundStarter = localGameState.roundStarter;
@@ -3192,6 +3211,7 @@
         </div>
 </body>
 </html>
+
 
 
 
