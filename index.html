@@ -1865,7 +1865,6 @@
                         if (opponentActivePermanents.length === 0) {
                             logMessage(`${playerState.name} tentou usar Eco Alquímico, mas ${opponentState.name} não tem efeitos permanentes ativos.`);
                             showMessage(`${opponentState.name} não possui aprimoramentos para copiar!`);
-                            playerState.potionsReady.unshift("Eco Alquímico");
                             break;
                         }
                         triggerEchoDecision(playerId, opponentActivePermanents);
@@ -3103,6 +3102,7 @@
         </div>
 </body>
 </html>
+
 
 
 
