@@ -1520,18 +1520,9 @@
                         }
                     }, 1000);
                 } 
-                // 3. Se nada explodiu, checa o Descarte Oportuno ou libera o clique
+                // 3. Se nada explodiu, libera o clique para a próxima puxada
                 else {
-                    // ----- INÍCIO DA MODIFICAÇÃO -----
-                    if (playerState.activePotions["Descarte Oportuno"]) {
-                        // Se o efeito está ativo, não libera a trava.
-                        // A trava será liberada na função handlePostPullDiscardSelection.
-                        triggerPostPullDiscardDecision(localPlayerId);
-                    } else {
-                        // Se o efeito não está ativo, libera a trava normalmente.
-                        isProcessingClick = false;
-                    }
-                    // ----- FIM DA MODIFICAÇÃO -----
+                    isProcessingClick = false;
                 }
             }
             
@@ -3168,6 +3159,7 @@
         </div>
 </body>
 </html>
+
 
 
 
