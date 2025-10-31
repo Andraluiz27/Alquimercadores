@@ -910,6 +910,35 @@
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
+
+            function triggerSalNegroDecision(clientIndex) {
+                const client = localGameState.clients[clientIndex];
+                const potion = ARCANO_POTIONUM[client.wants];
+                const basePrice = client.price;
+
+                decisionTitleEl.textContent = "Usar Sal Negro?";
+                decisionOptionsEl.innerHTML = `
+                    <p class="mb-4">Você tem Sal Negro na prateleira! Deseja usá-lo para vender a poção <strong>${potion.nome}</strong> por um bônus de +5 moedas?</p>
+                    <p class="mb-4 text-lg">Venda Padrão: ${basePrice} 💰<br>Venda com Sal Negro: ${basePrice + 5} 💰</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button class="btn btn-green w-full" data-action="yes">Sim, usar (+5 💰)</button>
+                        <button class="btn btn-red w-full" data-action="no">Não, vender normalmente</button>
+                    </div>
+                `;
+
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        decisionModal.classList.add('hidden');
+                        if (button.dataset.action === 'yes') {
+                            executeSale(clientIndex, true); // Chama a venda com bônus
+                        } else {
+                            executeSale(clientIndex, false); // Chama a venda sem bônus
+                        }
+                    };
+                });
+
+                decisionModal.classList.remove('hidden');
+            }
             
             function triggerContractDecision(playerId) {
                 decisionTitleEl.textContent = "Contrato de Exclusividade";
@@ -1436,6 +1465,31 @@
                     return;
                 }
             
+                // --- INÍCIO DA LÓGICA DE VERIFICAÇÃO DO SAL NEGRO ---
+                const salNegroIndex = playerState.shelf.indexOf("Sal Negro");
+                
+                if (salNegroIndex > -1) {
+                    // Se o jogador tem Sal Negro, abre o modal de decisão
+                    triggerSalNegroDecision(clientIndex);
+                } else {
+                    // Se não tem, executa a venda normal imediatamente
+                    executeSale(clientIndex, false);
+                }
+                // --- FIM DA LÓGICA DE VERIFICAÇÃO ---
+            }
+
+            function handleMesaBookClick() {
+                const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
+                if (myPostProdPhase) {
+                    handleBookClick('create');
+                } else {
+                    handleBookClick('view');
+                }
+            }
+
+            function executeSale(clientIndex, useSalNegro = false) {
+                const client = localGameState.clients[clientIndex];
+                const playerState = localGameState.players[localPlayerId];
                 const potionPrice = client.price;
                 const potionName = selectedPotion; 
             
@@ -1445,11 +1499,29 @@
                 }
             
                 let finalPrice = potionPrice;
+
+                // --- INÍCIO DA NOVA LÓGICA DO SAL NEGRO ---
+                if (useSalNegro) {
+                    const salNegroIndex = playerState.shelf.indexOf("Sal Negro");
+                    if (salNegroIndex > -1) {
+                        playerState.shelf.splice(salNegroIndex, 1); // Remove 1 Sal Negro da prateleira
+                        finalPrice += 5;
+                        logMessage(`${playerState.name} usou Sal Negro para um bônus de +5 moedas!`);
+                    } else {
+                        // Verificação de segurança caso o estado mude
+                        logMessage(`Bônus de Sal Negro falhou (item não encontrado na prateleira).`);
+                    }
+                }
+                // --- FIM DA NOVA LÓGICA ---
+
+                // Lógica de bônus existente
                 if (playerState.activePotions["Amuleto do Colecionador"] || playerState.copiedEffect?.name === "Amuleto do Colecionador") finalPrice++;
                 if (playerState.fervorBonusThisTurn) {
                     finalPrice *= 2;
                     logMessage(`Bônus do Fervor do Ousado dobrou o preço para ${finalPrice} moedas!`);
                 }
+            
+                // Lógica de parasita existente
                 const opponentState = localGameState.players[getOpponentId()];
                 if (opponentState.activePotions["Parasita Mortífero"]) {
                     const halfPrice = Math.ceil(finalPrice / 2);
@@ -1472,15 +1544,6 @@
                 updateFirestoreState(localGameState).then(() => {
                     showActionModal();
                 });
-            }
-
-            function handleMesaBookClick() {
-                const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
-                if (myPostProdPhase) {
-                    handleBookClick('create');
-                } else {
-                    handleBookClick('view');
-                }
             }
             
             async function handleCauldronClick() {
@@ -3265,6 +3328,7 @@
         </div>
 </body>
 </html>
+
 
 
 
