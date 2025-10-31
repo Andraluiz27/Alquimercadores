@@ -342,6 +342,63 @@
                 return cauldron;
             }
 
+            // Perto das outras funções de "triggerDecision"
+
+            function triggerPostPullDiscardDecision(playerId) {
+                const playerState = localGameState.players[playerId];
+            
+                decisionTitleEl.textContent = "Descarte Oportuno";
+                let optionsHTML = `<p class="mb-4">Você puxou um ingrediente e pode usar seu Descarte Oportuno. Escolha um ingrediente do balcão para descartar por 1 Moeda, ou recuse o efeito.</p>`;
+            
+                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
+                localGameState.currentPull.forEach((ingredientName, index) => {
+                    const imgData = INGREDIENT_DATA[ingredientName];
+                    ingredientsGridHTML += `
+                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-index="${index}">
+                            <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
+                            <span class="font-bold text-sm mt-1">${ingredientName}</span>
+                        </button>
+                    `;
+                });
+                ingredientsGridHTML += `</div>`;
+                optionsHTML += ingredientsGridHTML;
+                
+                // Adiciona o botão para recusar
+                optionsHTML += `<button class="btn btn-red w-full mt-4" data-index="-1">Não usar o efeito</button>`;
+            
+                decisionOptionsEl.innerHTML = optionsHTML;
+            
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const index = parseInt(button.dataset.index, 10);
+                        handlePostPullDiscardSelection(playerId, index);
+                    };
+                });
+            
+                decisionModal.classList.remove('hidden');
+            }
+            
+            function handlePostPullDiscardSelection(playerId, ingredientIndex) {
+                const playerState = localGameState.players[playerId];
+            
+                // Desativa o efeito, não importa a escolha
+                playerState.activePotions["Descarte Oportuno"] = false;
+            
+                // Se o jogador escolheu um ingrediente (e não "recusar")
+                if (ingredientIndex > -1 && ingredientIndex < localGameState.currentPull.length) {
+                    const discardedIngredient = localGameState.currentPull.splice(ingredientIndex, 1)[0];
+                    localGameState.cauldron.push(discardedIngredient);
+                    playerState.coins += 1;
+                    logMessage(`${playerState.name} usou Descarte Oportuno, descartou ${discardedIngredient} e ganhou 1 Moeda!`);
+                } else {
+                    logMessage(`${playerState.name} decidiu não usar o efeito do Descarte Oportuno.`);
+                }
+            
+                decisionModal.classList.add('hidden');
+                isProcessingClick = false; // <<< Libera a trava para poder puxar de novo
+                updateFirestoreState(localGameState);
+            }
+
             function triggerPrismaticSubstitutionDecision(potionName, missingIngredient) {
                 const recipe = ARCANO_POTIONUM[potionName].ingredientes;
                 const pull = localGameState.currentPull;
@@ -1459,9 +1516,18 @@
                         }
                     }, 1000);
                 } 
-                // 3. Se nada explodiu, libera o clique para a próxima puxada
+                // 3. Se nada explodiu, checa o Descarte Oportuno ou libera o clique
                 else {
-                    isProcessingClick = false; // <-- TRAVA LIBERADA AQUI (ÚNICO CAMINHO SEM EXPLOSÃO)
+                    // ----- INÍCIO DA MODIFICAÇÃO -----
+                    if (playerState.activePotions["Descarte Oportuno"]) {
+                        // Se o efeito está ativo, não libera a trava.
+                        // A trava será liberada na função handlePostPullDiscardSelection.
+                        triggerPostPullDiscardDecision(localPlayerId);
+                    } else {
+                        // Se o efeito não está ativo, libera a trava normalmente.
+                        isProcessingClick = false;
+                    }
+                    // ----- FIM DA MODIFICAÇÃO -----
                 }
             }
             
@@ -1497,6 +1563,7 @@
             }
     
             function handleExplosion() {
+                if(localGameState.players[localPlayerId]) localGameState.players[localPlayerId].activePotions["Descarte Oportuno"] = false;
                 localGameState.cauldron.push(...localGameState.currentPull);
                 localGameState.currentPull = [];
                 showMessage("EXPLOSÃO! Você perdeu todos os ingredientes deste turno.");
@@ -1540,6 +1607,11 @@
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
                     button.onclick = () => {
                         const index = parseInt(button.dataset.index, 10);
+
+                        // ----- INÍCIO DA MODIFICAÇÃO -----
+                        // Limpa o efeito do Descarte Oportuno, não importa a escolha do jogador
+                        playerState.activePotions["Descarte Oportuno"] = false;
+                        // ----- FIM DA MODIFICAÇÃO -----
 
                         // Se clicou em "Não salvar nada", devolve tudo ao caldeirão
                         if (index === -1) {
@@ -1972,23 +2044,13 @@
                         triggerContaminatedDecision(playerId);
                         break;
                     case "Descarte Oportuno":
-                        if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false;
-                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Descarte Oportuno!`);
-                            showBarrierBlockMessage("Descarte Oportuno");
-                            break;
-                        }
-                        if (localGameState.currentPull.length === 0) {
-                            logMessage(`${playerState.name} tentou usar Descarte Oportuno, mas não havia ingredientes no balcão.`);
-                            showMessage("Você não tem ingredientes no balcão para descartar!");
-                            playerState.potionsReady.unshift("Descarte Oportuno");
-                            break;
-                        }
-                        triggerDiscardOpportunityDecision(playerId);
-                        break;
-                    default:
-                        console.warn(`Ação interativa para ${potionName} precisa ser implementada.`);
-                        showMessage(`Ação para ${potionName} ainda não implementada.`);
+                        // REMOVA a lógica antiga que chamava triggerDiscardOpportunityDecision
+                        // e as verificações de barreira e currentPull.
+                        
+                        // ADICIONE esta nova lógica:
+                        playerState.activePotions["Descarte Oportuno"] = true; 
+                        logMessage(`${playerState.name} preparou um Descarte Oportuno para a próxima fase de coleta!`);
+                        showMessage("Efeito ativado! No seu próximo turno, após puxar um ingrediente, você poderá descartá-lo por 1 Moeda.");
                         break;
                 }
             }
@@ -3102,6 +3164,7 @@
         </div>
 </body>
 </html>
+
 
 
 
