@@ -348,8 +348,10 @@
                 const playerState = localGameState.players[playerId];
             
                 decisionTitleEl.textContent = "Descarte Oportuno";
-                let optionsHTML = `<p class="mb-4">Você puxou um ingrediente e pode usar seu Descarte Oportuno. Escolha um ingrediente do balcão para descartar por 1 Moeda, ou recuse o efeito.</p>`;
+                let optionsHTML = `<p class="mb-4">Você pode usar seu Descarte Oportuno. Escolha um ingrediente do balcão para descartar por 1 Moeda, ou recuse o efeito.</p>`;
             
+                // --- INÍCIO DA LÓGICA VISUAL ---
+                // Este bloco cria o grid com as imagens dos ingredientes
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
                 localGameState.currentPull.forEach((ingredientName, index) => {
                     const imgData = INGREDIENT_DATA[ingredientName];
@@ -362,12 +364,14 @@
                 });
                 ingredientsGridHTML += `</div>`;
                 optionsHTML += ingredientsGridHTML;
+                // --- FIM DA LÓGICA VISUAL ---
                 
                 // Adiciona o botão para recusar
                 optionsHTML += `<button class="btn btn-red w-full mt-4" data-index="-1">Não usar o efeito</button>`;
             
                 decisionOptionsEl.innerHTML = optionsHTML;
             
+                // Adiciona os eventos de clique aos botões criados
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
                     button.onclick = () => {
                         const index = parseInt(button.dataset.index, 10);
@@ -3164,6 +3168,7 @@
         </div>
 </body>
 </html>
+
 
 
 
