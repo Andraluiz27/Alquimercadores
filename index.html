@@ -2184,14 +2184,14 @@
                 const p2 = localGameState.players.player2;
                 const amIPlayer1 = localPlayerId === 'player1';
                 
-                player1ScoreEl.textContent = `Moedas: ${p1.coins}`;
-                player2ScoreEl.textContent = `Moedas: ${p2.coins}`;
+                player1ScoreEl.textContent = `${p1.name}: ${p1.coins} 💰`;
+                player2ScoreEl.textContent = `${p2.name}: ${p2.coins} 💰`;
                 
-                player1NameDisplay.textContent = p1.name + (amIPlayer1 ? " (Você)" : "");
-                player2NameDisplay.textContent = p2.name + (!amIPlayer1 ? " (Você)" : "");
+                player1NameDisplay.textContent = p1.name;
+                player2NameDisplay.textContent = p2.name;
     
                 const myActionPhase = localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`;
-    
+        
                 clientBubbles.forEach((bubble, index) => {
                     const client = localGameState.clients[index];
                     bubble.style.cursor = 'default';
@@ -3253,6 +3253,7 @@
         </div>
 </body>
 </html>
+
 
 
 
