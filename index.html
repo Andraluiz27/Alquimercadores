@@ -1786,10 +1786,12 @@
     
                 switch (potionName) {
                     case "Barreira de Bolhas": 
-                        playerState.activePotions["Barreira de Bolhas"] = "new"; // Marca a barreira como recém-criada
+                        playerState.activePotions["Barreira de Bolhas"] = "new";
                         logMessage(`${playerState.name} ergueu uma Barreira de Bolhas!`);
                         break;
-                    case "Unguento de Musgo": playerState.activePotions["Unguento de Musgo"] = true; break;
+                    case "Unguento de Musgo": 
+                        playerState.activePotions["Unguento de Musgo"] = true; 
+                        break;
                     case "Pasta Prismática": 
                         playerState.activePotions["Pasta Prismática"] = true; 
                         logMessage(`${playerState.name} agora pode substituir ingredientes graças à Pasta Prismática!`);
@@ -1797,7 +1799,6 @@
                     case "Infusão de Foco":
                         if (playerState.shelfLimit < 6) {
                             playerState.shelfLimit++;
-                            // Incrementa o contador da poção. Se não existir, começa em 1.
                             playerState.activePotions["Infusão de Foco"] = (playerState.activePotions["Infusão de Foco"] || 0) + 1;
                             logMessage(`${playerState.name} usou Infusão de Foco e expandiu sua prateleira para ${playerState.shelfLimit} espaços!`);
                         } else {
@@ -1805,12 +1806,12 @@
                             logMessage(`${playerState.name} tentou usar Infusão de Foco, mas sua prateleira já está no máximo. A poção foi desperdiçada!`);
                         }
                         break;
-                    case "Tônico Dourado": playerState.coins += 2; break;
+                    case "Tônico Dourado": 
+                        playerState.coins += 2; 
+                        break;
                     case "Elixir do Mercador":
                         triggerElixirDecision(playerId);
                         break;
-                        
-        
                     case "Pó da Corrosão":
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false;
@@ -1828,88 +1829,72 @@
                         };
                         logMessage(`${playerState.name} usou Pó da Corrosão! Aguardando ${opponentState.name} descartar um ingrediente.`);
                         break;
-
-                    case "Amuleto do Colecionador": playerState.activePotions["Amuleto do Colecionador"] = true; break;
+                    case "Amuleto do Colecionador": 
+                        playerState.activePotions["Amuleto do Colecionador"] = true; 
+                        break;
                     case "Mão do Mago":
-                        // 1. Oponente se defende com a Barreira de Bolhas
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false; // Barreira é consumida
+                            opponentState.activePotions["Barreira de Bolhas"] = false;
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Mão do Mago!`);
                             showBarrierBlockMessage("Mão do Mago");
                             break;
                         }
-                        // 2. Verifica se a prateleira do oponente está vazia
                         if (opponentState.shelf.length === 0) {
                             logMessage(`Mão do Mago falhou! A prateleira de ${opponentState.name} está vazia.`);
                             break;
                         }
-                        // 3. Verifica se a sua própria prateleira está cheia
                         if (playerState.shelf.length >= playerState.shelfLimit) {
                             logMessage(`Mão do Mago falhou! Sua prateleira está cheia.`);
-                            // Devolve a poção, pois o uso foi impedido por falta de espaço
                             playerState.potionsReady.unshift("Mão do Mago");
                             break;
                         }
-                        // Se tudo estiver certo, mostra a tela de escolha
                         triggerMageHandDecision(playerId);
                         break;
-                    case "Parasita Mortífero": playerState.activePotions["Parasita Mortífero"] = true; break;
-
-                    case "Eco Alquímico":
-                        // Bloqueado pela Barreira de Bolhas
+                    case "Parasita Mortífero": 
+                        playerState.activePotions["Parasita Mortífero"] = true; 
+                        break;
+                    
+                    case "Eco Alquímico": { // <--- CHAVE DE ABERTURA CORRIGIDA
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false;
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Eco Alquímico!`);
                             showBarrierBlockMessage("Eco Alquímico");
                             break;
                         }
-
-                        // Encontra os alvos válidos (poções permanentes do oponente)
-        
                         const opponentActivePermanents = permanentPotions.filter(potion => opponentState.activePotions[potion]);
-
-                        // Verifica se há algo para copiar
                         if (opponentActivePermanents.length === 0) {
                             logMessage(`${playerState.name} tentou usar Eco Alquímico, mas ${opponentState.name} não tem efeitos permanentes ativos.`);
                             showMessage(`${opponentState.name} não possui aprimoramentos para copiar!`);
-                            playerState.potionsReady.unshift("Eco Alquímico"); // Devolve a poção
+                            playerState.potionsReady.unshift("Eco Alquímico");
                             break;
                         }
-
-                        // Se houver alvos, mostra a tela de escolha
                         triggerEchoDecision(playerId, opponentActivePermanents);
                         break;
-                        
-                    case "Ferrugem Alquímica":
-                        // 1. Oponente se defende com a Barreira de Bolhas
+                    } // <--- CHAVE DE FECHAMENTO CORRIGIDA
+
+                    case "Ferrugem Alquímica": { // <--- CHAVE DE ABERTURA CORRIGIDA
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false; // Barreira é consumida
+                            opponentState.activePotions["Barreira de Bolhas"] = false;
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Ferrugem Alquímica!`);
                             showBarrierBlockMessage("Ferrugem Alquímica");
                             break;
                         }
-
-                        // 2. Encontra quais poções permanentes o oponente tem ativas
-        
                         const opponentActivePermanents = permanentPotions.filter(potion => opponentState.activePotions[potion]);
-
-                        // 3. Verifica se o oponente tem algum alvo válido
                         if (opponentActivePermanents.length === 0) {
                             logMessage(`${playerState.name} tentou usar Ferrugem Alquímica, mas ${opponentState.name} não tem efeitos permanentes ativos. A poção foi desperdiçada!`);
                             showMessage(`${opponentState.name} não possui aprimoramentos permanentes para desativar!`);
                             break;
                         }
-
-                        // 4. Se houver alvos, mostra a tela de escolha
                         triggerRustDecision(playerId, opponentActivePermanents);
                         break;
+                    } // <--- CHAVE DE FECHAMENTO CORRIGIDA
+                    
                     case "Contrato de Exclusividade":
                         triggerContractDecision(playerId);
                         break;
                     case "Caldeirão Expansivo":
                         if (playerState.shelfLimit < 6) {
                             playerState.shelfLimit++;
-                            // Incrementa o contador da poção. Se não existir, começa em 1.
                             playerState.activePotions["Caldeirão Expansivo"] = (playerState.activePotions["Caldeirão Expansivo"] || 0) + 1;
                             logMessage(`${playerState.name} usou Caldeirão Expansivo e expandiu sua prateleira para ${playerState.shelfLimit} espaços!`);
                         } else {
@@ -1917,9 +1902,15 @@
                             logMessage(`${playerState.name} tentou usar Caldeirão Expansivo, mas sua prateleira já está no máximo. A poção foi desperdiçada!`);
                         }
                         break;
-                    case "Resiliência do Farsante": playerState.activePotions["Resiliência do Farsante"] = true; break;
-                    case "Estabilizador Cromático": playerState.activePotions["Estabilizador Cromático"] = true; break;
-                    case "Pedra Filosofal (Falsa)": playerState.coins += 7; break;
+                    case "Resiliência do Farsante": 
+                        playerState.activePotions["Resiliência do Farsante"] = true; 
+                        break;
+                    case "Estabilizador Cromático": 
+                        playerState.activePotions["Estabilizador Cromático"] = true; 
+                        break;
+                    case "Pedra Filosofal": // Corrigindo o nome da poção
+                        playerState.coins += 7; 
+                        break;
                     case "Poção da Usurpação":
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false;
@@ -1954,62 +1945,52 @@
                             showBarrierBlockMessage("Maldição do Caldeirão Trincado");
                             break;
                         }
-                        // Em vez de aplicar o efeito, agora chamamos o modal de decisão
                         triggerCurseColorDecision(playerId);
                         break;
-                    case "Pasta Prismática": playerState.activePotions["Pasta Prismática"] = true; break;
-                    case "Fervor do Ousado": playerState.activePotions["Fervor do Ousado"] = true; break;
-                    default:
-                        console.warn(`Ação interativa para ${potionName} precisa ser implementada.`);
-                        showMessage(`Ação para ${potionName} ainda não implementada.`);
+                    case "Fervor do Ousado": 
+                        playerState.activePotions["Fervor do Ousado"] = true; 
                         break;
                     case "Soro da Clarividência":
                         triggerClairvoyanceDecision(playerId);
                         break;
                     case "Ingrediente Contaminado":
-                        // 1. Oponente se defende com a Barreira de Bolhas
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false; // Barreira é consumida
+                            opponentState.activePotions["Barreira de Bolhas"] = false;
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Ingrediente Contaminado!`);
                             showBarrierBlockMessage("Ingrediente Contaminado");
                             break;
                         }
-                        // 2. Verifica se a sua própria prateleira está vazia
                         if (playerState.shelf.length === 0) {
                             logMessage(`${playerState.name} tentou usar Ingrediente Contaminado, mas sua prateleira está vazia. A poção foi desperdiçada!`);
                             showMessage("Você não tem ingredientes na sua prateleira para dar!");
                             break;
                         }
-                        // 3. Verifica se a prateleira do oponente está cheia
                         if (opponentState.shelf.length >= opponentState.shelfLimit) {
                             logMessage(`${playerState.name} tentou usar Ingrediente Contaminado, mas a prateleira de ${opponentState.name} está cheia. A poção foi desperdiçada!`);
                             showMessage(`A prateleira de ${opponentState.name} está cheia!`);
                             break;
                         }
-                        // Se todas as verificações passarem, mostra a tela de escolha
                         triggerContaminatedDecision(playerId);
                         break;
-
                     case "Descarte Oportuno":
-                        // Bloqueia se o oponente tiver barreira
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false;
                             logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Descarte Oportuno!`);
                             showBarrierBlockMessage("Descarte Oportuno");
                             break;
                         }
-                        // Verifica se o jogador tem ingredientes no balcão para descartar
                         if (localGameState.currentPull.length === 0) {
                             logMessage(`${playerState.name} tentou usar Descarte Oportuno, mas não havia ingredientes no balcão.`);
                             showMessage("Você não tem ingredientes no balcão para descartar!");
-                            // Devolve a poção, pois o uso foi impossível
                             playerState.potionsReady.unshift("Descarte Oportuno");
                             break;
                         }
-                        // Se tudo estiver certo, inicia a tela de decisão
                         triggerDiscardOpportunityDecision(playerId);
                         break;
-                
+                    default:
+                        console.warn(`Ação interativa para ${potionName} precisa ser implementada.`);
+                        showMessage(`Ação para ${potionName} ainda não implementada.`);
+                        break;
                 }
             }
     
@@ -3122,6 +3103,7 @@
         </div>
 </body>
 </html>
+
 
 
 
