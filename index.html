@@ -101,6 +101,13 @@
                 descricao: "Sua Prateleira de Armazenamento é aprimorada em +1 espaço.",
                 ingredientes: { "Olhos de Jiboia": 1, "Pena de Fênix": 1, "Cogumelo de Sangue": 2 }
             },
+            "Eco Alquímico": {
+                nome: "Eco Alquímico",
+                tipo: "Difícil",
+                efeito: "Ação",
+                descricao: "Escolha um efeito de poção Permanente ativo do seu oponente. Você copia o efeito dessa poção até o final da sua próxima fase de Ação.",
+                ingredientes: { "Pena de Fênix": 2, "Cogumelo de Sangue": 1, "Cera de Ogro": 1, "Olhos de Jiboia": 1 }
+            },
             "Resiliência do Farsante": {
                 nome: "Resiliência do Farsante",
                 tipo: "Médio",
@@ -441,6 +448,61 @@
                 });
                 decisionModal.classList.remove('hidden');
             }
+
+            function triggerEchoDecision(playerId, targetPotions) {
+                const opponentState = localGameState.players[getOpponentId(playerId)];
+                decisionTitleEl.textContent = "Eco Alquímico";
+                let optionsHTML = `<p class="mb-4">Escolha um aprimoramento de ${opponentState.name} para copiar:</p>`;
+
+                let potionsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
+                targetPotions.forEach(potionName => {
+                    potionsGridHTML += `
+                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-potion-name="${potionName}">
+                            <img src="imagens/Poção.png" alt="${potionName}" class="w-16 h-16">
+                            <span class="font-bold text-sm mt-1">${potionName}</span>
+                        </button>
+                    `;
+                });
+                potionsGridHTML += `</div>`;
+                optionsHTML += potionsGridHTML;
+                decisionOptionsEl.innerHTML = optionsHTML;
+
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const potionToCopy = button.dataset.potionName;
+                        handleEchoSelection(playerId, potionToCopy);
+                    };
+                });
+                decisionModal.classList.remove('hidden');
+            }
+
+            function handleEchoSelection(playerId, potionToCopy) {
+                const playerState = localGameState.players[playerId];
+
+                // Remove qualquer eco anterior para evitar bugs
+                if (playerState.copiedEffect) {
+                    // Reverte o efeito de prateleira se houver
+                    if (playerState.copiedEffect.name === "Infusão de Foco" || playerState.copiedEffect.name === "Caldeirão Expansivo") {
+                        playerState.shelfLimit--;
+                    }
+                }
+
+                playerState.copiedEffect = {
+                    name: potionToCopy,
+                    status: 'ACTIVE_THIS_TURN'
+                };
+
+                // Lógica especial para poções de prateleira
+                if (potionToCopy === "Infusão de Foco" || potionToCopy === "Caldeirão Expansivo") {
+                    playerState.shelfLimit++;
+                    logMessage(`${playerState.name} copiou ${potionToCopy} e sua prateleira foi expandida temporariamente!`);
+                }
+
+                logMessage(`${playerState.name} usou Eco Alquímico e copiou o efeito de "${potionToCopy}"!`);
+                decisionModal.classList.add('hidden');
+                updateFirestoreState(localGameState);
+            }
+        
 
             function handleRustSelection(playerId, potionToDisable) {
                 const opponentId = getOpponentId(playerId);
@@ -1177,19 +1239,37 @@
     
             function endActionPhase() {
                 const playerId = localGameState.currentPlayer;
+                const playerState = localGameState.players[playerId]; // Adicionado para facilitar
+            
+                // NOVO CÓDIGO COMEÇA AQUI: LÓGICA DE CONTROLE DO ECO ALQUÍMICO
+                if (playerState.copiedEffect) {
+                    if (playerState.copiedEffect.status === "READY_TO_CLEAR") {
+                        logMessage(`O Eco Alquímico de ${playerState.copiedEffect.name} se dissipou.`);
+                        // Reverte o efeito de prateleira se for o caso
+                        if (playerState.copiedEffect.name === "Infusão de Foco" || playerState.copiedEffect.name === "Caldeirão Expansivo") {
+                            playerState.shelfLimit--;
+                        }
+                        delete playerState.copiedEffect;
+                    } else if (playerState.copiedEffect.status === "ACTIVE_THIS_TURN") {
+                        playerState.copiedEffect.status = "READY_TO_CLEAR";
+                    }
+                }
+                // NOVO CÓDIGO TERMINA AQUI
+            
+                // O resto da sua lógica original continua normalmente
                 const roundStarter = localGameState.roundStarter;
                 const otherPlayer = roundStarter === 'player1' ? 'player2' : 'player1';
-
+            
                 if (localGameState.clientsServed >= 10) {
                     if (playerId === otherPlayer) {
                         endGame();
-                        return; 
+                        return;
                     } else {
                         startActionPhase(otherPlayer);
                         return;
                     }
-                } 
-
+                }
+            
                 if (playerId === roundStarter) {
                     startActionPhase(otherPlayer);
                 } else {
@@ -1274,7 +1354,7 @@
                 }
             
                 let finalPrice = potionPrice;
-                if (playerState.activePotions["Amuleto do Colecionador"]) finalPrice++;
+                if (playerState.activePotions["Amuleto do Colecionador"] || playerState.copiedEffect?.name === "Amuleto do Colecionador") finalPrice++;
                 if (playerState.fervorBonusThisTurn) {
                     finalPrice *= 2;
                     logMessage(`Bônus do Fervor do Ousado dobrou o preço para ${finalPrice} moedas!`);
@@ -1355,7 +1435,7 @@
                     delete playerState.activePotions["Maldição do Caldeirão Trincado"];
                     
                     setTimeout(() => {
-                        if (playerState.activePotions["Resiliência do Farsante"]) {
+                        if (playerState.activePotions["Resiliência do Farsante"] || playerState.copiedEffect?.name === "Resiliência do Farsante") {
                             handleExplosionWithResilience();
                         } else {
                             handleExplosion();
@@ -1393,7 +1473,7 @@
                     if (salNegroCount >= 2) return true;
                 }
 
-                const colorLimit = playerState.activePotions["Estabilizador Cromático"] ? 3 : 2;
+                const colorLimit = (playerState.activePotions["Estabilizador Cromático"] || playerState.copiedEffect?.name === "Estabilizador Cromático") ? 3 : 2;
                 const newIngredientColor = INGREDIENT_DATA[newlyPulledIngredient].cor;
 
                 if (newIngredientColor === 'coringa') return false;
@@ -1492,7 +1572,7 @@
                 playerState.fervorBonusThisTurn = false; 
 
                 // Verifica se o jogador tem o Fervor ativo E se puxou mais de 5 ingredientes
-                if (playerState.activePotions["Fervor do Ousado"] && localGameState.currentPull.length > 5) {
+                if ((playerState.activePotions["Fervor do Ousado"] || playerState.copiedEffect?.name === "Fervor do Ousado") && localGameState.currentPull.length > 5) {
                     playerState.fervorBonusThisTurn = true; // Ativa o bônus para este turno
                     logMessage(`Fervor do Ousado ativado! As vendas de ${playerState.name} serão dobradas neste turno!`);
                     showMessage("Fervor do Ousado Ativado! Suas vendas valerão o dobro!");
@@ -1592,7 +1672,7 @@
             
             function findCreatablePotions(currentPull, playerId) {
                 const playerState = localGameState.players[playerId];
-                const hasPrismaticPaste = playerState.activePotions["Pasta Prismática"];
+                const hasPrismaticPaste = playerState.activePotions["Pasta Prismática"] || playerState.copiedEffect?.name === "Pasta Prismática";
                 const pullCounts = getIngredientCounts(currentPull);
                 const totalAvailable = currentPull.length;
                 const creatable = [];
@@ -1773,6 +1853,32 @@
                         triggerMageHandDecision(playerId);
                         break;
                     case "Parasita Mortífero": playerState.activePotions["Parasita Mortífero"] = true; break;
+
+                    case "Eco Alquímico":
+                        // Bloqueado pela Barreira de Bolhas
+                        if (opponentState.activePotions["Barreira de Bolhas"]) {
+                            opponentState.activePotions["Barreira de Bolhas"] = false;
+                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Eco Alquímico!`);
+                            showBarrierBlockMessage("Eco Alquímico");
+                            break;
+                        }
+
+                        // Encontra os alvos válidos (poções permanentes do oponente)
+                        const permanentPotions = ["Infusão de Foco", "Amuleto do Colecionador", "Caldeirão Expansivo", "Resiliência do Farsante", "Estabilizador Cromático", "Pasta Prismática", "Fervor do Ousado"];
+                        const opponentActivePermanents = permanentPotions.filter(potion => opponentState.activePotions[potion]);
+
+                        // Verifica se há algo para copiar
+                        if (opponentActivePermanents.length === 0) {
+                            logMessage(`${playerState.name} tentou usar Eco Alquímico, mas ${opponentState.name} não tem efeitos permanentes ativos.`);
+                            showMessage(`${opponentState.name} não possui aprimoramentos para copiar!`);
+                            playerState.potionsReady.unshift("Eco Alquímico"); // Devolve a poção
+                            break;
+                        }
+
+                        // Se houver alvos, mostra a tela de escolha
+                        triggerEchoDecision(playerId, opponentActivePermanents);
+                        break;
+                        
                     case "Ferrugem Alquímica":
                         // 1. Oponente se defende com a Barreira de Bolhas
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
@@ -3015,6 +3121,7 @@
         </div>
 </body>
 </html>
+
 
 
 
