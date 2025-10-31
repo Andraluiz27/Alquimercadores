@@ -342,16 +342,30 @@
                 return cauldron;
             }
 
+            function proceedToPostProduction() {
+                const playerState = localGameState.players[localPlayerId];
+                
+                // Reseta o bônus no início para garantir que não venha de turnos passados
+                playerState.fervorBonusThisTurn = false; 
+
+                // Verifica se o jogador tem o Fervor ativo E se puxou mais de 5 ingredientes
+                if ((playerState.activePotions["Fervor do Ousado"] || playerState.copiedEffect?.name === "Fervor do Ousado") && localGameState.currentPull.length > 5) {
+                    playerState.fervorBonusThisTurn = true; // Ativa o bônus para este turno
+                    logMessage(`Fervor do Ousado ativado! As vendas de ${playerState.name} serão dobradas neste turno!`);
+                    showMessage("Fervor do Ousado Ativado! Suas vendas valerão o dobro!");
+                }
+                
+                localGameState.phase = `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
+                logMessage(`${localGameState.players[localPlayerId].name} parou de puxar.`);
+                updateFirestoreState(localGameState);
+            }
+
             // Perto das outras funções de "triggerDecision"
 
-            function triggerPostPullDiscardDecision(playerId) {
-                const playerState = localGameState.players[playerId];
-            
+            function triggerStopPullingDiscardDecision(playerId) {
                 decisionTitleEl.textContent = "Descarte Oportuno";
-                let optionsHTML = `<p class="mb-4">Você pode usar seu Descarte Oportuno. Escolha um ingrediente do balcão para descartar por 1 Moeda, ou recuse o efeito.</p>`;
-            
-                // --- INÍCIO DA LÓGICA VISUAL ---
-                // Este bloco cria o grid com as imagens dos ingredientes
+                let optionsHTML = `<p class="mb-4">Você parou de puxar. Escolha um ingrediente do balcão para descartar por 1 Moeda, ou recuse o efeito.</p>`;
+
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
                 localGameState.currentPull.forEach((ingredientName, index) => {
                     const imgData = INGREDIENT_DATA[ingredientName];
@@ -364,31 +378,27 @@
                 });
                 ingredientsGridHTML += `</div>`;
                 optionsHTML += ingredientsGridHTML;
-                // --- FIM DA LÓGICA VISUAL ---
                 
-                // Adiciona o botão para recusar
                 optionsHTML += `<button class="btn btn-red w-full mt-4" data-index="-1">Não usar o efeito</button>`;
-            
+
                 decisionOptionsEl.innerHTML = optionsHTML;
-            
-                // Adiciona os eventos de clique aos botões criados
+
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
                     button.onclick = () => {
                         const index = parseInt(button.dataset.index, 10);
-                        handlePostPullDiscardSelection(playerId, index);
+                        handleStopPullingDiscardSelection(playerId, index);
                     };
                 });
-            
+
                 decisionModal.classList.remove('hidden');
             }
-            
-            function handlePostPullDiscardSelection(playerId, ingredientIndex) {
+
+            function handleStopPullingDiscardSelection(playerId, ingredientIndex) {
                 const playerState = localGameState.players[playerId];
-            
-                // Desativa o efeito, não importa a escolha
+
+                // Efeito é consumido, não importa a escolha
                 playerState.activePotions["Descarte Oportuno"] = false;
-            
-                // Se o jogador escolheu um ingrediente (e não "recusar")
+
                 if (ingredientIndex > -1 && ingredientIndex < localGameState.currentPull.length) {
                     const discardedIngredient = localGameState.currentPull.splice(ingredientIndex, 1)[0];
                     localGameState.cauldron.push(discardedIngredient);
@@ -397,10 +407,11 @@
                 } else {
                     logMessage(`${playerState.name} decidiu não usar o efeito do Descarte Oportuno.`);
                 }
-            
+
                 decisionModal.classList.add('hidden');
-                isProcessingClick = false; // <<< Libera a trava para poder puxar de novo
-                updateFirestoreState(localGameState);
+                
+                // Em vez de liberar o clique, agora nós continuamos para a próxima fase.
+                proceedToPostProduction(); 
             }
 
             function triggerPrismaticSubstitutionDecision(potionName, missingIngredient) {
@@ -1635,19 +1646,15 @@
                 
                 const playerState = localGameState.players[localPlayerId];
                 
-                // Reseta o bônus no início para garantir que não venha de turnos passados
-                playerState.fervorBonusThisTurn = false; 
-
-                // Verifica se o jogador tem o Fervor ativo E se puxou mais de 5 ingredientes
-                if ((playerState.activePotions["Fervor do Ousado"] || playerState.copiedEffect?.name === "Fervor do Ousado") && localGameState.currentPull.length > 5) {
-                    playerState.fervorBonusThisTurn = true; // Ativa o bônus para este turno
-                    logMessage(`Fervor do Ousado ativado! As vendas de ${playerState.name} serão dobradas neste turno!`);
-                    showMessage("Fervor do Ousado Ativado! Suas vendas valerão o dobro!");
+                // Nova verificação: O efeito está ativo E há ingredientes para descartar?
+                if (playerState.activePotions["Descarte Oportuno"] && localGameState.currentPull.length > 0) {
+                    // Se sim, abre o modal de decisão em vez de mudar a fase diretamente.
+                    // A mudança de fase ocorrerá DEPOIS que o jogador fizer a escolha.
+                    triggerStopPullingDiscardDecision(localPlayerId);
+                } else {
+                    // Se não, continua com o fluxo normal (checa Fervor e muda de fase).
+                    proceedToPostProduction();
                 }
-                
-                localGameState.phase = `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
-                logMessage(`${localGameState.players[localPlayerId].name} parou de puxar.`);
-                updateFirestoreState(localGameState);
             }
     
             function handleFinishProductionClick() {
@@ -3159,6 +3166,7 @@
         </div>
 </body>
 </html>
+
 
 
 
