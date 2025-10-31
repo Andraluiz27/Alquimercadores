@@ -1973,22 +1973,29 @@
                         playerState.activePotions["Parasita Mortífero"] = true; 
                         break;
                     
-                    case "Eco Alquímico": { // <--- CHAVE DE ABERTURA CORRIGIDA
+                    case "Eco Alquímico": { 
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false;
-                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Eco Alquímico!`);
-                            showBarrierBlockMessage("Eco Alquímico");
+                            // ... (código da barreira)
                             break;
                         }
-                        const opponentActivePermanents = permanentPotions.filter(potion => opponentState.activePotions[potion]);
+
+                        // VVVVVV ADICIONE ESTA LINHA VVVVVV
+                        // Esta é a sua lista personalizada de poções copiáveis
+                        const copyablePotions = ["Amuleto do Colecionador", "Resiliência do Farsante", "Estabilizador Cromático", "Pasta Prismática", "Fervor do Ousado"];
+                        
+                        // VVVVVV E MUDE ESTA LINHA VVVVVV
+                        // Mude de "permanentPotions" para "copyablePotions"
+                        const opponentActivePermanents = copyablePotions.filter(potion => opponentState.activePotions[potion]);
+                        // ^^^^^^ FIM DAS MUDANÇAS ^^^^^^
+                        
                         if (opponentActivePermanents.length === 0) {
-                            logMessage(`${playerState.name} tentou usar Eco Alquímico, mas ${opponentState.name} não tem efeitos permanentes ativos.`);
+                            logMessage(`${playerState.name} tentou usar Eco Alquímico, mas ${opponentState.name} não tem efeitos permanentes (copiáveis) ativos.`);
                             showMessage(`${opponentState.name} não possui aprimoramentos para copiar!`);
                             break;
                         }
                         triggerEchoDecision(playerId, opponentActivePermanents);
                         break;
-                    } // <--- CHAVE DE FECHAMENTO CORRIGIDA
+                    }
 
                     case "Ferrugem Alquímica": { // <--- CHAVE DE ABERTURA CORRIGIDA
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
@@ -2339,7 +2346,9 @@
             }
             
            function renderActivePotions(listEl, activePotions, ownerId) {
-                listEl.innerHTML = '';
+                listEl.innerHTML = ''; // Limpa a lista
+                
+                // 1. Renderiza as poções ativas normais (como já fazia)
                 if (activePotions && typeof activePotions === 'object') {
                     for (const potionName in activePotions) {
                         if (activePotions[potionName]) { 
@@ -2348,14 +2357,11 @@
                                 const li = document.createElement('li');
                                 li.className = 'flex items-center gap-2 p-2 bg-gray-800 rounded';
                                 
-                                // --- NOVA LÓGICA DE EXIBIÇÃO ---
                                 let displayText = potion.nome;
-                                // Verifica se é uma das poções de expansão para adicionar o contador
                                 if ((potionName === "Infusão de Foco" || potionName === "Caldeirão Expansivo") && typeof activePotions[potionName] === 'number') {
                                     const count = activePotions[potionName];
                                     displayText += ` (${count}x)`;
                                 }
-                                // --- FIM DA NOVA LÓGICA ---
 
                                 li.innerHTML = `
                                     <img src="imagens/Poção.png" class="w-8 h-8">
@@ -2371,6 +2377,38 @@
                         }
                     }
                 }
+
+                // VVVVVV  BLOCO NOVO ADICIONADO AQUI  VVVVVV
+                // 2. Renderiza o efeito copiado pelo Eco Alquímico (se estiver ativo)
+                
+                // Pega o estado do jogador específico (dono da lista)
+                const playerState = localGameState.players[ownerId];
+                const copiedEffect = playerState.copiedEffect;
+
+                // Verifica se o efeito copiado existe E se ele está no status "ativo neste turno"
+                if (copiedEffect && copiedEffect.status === 'ACTIVE_THIS_TURN') {
+                    const potion = ARCANO_POTIONUM[copiedEffect.name]; // Pega os dados da poção copiada
+                    
+                    if (potion) {
+                        const li = document.createElement('li');
+                        // Adiciona uma classe de opacidade para diferenciar
+                        li.className = 'flex items-center gap-2 p-2 bg-gray-800 rounded opacity-75 border border-purple-400'; 
+                        
+                        // Adiciona um prefixo "(Copiado)"
+                        let displayText = `(Copiado) ${potion.nome}`;
+
+                        li.innerHTML = `
+                            <img src="imagens/Poção.png" class="w-8 h-8 grayscale">
+                            <span class="potion-tooltip relative">
+                                ${displayText}
+                                <span class="tooltip-text">(Efeito copiado por 1 turno)<br>${potion.descricao}</span>
+                            </span>
+                        `;
+                        // Adiciona o item copiado na lista
+                        listEl.appendChild(li);
+                    }
+                }
+                // ^^^^^^ FIM DO BLOCO NOVO ^^^^^^
             }
             
             function createIngredientImage(ingredientName, tooltipText) {
@@ -3211,6 +3249,7 @@
         </div>
 </body>
 </html>
+
 
 
 
