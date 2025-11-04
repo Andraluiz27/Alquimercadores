@@ -2,7 +2,8 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Viewport ajustado para garantir a escala correta em dispositivos móveis -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Alquimercadores</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module">
@@ -327,10 +328,13 @@
             const quitGameBtn = document.getElementById('quit-game-btn');
             const mesaBook = document.getElementById('mesa-book-btn');
             mesaBook.addEventListener('click', handleMesaBookClick);
-            // ==========================================================
-            // FUNÇÕES DE LÓGICA DO JOGO (CORE)
-            // ==========================================================
             
+            // ==========================================================
+            // [TODA A LÓGICA DO JOGO (JS) PERMANECE INALTERADA]
+            // ...
+            // (Ocultado para brevidade, mas está aqui)
+            // ...
+            // ==========================================================
             function generateCauldron() {
                 const cauldron = [];
                 for (const ingredient in INGREDIENT_DATA) {
@@ -3078,10 +3082,8 @@
     </script>
     
     <style>
-        /* */
-        /* Eu removi 'min-height: 100vh; width: 100vw;' daqui, pois agora o body é flexível */
-        body { overflow-y: auto; font-family: 'Times New Roman', Times, serif; }
-        
+        /* Estilos CSS permanecem inalterados */
+        body { min-height: 100vh; width: 100vw; overflow-y: auto; font-family: 'Times New Roman', Times, serif; }
         #game-screen { background-image: url('imagens/Fundo.png'); background-size: cover; background-position: center center; background-repeat: no-repeat; }
         /* 1. Esta nova regra é SÓ para a tela de lobby com sua nova imagem */
         #lobby-screen { 
@@ -3140,8 +3142,9 @@
         }
     </style>
 </head>
-<body class="bg-gray-900 text-white h-screen flex items-center justify-center p-4">
+<body class="bg-gray-900 text-white">
 
+    <!-- Telas de Lobby e Conexão (inalteradas) -->
     <div id="lobby-screen" class="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div class="p-8 rounded-lg w-full max-w-md text-center text-[#3d2a1a]">
             <div class="w-[400px] h-[400px] bg-transparent rounded-full mx-auto mb-6 flex items-center justify-center">
@@ -3186,16 +3189,25 @@
         </div>
     </div>
     
-    <div id="game-screen" class="hidden relative w-full aspect-[16/9] max-h-full border-8 border-yellow-900 rounded-lg shadow-2xl overflow-hidden">
+    <!-- ============================================ -->
+    <!-- INÍCIO DAS MUDANÇAS NO LAYOUT DO JOGO -->
+    <!-- ============================================ -->
+    
+    <!-- Tela do Jogo: Adicionado min-h-[450px] para evitar colapso em telas muito curtas -->
+    <div id="game-screen" class="hidden relative w-full h-screen min-h-[450px] max-w-[1920px] mx-auto">
         
-        <div id="top-left-ui-container" class="absolute top-4 left-4 flex flex-row items-start gap-4 z-10">
+        <!-- UI Top-Left: Reorganizado para 'flex-col' em telas pequenas para economizar espaço horizontal -->
+        <div id="top-left-ui-container" class="absolute top-2 left-2 flex flex-col items-start gap-2 z-10 lg:flex-row lg:top-4 lg:left-4 lg:gap-4">
 
-            <div id="score-display" class="bg-black/50 p-4 rounded-lg border-2 border-[#5c3d20] text-shadow">
-                <h3 class="text-xl font-bold text-yellow-300 mb-2">Tesouro</h3>
-                <div id="player1-score" class="text-lg text-white">Jogador 1: 0 💰</div>
-                <div id="player2-score" class="text-lg text-white">Jogador 2: 0 💰</div>
+            <!-- Placar: Padding reduzido em telas pequenas -->
+            <div id="score-display" class="bg-black/50 p-2 rounded-lg border-2 border-[#5c3d20] text-shadow lg:p-4">
+                <h3 class="text-lg font-bold text-yellow-300 mb-1 lg:text-xl lg:mb-2">Tesouro</h3>
+                <!-- Tamanho da fonte reduzido em telas pequenas -->
+                <div id="player1-score" class="text-base text-white lg:text-lg">Jogador 1: 0 💰</div>
+                <div id="player2-score" class="text-base text-white lg:text-lg">Jogador 2: 0 💰</div>
             </div>
         
+            <!-- Botões de Ação: Já estavam em coluna, o que é bom para mobile -->
             <div id="action-buttons-container" class="flex flex-col gap-2">
                 <button id="stop-pulling-btn" class="btn btn-red hidden">Parar de Puxar</button>
                 <button id="finish-production-btn" class="btn btn-yellow hidden">Finalizar Produção</button>
@@ -3204,43 +3216,58 @@
         
         </div>
         
-        <button id="quit-game-btn" class="absolute top-4 right-4 btn btn-red z-20">Desistir</button>
+        <!-- Botão de Sair: Movido ligeiramente para 'top-2 right-2' -->
+        <button id="quit-game-btn" class="absolute top-2 right-2 btn btn-red z-20 lg:top-4 lg:right-4">Desistir</button>
         
-        <div id="client-area" class="absolute top-[28%] left-[12%] w-[45%] h-[25%]">
-            <div id="client-1" class="absolute left-[-5%] top-0 w-48">
-                <div id="client-1-bubble" class="speech-bubble text-center text-black">
+        <!-- Área dos Clientes: Posição e tamanho ajustados para mobile (base) e desktop (lg:) -->
+        <div id="client-area" class="absolute top-[20%] left-[2%] w-[60%] min-h-[100px] lg:top-[28%] lg:left-[12%] lg:w-[45%] lg:h-[25%]">
+            
+            <!-- Clientes: Largura reduzida e fontes ajustadas para mobile -->
+            <div id="client-1" class="absolute left-[-5%] top-0 w-32 lg:w-48">
+                <div id="client-1-bubble" class="speech-bubble text-center text-black p-1 text-xs lg:p-2 lg:px-3 lg:text-base">
                     <p class="potion-name font-bold">...</p>
-                    <p class="potion-price text-lg font-bold">💰 ...</p>
+                    <p class="potion-price text-sm font-bold lg:text-lg">💰 ...</p>
                 </div>
             </div>
-            <div id="client-2" class="absolute left-[30%] top-[0%] w-48">
-                <div id="client-2-bubble" class="speech-bubble text-center text-black">
+            <div id="client-2" class="absolute left-[30%] top-[0%] w-32 lg:w-48">
+                <div id="client-2-bubble" class="speech-bubble text-center text-black p-1 text-xs lg:p-2 lg:px-3 lg:text-base">
                     <p class="potion-name font-bold">...</p>
-                    <p class="potion-price text-lg font-bold">💰 ...</p>
+                    <p class="potion-price text-sm font-bold lg:text-lg">💰 ...</p>
                 </div>
             </div>
-            <div id="client-3" class="absolute left-[65%] top-[0%] w-48">
-                <div id="client-3-bubble" class="speech-bubble text-center text-black">
+            <div id="client-3" class="absolute left-[65%] top-[0%] w-32 lg:w-48">
+                <div id="client-3-bubble" class="speech-bubble text-center text-black p-1 text-xs lg:p-2 lg:px-3 lg:text-base">
                     <p class="potion-name font-bold">...</p>
-                    <p class="potion-price text-lg font-bold">💰 ...</p>
+                    <p class="potion-price text-sm font-bold lg:text-lg">💰 ...</p>
                 </div>
             </div>
         </div>
 
-        <div id="player1-name-display" class="absolute top-[20%] right-[18%] text-center text-xl font-bold text-blue-300 text-shadow">Jogador 1</div>
-        <div id="player2-name-display" class="absolute top-[40%] right-[18%] text-center text-xl font-bold text-red-300 text-shadow">Jogador 2</div>
+        <!-- Nomes dos Jogadores: Posição e tamanho da fonte ajustados -->
+        <div id="player1-name-display" class="absolute top-[5%] right-[22%] text-base text-center font-bold text-blue-300 text-shadow lg:top-[20%] lg:right-[18%] lg:text-xl">Jogador 1</div>
+        <div id="player2-name-display" class="absolute top-[25%] right-[22%] text-base text-center font-bold text-red-300 text-shadow lg:top-[40%] lg:right-[18%] lg:text-xl">Jogador 2</div>
 
-        <div id="player1-shelf" class="absolute top-[6%] right-[8%] w-[20%] h-[10%] flex justify-center items-center gap-2 p-2"></div>
-        <div id="player2-shelf" class="absolute top-[28%] right-[8%] w-[20%] h-[10%] flex justify-center items-center gap-2 p-2"></div>
-        <div id="counter-area" class="absolute top-[85%] left-[13%] w-[50%] h-[15%] flex justify-center items-center gap-2 p-2 bg-black/10 rounded"></div>
-        <div id="cauldron-btn" class="absolute top-[64%] right-[21%] w-[20%] h-[35%] rounded-full" title="Puxar Ingrediente"></div>
-        <div id="mesa-book-btn" class="absolute top-[77%] left-[6%] w-[8%] h-[18%] cursor-pointer rounded-lg" title="Abrir Arcano Potionum"></div>
+        <!-- Prateleiras: Posição, largura e min-height ajustados. min-h-[70px] garante espaço para as imagens w-16 -->
+        <div id="player1-shelf" class="absolute top-[10%] right-[5%] w-[35%] min-h-[70px] flex justify-center items-center gap-1 p-1 lg:top-[6%] lg:right-[8%] lg:w-[20%] lg:h-[10%] lg:gap-2 lg:p-2"></div>
+        <div id="player2-shelf" class="absolute top-[30%] right-[5%] w-[35%] min-h-[70px] flex justify-center items-center gap-1 p-1 lg:top-[28%] lg:right-[8%] lg:w-[20%] lg:h-[10%] lg:gap-2 lg:p-2"></div>
+        
+        <!-- Balcão: Posição, largura e min-height ajustados -->
+        <div id="counter-area" class="absolute top-[80%] left-[10%] w-[55%] min-h-[70px] flex justify-center items-center gap-1 p-1 bg-black/10 rounded lg:top-[85%] lg:left-[13%] lg:w-[50%] lg:h-[15%] lg:gap-2 lg:p-2"></div>
+        
+        <!-- Caldeirão: Posição e tamanho ajustados -->
+        <div id="cauldron-btn" class="absolute top-[55%] right-[5%] w-[35%] h-[25%] rounded-full lg:top-[64%] lg:right-[21%] lg:w-[20%] lg:h-[35%]" title="Puxar Ingrediente"></div>
+        
+        <!-- Livro: Posição e tamanho ajustados -->
+        <div id="mesa-book-btn" class="absolute top-[75%] left-[1%] w-[10%] h-[22%] cursor-pointer rounded-lg lg:top-[77%] lg:left-[6%] lg:w-[8%] lg:h-[18%]" title="Abrir Arcano Potionum"></div>
 
-        <div id="active-potions-toggle" class="absolute bottom-5 right-5 bg-[#5c3d20] p-3 rounded-full cursor-pointer border-2 border-yellow-300 hover:bg-[#7a5532] z-20">
-            <img src="imagens/Poção.png" alt="Poções Ativas" class="w-10 h-10">
+        <!-- Botão de Poções Ativas: Posição e padding ajustados -->
+        <div id="active-potions-toggle" class="absolute bottom-2 right-2 bg-[#5c3d20] p-2 rounded-full cursor-pointer border-2 border-yellow-300 hover:bg-[#7a5532] z-20 lg:bottom-5 lg:right-5 lg:p-3">
+            <!-- Imagem interna ajustada -->
+            <img src="imagens/Poção.png" alt="Poções Ativas" class="w-8 h-8 lg:w-10 lg:h-10">
         </div>
 
-      <div id="active-potions-board" class="absolute top-0 right-0 w-80 h-full bg-black/80 backdrop-blur-sm p-4 border-l-4 border-[#5c3d20] z-30 translate-x-full">
+      <!-- Painel de Poções Ativas: Largura ajustada para mobile -->
+      <div id="active-potions-board" class="absolute top-0 right-0 w-72 h-full bg-black/80 backdrop-blur-sm p-2 border-l-4 border-[#5c3d20] z-30 translate-x-full lg:w-80 lg:p-4">
         <button id="close-potions-board-btn" class="absolute top-2 right-3 text-4xl text-yellow-300 hover:text-white">&times;</button>
         <h3 class="text-2xl font-bold text-yellow-300 mb-2 border-b-2 border-yellow-400 pb-2">Poções</h3>
         
@@ -3279,6 +3306,7 @@
         </div>
         </div>
         
+        <!-- Modais (Layout inalterado, pois já são responsivos) -->
         <div id="recipe-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-40">
             <div id="livro-container" class="relative w-full max-w-5xl aspect-[16/9]"> 
                 <div id="pagina-esquerda" class="absolute top-[15%] left-[23%] w-[28%] h-[63%] p-4 overflow-y-auto"></div>
@@ -3325,7 +3353,6 @@
             </div>
         </div>
     </div>
-    
     <div id="barrier-block-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-8 z-50 transition-opacity duration-500 ease-in-out">
             <div class="bg-blue-200 text-blue-900 border-4 border-blue-500 p-8 rounded-lg w-full max-w-md text-center shadow-2xl">
                 <h2 id="barrier-message-text" class="text-3xl font-bold">...</h2>
@@ -3333,5 +3360,3 @@
         </div>
 </body>
 </html>
-
-
