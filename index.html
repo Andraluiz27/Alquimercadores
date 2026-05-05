@@ -2304,12 +2304,18 @@
                 
                 const p1 = localGameState.players.player1;
                 const p2 = localGameState.players.player2;
-                const amIPlayer1 = localPlayerId === 'player1';
                 
                 player1ScoreEl.textContent = `${p1.name}: ${p1.coins} 💰`;
                 player2ScoreEl.textContent = `${p2.name}: ${p2.coins} 💰`;
                 
+                // NOVO: Atualiza o contador visual de clientes servidos
+                const clientsCountEl = document.getElementById('clients-count');
+                if (clientsCountEl) {
+                    clientsCountEl.textContent = localGameState.clientsServed || 0;
+                }
+                
                 player1NameDisplay.textContent = p1.name;
+                // ... restante da função updateUI continua igual
                 player2NameDisplay.textContent = p2.name;
     
                 const myActionPhase = localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`;
@@ -3279,10 +3285,13 @@
 
             <!-- Placar: Padding reduzido em telas pequenas -->
             <div id="score-display" class="bg-black/50 p-2 rounded-lg border-2 border-[#5c3d20] text-shadow lg:p-4">
-                <h3 class="text-lg font-bold text-yellow-300 mb-1 lg:text-xl lg:mb-2">Tesouro</h3>
-                <!-- Tamanho da fonte reduzido em telas pequenas -->
+                <h3 class="text-lg font-bold text-yellow-300 mb-1 lg:text-xl lg:mb-2">Mercado</h3>
                 <div id="player1-score" class="text-base text-white lg:text-lg">Jogador 1: 0 💰</div>
                 <div id="player2-score" class="text-base text-white lg:text-lg">Jogador 2: 0 💰</div>
+                <!-- NOVO: Contador de progresso -->
+                <div id="market-progress" class="text-sm text-blue-200 mt-2 border-t border-blue-400/30 pt-1 lg:text-base">
+                    Clientes Atendidos: <span id="clients-count">0</span> / 6
+                </div>
             </div>
         
             <!-- Botões de Ação: Já estavam em coluna, o que é bom para mobile -->
