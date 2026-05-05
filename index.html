@@ -1413,7 +1413,7 @@
                 const roundStarter = localGameState.roundStarter;
                 const otherPlayer = roundStarter === 'player1' ? 'player2' : 'player1';
             
-                if (localGameState.clientsServed >= 10) {
+                if (localGameState.clientsServed >= 6) {
                     if (playerId === otherPlayer) {
                         endGame();
                         return;
