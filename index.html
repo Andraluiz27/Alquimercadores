@@ -1150,16 +1150,25 @@
                 
                     const potion = ARCANO_POTIONUM[potionName];
                 
-                    // Pega os ingredientes fixos (ex: Belladonna)
+                    // --- NOVA LÓGICA: Verifica clientes ativos e acumula estrelas por tipo ---
+                    let starsHTML = '';
+                    if (localGameState.clients) {
+                        localGameState.clients.forEach(c => {
+                            if (c && !c.served && c.wants === potionName) {
+                                if (c.type === "Comum") starsHTML += '<span class="star-comum" title="Cliente Comum deseja!">⭐</span>';
+                                if (c.type === "Rico") starsHTML += '<span class="star-rico" title="Cliente Rico deseja!">⭐</span>';
+                                if (c.type === "Nobre") starsHTML += '<span class="star-nobre" title="Cliente Nobre deseja!">⭐</span>';
+                            }
+                        });
+                    }
+                
                     const fixos = Object.entries(potion.ingredientes)
                         .map(([name, count]) => `${name} (x${count})`);
                 
-                    // Pega os ingredientes extras por cor (ex: +1 Verde)
                     const extras = potion.corExtra 
                         ? Object.entries(potion.corExtra).map(([cor, count]) => `+ ${count} de qualquer cor ${cor.toUpperCase()}`)
                         : [];
                 
-                    // Junta os dois textos para mostrar no livro
                     const ingredientsText = [...fixos, ...extras].join(' ');
                     
                     const isCreatable = recipeBookMode === 'create' && creatablePotions.includes(potionName);
@@ -1176,14 +1185,13 @@
                 
                     return `
                         <div class="${className}" ${dataAttribute}>
-                            <h4 class="text-lg font-bold">${potion.nome} [${potion.tipo}]</h4>
+                            <h4 class="text-lg font-bold">${potion.nome} ${starsHTML} [${potion.tipo}]</h4>
                             <p class="text-base"><strong>Ingredientes:</strong> ${ingredientsText}</p>
                             <p class="text-base mt-1"><strong>Efeito:</strong> ${potion.descricao}</p>
                             ${creatableMarker}
                         </div>
                     `;
                 };
-
                 paginaEsquerdaEl.innerHTML = renderRecipeHTML(pagePotions[0]);
                 paginaDireitaEl.innerHTML = renderRecipeHTML(pagePotions[1]);
             
@@ -3187,6 +3195,29 @@
             display: block;
             margin-top: 4px;
         }
+        /* Estrela Marrom - Cliente Comum */
+        .star-comum {
+            color: #8b4513; 
+            text-shadow: 0 0 3px rgba(139, 69, 19, 0.5);
+            font-size: 1.2rem;
+            margin-left: 4px;
+        }
+        
+        /* Estrela Prata - Cliente Rico */
+        .star-rico {
+            color: #c0c0c0;
+            text-shadow: 0 0 5px rgba(192, 192, 192, 0.8);
+            font-size: 1.2rem;
+            margin-left: 4px;
+        }
+        
+        /* Estrela Dourada - Cliente Nobre */
+        .star-nobre {
+            color: #ffd700;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.9);
+            font-size: 1.2rem;
+            margin-left: 4px;
+        }     
     </style>
 </head>
 <body class="bg-gray-900 text-white">
