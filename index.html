@@ -21,7 +21,8 @@
                 tipo: "Fácil",
                 efeito: "Ação",
                 descricao: "Até o início do seu próximo turno, você está imune ao efeito de UMA poção de Ação usada por seu oponente. O efeito é consumido após bloquear.",
-                ingredientes: { "Belladonna": 1, "Perna de Sapo": 1 }
+                ingredientes: { "Belladonna": 1 }
+                corExtra: { "verde": 1 }
             },
             "Unguento de Musgo": {
                 nome: "Unguento de Musgo",
@@ -35,14 +36,15 @@
                 tipo: "Médio",
                 efeito: "Permanente",
                 descricao: "Sua Prateleira de Armazenamento é aprimorada em +1 espaço.",
-                ingredientes: { "Asa de Fada": 2, "Cera de Ogro": 1, "Beterraba Brava": 1 }
+                ingredientes: { "Asa de Fada": 1}
+                corExtra: { "amarelo": 2 }
             },
             "Pó da Corrosão": {
                 nome: "Pó da Corrosão",
                 tipo: "Fácil",
                 efeito: "Ação",
                 descricao: "Seu oponente descarta 1 ingrediente da prateleira dele (ele escolhe qual).",
-                ingredientes: { "Beterraba Brava": 2 }
+                ingredientes: { "Beterraba Brava": 2}
             },
             "Elixir do Mercador": {
                 nome: "Elixir do Mercador",
@@ -50,27 +52,30 @@
                 efeito: "Ação",
                 descricao: "Descarte um cliente do mercado e revele um novo. (Funciona mesmo em clientes com Contrato).",
                 ingredientes: { "Unha de Bruxa": 1, "Asa de Fada": 1 }
+                corExtra: { "amarelo": 1 }
             },
             "Tônico Dourado": {
                 nome: "Tônico Dourado",
                 tipo: "Fácil",
                 efeito: "Ação",
                 descricao: "Ganhe 2 Moedas imediatamente.",
-                ingredientes: { "Cera de Ogro": 2 }
+                ingredientes: { "Cera de Ogro": 1}
+                corExtra: { "amarelo": 1 }
             },
             "Soro da Clarividência": {
                 nome: "Soro da Clarividência",
                 tipo: "Fácil",
                 efeito: "Ação",
                 descricao: "Pegue qualquer ingrediente que precisar diretamente do caldeirão e guarde na sua prateleira.",
-                ingredientes: { "Olhos de Jiboia": 2, "Chifre de Unicórnio": 1 }
+                ingredientes: {"Chifre de Unicórnio": 1 }
+                corExtra: { "azul": 1 }
             },
 
             "Descarte Oportuno": {
                 nome: "Descarte Oportuno",
                 tipo: "Fácil",
                 efeito: "Ação",
-                descricao: "Escolha 1 ingrediente do seu Balcão (currentPull) e descarte-o de volta no caldeirão para ganhar 1 Moeda.",
+                descricao: "Escolha 1 ingrediente do seu Balcão e descarte-o de volta no caldeirão para ganhar 1 Moeda.",
                 ingredientes: { "Unha de Bruxa": 1, "Perna de Sapo": 1 }
             },
             
@@ -79,7 +84,8 @@
                 tipo: "Médio",
                 efeito: "Permanente",
                 descricao: "Você ganha +1 Moeda adicional sempre que vende uma poção.",
-                ingredientes: { "Chifre de Unicórnio": 1, "Perna de Sapo": 2, "Suor de Sereia": 1 }
+                ingredientes: { "Chifre de Unicórnio": 1, "Perna de Sapo": 1, "Suor de Sereia": 1 }
+                corExtra: { "vermelho": 1 }
             },
             "Mão do Mago": {
                 nome: "Mão do Mago",
@@ -93,35 +99,40 @@
                 tipo: "Médio",
                 efeito: "Ação",
                 descricao: "Na próxima venda do seu oponente, você ganha metade das moedas (arredondando para cima). Não pode ser bloqueado.",
-                ingredientes: { "Belladonna": 2, "Olhos de Jiboia": 2 }
+                ingredientes: { "Belladonna": 2 }
+                corExtra: { "verde": 1 }
             },
             "Caldeirão Expansivo": {
                 nome: "Caldeirão Expansivo",
                 tipo: "Médio",
                 efeito: "Permanente",
                 descricao: "Sua Prateleira de Armazenamento é aprimorada em +1 espaço.",
-                ingredientes: { "Olhos de Jiboia": 1, "Pena de Fênix": 1, "Cogumelo de Sangue": 2 }
+                ingredientes: {"Pena de Fênix": 1, "Cogumelo de Sangue": 1 }
+                corExtra: { "verde": 1 }
             },
             "Eco Alquímico": {
                 nome: "Eco Alquímico",
                 tipo: "Difícil",
                 efeito: "Ação",
                 descricao: "Escolha um efeito de poção Permanente ativo do seu oponente. Você copia o efeito dessa poção até o final da sua próxima fase de Ação.",
-                ingredientes: { "Pena de Fênix": 2, "Cogumelo de Sangue": 1, "Cera de Ogro": 1, "Olhos de Jiboia": 1 }
+                ingredientes: { "Pena de Fênix": 1, "Cogumelo de Sangue": 1, "Cera de Ogro": 1 }
+                corExtra: { "azul": 2 }
             },
             "Resiliência do Farsante": {
                 nome: "Resiliência do Farsante",
                 tipo: "Médio",
                 efeito: "Permanente",
                 descricao: "Se seu caldeirão explodir, você pode guardar 1 dos ingredientes na sua prateleira, se houver espaço.",
-                ingredientes: { "Perna de Sapo": 2, "Unha de Bruxa": 1, "Suor de Sereia": 1, "Cera de Ogro": 1 }
+                ingredientes: { "Unha de Bruxa": 1, "Suor de Sereia": 1, "Cera de Ogro": 1 }
+                corExtra: { "azul": 1 }
             },
             "Ingrediente Contaminado": {
                 nome: "Ingrediente Contaminado",
                 tipo: "Fácil",
                 efeito: "Ação",
                 descricao: "Dê 1 ingrediente da sua prateleira para seu oponente (se houver espaço na prateleira dele).",
-                ingredientes: { "Musgo Venenoso": 2 }
+                ingredientes: { "Musgo Venenoso": 1 }
+                corExtra: { "amarelo": 1 }
             },
             "Contrato de Exclusividade": {
                 nome: "Contrato de Exclusividade",
@@ -163,7 +174,7 @@
                 tipo: "Difícil",
                 efeito: "Ação",
                 descricao: "Seu oponente descarta TODOS os ingredientes da prateleira dele.",
-                ingredientes: { "Pena de Fênix": 1, "Olhos de Jiboia": 1, "Belladonna": 1, "Unha de Bruxa": 1, "Perna de Sapo": 1 }
+                ingredientes: { "Pena de Fênix": 1, "Olhos de Jiboia": 1, "Belladonna": 1, "Unha de Bruxa": 1, "Suor de Sereia": 2 }
             },
             "Maldição do Caldeirão Trincado": {
                 nome: "Maldição do Caldeirão Trincado",
@@ -1857,89 +1868,115 @@
             }
             
             function findCreatablePotions(currentPull, playerId) {
-                const playerState = localGameState.players[playerId];
-                const hasPrismaticPaste = playerState.activePotions["Pasta Prismática"] || playerState.copiedEffect?.name === "Pasta Prismática";
-                const pullCounts = getIngredientCounts(currentPull);
-                const totalAvailable = currentPull.length;
                 const creatable = [];
-
+            
                 for (const potionName in ARCANO_POTIONUM) {
-                    const recipe = ARCANO_POTIONUM[potionName].ingredientes;
-                    let missingIngredients = 0;
-                    let totalRequired = 0;
-
-                    // Conta quantos ingredientes faltam e quantos são necessários no total
-                    for (const ingredientName in recipe) {
-                        const requiredCount = recipe[ingredientName];
-                        const haveCount = pullCounts[ingredientName] || 0;
-                        totalRequired += requiredCount;
-                        if (haveCount < requiredCount) {
-                            // Conta apenas a "dívida" de ingredientes
-                            missingIngredients += (requiredCount - haveCount);
+                    const potion = ARCANO_POTIONUM[potionName];
+                    let tempPull = [...currentPull]; 
+                    let canMake = true;
+            
+                    // 1. Tira o ingrediente específico (Obrigatório)
+                    for (const [ingNome, qtd] of Object.entries(potion.ingredientes)) {
+                        for (let i = 0; i < qtd; i++) {
+                            const idx = tempPull.indexOf(ingNome);
+                            if (idx > -1) {
+                                tempPull.splice(idx, 1);
+                            } else {
+                                canMake = false;
+                                break;
+                            }
                         }
                     }
-
-                    // Caso 1: Tem todos os ingredientes. Sempre criável.
-                    if (missingIngredients === 0) {
-                        creatable.push(potionName);
-                    } 
-                    // Caso 2: Falta SÓ UM ingrediente, tem a Pasta Prismática E tem ingredientes sobrando para substituir.
-                    else if (missingIngredients === 1 && hasPrismaticPaste && totalAvailable > (totalRequired - 1)) {
-                        creatable.push(potionName);
+            
+                    if (!canMake) continue;
+            
+                    // 2. Tira o ingrediente extra daquela cor
+                    if (potion.corExtra) {
+                        for (const [corAlvo, qtd] of Object.entries(potion.corExtra)) {
+                            for (let i = 0; i < qtd; i++) {
+                                const idxCor = tempPull.findIndex(ing => INGREDIENT_DATA[ing].cor === corAlvo);
+                                if (idxCor > -1) {
+                                    tempPull.splice(idxCor, 1);
+                                } else {
+                                    canMake = false;
+                                    break;
+                                }
+                            }
+                        }
                     }
+            
+                    if (canMake) creatable.push(potionName);
                 }
                 return creatable;
             }
     
             window.handleCreatePotion = function(potionName) {
                 const playerState = localGameState.players[localPlayerId];
-                const recipe = ARCANO_POTIONUM[potionName].ingredientes;
-                const pullCounts = getIngredientCounts(localGameState.currentPull);
+                const potion = ARCANO_POTIONUM[potionName];
+                const pull = [...localGameState.currentPull]; // Cópia para teste
+                const hasPrismatic = playerState.activePotions["Pasta Prismática"] || playerState.copiedEffect?.name === "Pasta Prismática";
                 
-                // A lógica agora é mais simples e robusta.
-                // 1. Vamos descobrir exatamente o que falta.
-                let missingIngredientsMap = {};
-                let totalMissingCount = 0;
-
-                for (const ingredientName in recipe) {
-                    const requiredCount = recipe[ingredientName];
-                    const haveCount = pullCounts[ingredientName] || 0;
-                    if (haveCount < requiredCount) {
-                        const missingAmount = requiredCount - haveCount;
-                        missingIngredientsMap[ingredientName] = missingAmount;
-                        totalMissingCount += missingAmount;
+                // --- PASSO 1: TESTE DE FABRICAÇÃO ---
+                let usedIngredients = [];
+                let canMakeNormal = true;
+                let missingCount = 0;
+                let lastMissing = null;
+            
+                // Tenta tirar os ingredientes fixos
+                for (const [ingNome, qtd] of Object.entries(potion.ingredientes)) {
+                    for (let i = 0; i < qtd; i++) {
+                        const idx = pull.indexOf(ingNome);
+                        if (idx > -1) {
+                            usedIngredients.push(pull.splice(idx, 1)[0]);
+                        } else {
+                            missingCount++;
+                            lastMissing = { type: 'fixo', value: ingNome };
+                        }
                     }
                 }
-
-                // 2. Se não falta nada, fabricação normal.
-                if (totalMissingCount === 0) {
-                    const pull = localGameState.currentPull;
-                    for (const ingredientName in recipe) {
-                        let countToRemove = recipe[ingredientName];
-                        for (let i = pull.length - 1; i >= 0; i--) {
-                            if (pull[i] === ingredientName && countToRemove > 0) {
-                                pull.splice(i, 1);
-                                countToRemove--;
+            
+                // Tenta tirar os extras de cor
+                if (potion.corExtra) {
+                    for (const [corAlvo, qtd] of Object.entries(potion.corExtra)) {
+                        for (let i = 0; i < qtd; i++) {
+                            const idxCor = pull.findIndex(ing => INGREDIENT_DATA[ing].cor === corAlvo);
+                            if (idxCor > -1) {
+                                usedIngredients.push(pull.splice(idxCor, 1)[0]);
+                            } else {
+                                missingCount++;
+                                lastMissing = { type: 'cor', value: corAlvo };
                             }
                         }
                     }
+                }
+            
+                // --- PASSO 2: DECISÃO ---
+            
+                // Caso A: Tem tudo (Fabricação Normal)
+                if (missingCount === 0) {
+                    localGameState.currentPull = pull; // Aplica o balcão atualizado
                     playerState.potionsReady.push(potionName);
                     logMessage(`${playerState.name} criou: ${potionName}!`);
                     recipeModal.classList.add('hidden');
                     updateFirestoreState(localGameState);
                 } 
-                // 3. Se falta EXATAMENTE 1 ingrediente no total, e o jogador tem a Pasta Prismática...
-                else if (totalMissingCount === 1 && (playerState.activePotions["Pasta Prismática"] || playerState.copiedEffect?.name === "Pasta Prismática")) {
-                    // O ingrediente que falta é a única chave no nosso mapa de "faltantes".
-                    const missingIngredientType = Object.keys(missingIngredientsMap)[0];
-                    // Aciona a tela para o jogador escolher o substituto.
-                    triggerPrismaticSubstitutionDecision(potionName, missingIngredientType);
+                // Caso B: Falta 1 e tem Pasta Prismática
+                else if (missingCount === 1 && hasPrismatic) {
+                    // Se o que falta é um ingrediente fixo específico
+                    if (lastMissing.type === 'fixo') {
+                        triggerPrismaticSubstitutionDecision(potionName, lastMissing.value);
+                    } else {
+                        // Se o que falta é um extra de cor, enviamos um aviso amigável
+                        showMessage(`Você precisa de mais um ingrediente da cor ${lastMissing.value.toUpperCase()}. Use a Pasta Prismática no balcão.`);
+                        // Nota: Para simplificar, a Pasta Prismática aqui agirá sobre o slot de cor faltante.
+                        triggerPrismaticSubstitutionDecision(potionName, `Qualquer ${lastMissing.value}`);
+                    }
                 } 
-                // 4. Qualquer outra situação é um erro (não deveria acontecer se o botão apareceu).
+                // Caso C: Erro
                 else {
-                    showMessage("Erro! Você não tem os ingredientes necessários para esta poção.");
+                    showMessage("Você não tem os ingredientes (fixos + extras de cor) necessários.");
                 }
-            }
+            };
     
             function handleIngredientClick(ingredientName, index) {
                 if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) return;
