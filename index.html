@@ -1147,23 +1147,33 @@
 
                 const renderRecipeHTML = (potionName) => {
                     if (!potionName) return '';
-
+                
                     const potion = ARCANO_POTIONUM[potionName];
-                    const ingredientsText = Object.entries(potion.ingredientes)
-                        .map(([name, count]) => `${name} (x${count})`).join(', ');
+                
+                    // Pega os ingredientes fixos (ex: Belladonna)
+                    const fixos = Object.entries(potion.ingredientes)
+                        .map(([name, count]) => `${name} (x${count})`);
+                
+                    // Pega os ingredientes extras por cor (ex: +1 Verde)
+                    const extras = potion.corExtra 
+                        ? Object.entries(potion.corExtra).map(([cor, count]) => `+ ${count} de qualquer cor ${cor.toUpperCase()}`)
+                        : [];
+                
+                    // Junta os dois textos para mostrar no livro
+                    const ingredientsText = [...fixos, ...extras].join(' ');
                     
                     const isCreatable = recipeBookMode === 'create' && creatablePotions.includes(potionName);
                     
                     let creatableMarker = '';
                     let className = 'receita-item p-2';
                     let dataAttribute = ''; 
-
+                
                     if (isCreatable) {
                         className += ' creatable';
                         creatableMarker = '<span class="creatable-marker">Fabricar! (Clique)</span>';
                         dataAttribute = `data-potion-name="${potionName}"`;
                     }
-
+                
                     return `
                         <div class="${className}" ${dataAttribute}>
                             <h4 class="text-lg font-bold">${potion.nome} [${potion.tipo}]</h4>
