@@ -13,189 +13,31 @@
         // ==========================================================
         // DADOS GLOBAIS DO JOGO (ARCANO POTIONUM E INGREDIENTES)
         // ==========================================================
-        
         const ARCANO_POTIONUM = {
-            "Barreira de Bolhas": {
-                nome: "Barreira de Bolhas",
-                tipo: "Fácil",
-                efeito: "Ação",
-                descricao: "Até o início do seu próximo turno, você está imune ao efeito de UMA poção de Ação usada por seu oponente. O efeito é consumido após bloquear.",
-                ingredientes: { "Belladonna": 1 },
-                corExtra: { "verde": 1 }
-            },
-            "Unguento de Musgo": {
-                nome: "Unguento de Musgo",
-                tipo: "Fácil",
-                efeito: "Momentâneo",
-                descricao: "Na sua próxima Fase da Bolha, ignore a primeira explosão por COR. Não protege contra Sal Negro.",
-                ingredientes: { "Musgo Venenoso": 2 },
-            },
-            "Infusão de Foco": {
-                nome: "Infusão de Foco",
-                tipo: "Médio",
-                efeito: "Permanente",
-                descricao: "Sua Prateleira de Armazenamento é aprimorada em +1 espaço.",
-                ingredientes: { "Asa de Fada": 1},
-                corExtra: { "amarelo": 2 }
-            },
-            "Pó da Corrosão": {
-                nome: "Pó da Corrosão",
-                tipo: "Fácil",
-                efeito: "Ação",
-                descricao: "Seu oponente descarta 1 ingrediente da prateleira dele (ele escolhe qual).",
-                ingredientes: { "Beterraba Brava": 2}
-            },
-            "Elixir do Mercador": {
-                nome: "Elixir do Mercador",
-                tipo: "Fácil",
-                efeito: "Ação",
-                descricao: "Descarte um cliente do mercado e revele um novo. (Funciona mesmo em clientes com Contrato).",
-                ingredientes: { "Unha de Bruxa": 1, "Asa de Fada": 1 },
-                corExtra: { "amarelo": 1 }
-            },
-            "Tônico Dourado": {
-                nome: "Tônico Dourado",
-                tipo: "Fácil",
-                efeito: "Ação",
-                descricao: "Ganhe 2 Moedas imediatamente.",
-                ingredientes: { "Cera de Ogro": 1},
-                corExtra: { "amarelo": 1 }
-            },
-            "Soro da Clarividência": {
-                nome: "Soro da Clarividência",
-                tipo: "Fácil",
-                efeito: "Ação",
-                descricao: "Pegue qualquer ingrediente que precisar diretamente do caldeirão e guarde na sua prateleira.",
-                ingredientes: {"Chifre de Unicórnio": 1 },
-                corExtra: { "azul": 1 }
-            },
-
-            "Descarte Oportuno": {
-                nome: "Descarte Oportuno",
-                tipo: "Fácil",
-                efeito: "Ação",
-                descricao: "Escolha 1 ingrediente do seu Balcão e descarte-o de volta no caldeirão para ganhar 1 Moeda.",
-                ingredientes: { "Unha de Bruxa": 1, "Perna de Sapo": 1 }
-            },
-            
-            "Amuleto do Colecionador": {
-                nome: "Amuleto do Colecionador",
-                tipo: "Médio",
-                efeito: "Permanente",
-                descricao: "Você ganha +1 Moeda adicional sempre que vende uma poção.",
-                ingredientes: { "Chifre de Unicórnio": 1, "Perna de Sapo": 1, "Suor de Sereia": 1 },
-                corExtra: { "vermelho": 1 }
-            },
-            "Mão do Mago": {
-                nome: "Mão do Mago",
-                tipo: "Médio",
-                efeito: "Ação",
-                descricao: "Roube 1 ingrediente da prateleira do seu oponente.",
-                ingredientes: { "Asa de Fada": 1, "Beterraba Brava": 1, "Cera de Ogro": 1 }
-            },
-            "Parasita Mortífero": {
-                nome: "Parasita Mortífero",
-                tipo: "Médio",
-                efeito: "Ação",
-                descricao: "Na próxima venda do seu oponente, você ganha metade das moedas (arredondando para cima). Não pode ser bloqueado.",
-                ingredientes: { "Belladonna": 2 },
-                corExtra: { "verde": 1 }
-            },
-            "Caldeirão Expansivo": {
-                nome: "Caldeirão Expansivo",
-                tipo: "Médio",
-                efeito: "Permanente",
-                descricao: "Sua Prateleira de Armazenamento é aprimorada em +1 espaço.",
-                ingredientes: {"Pena de Fênix": 1, "Cogumelo de Sangue": 1 },
-                corExtra: { "verde": 1 }
-            },
-            "Eco Alquímico": {
-                nome: "Eco Alquímico",
-                tipo: "Difícil",
-                efeito: "Ação",
-                descricao: "Escolha um efeito de poção Permanente ativo do seu oponente. Você copia o efeito dessa poção até o final da sua próxima fase de Ação.",
-                ingredientes: { "Pena de Fênix": 1, "Cogumelo de Sangue": 1, "Cera de Ogro": 1 },
-                corExtra: { "azul": 2 }
-            },
-            "Resiliência do Farsante": {
-                nome: "Resiliência do Farsante",
-                tipo: "Médio",
-                efeito: "Permanente",
-                descricao: "Se seu caldeirão explodir, você pode guardar 1 dos ingredientes na sua prateleira, se houver espaço.",
-                ingredientes: { "Unha de Bruxa": 1, "Suor de Sereia": 1, "Cera de Ogro": 1 },
-                corExtra: { "azul": 1 }
-            },
-            "Ingrediente Contaminado": {
-                nome: "Ingrediente Contaminado",
-                tipo: "Fácil",
-                efeito: "Ação",
-                descricao: "Dê 1 ingrediente da sua prateleira para seu oponente (se houver espaço na prateleira dele).",
-                ingredientes: { "Musgo Venenoso": 1 },
-                corExtra: { "amarelo": 1 }
-            },
-            "Contrato de Exclusividade": {
-                nome: "Contrato de Exclusividade",
-                tipo: "Médio",
-                efeito: "Ação",
-                descricao: "Reserve um cliente do mercado para você. Ele não pode ser atendido pelo oponente.",
-                ingredientes: { "Chifre de Unicórnio": 1, "Suor de Sereia": 1, "Beterraba Brava": 1 }
-            },
-            "Estabilizador Cromático": {
-                nome: "Estabilizador Cromático",
-                tipo: "Difícil",
-                efeito: "Permanente",
-                descricao: "Seu caldeirão só explode na TERCEIRA ficha da mesma cor. (A regra do Sal Negro permanece a mesma).",
-                ingredientes: { "Cogumelo de Sangue": 2, "Cera de Ogro": 2, "Suor de Sereia": 1, "Pena de Fênix": 2 }
-            },
-            "Pedra Filosofal": {
-                nome: "Pedra Filosofal",
-                tipo: "Difícil",
-                efeito: "Ação",
-                descricao: "Ganhe 7 Moedas imediatamente.",
-                ingredientes: { "Pena de Fênix": 2, "Chifre de Unicórnio": 1, "Suor de Sereia": 1 }
-            },
-            "Ferrugem Alquímica": {
-                nome: "Ferrugem Alquímica",
-                tipo: "Médio",
-                efeito: "Ação",
-                descricao: "Desativa um aprimoramento Permanente do seu oponente por uma rodada.",
-                ingredientes: { "Musgo Venenoso": 1, "Cogumelo de Sangue": 1, "Beterraba Brava": 1 }
-            },
-            "Poção da Usurpação": {
-                nome: "Poção da Usurpação",
-                tipo: "Difícil",
-                efeito: "Ação",
-                descricao: "Seu oponente te paga 5 Moedas (ou tudo o que ele tiver, se for menos que 5).",
-                ingredientes: { "Pena de Fênix": 1, "Cogumelo de Sangue": 1, "Chifre de Unicórnio": 1, "Cera de Ogro": 1 }
-            },
-            "Solvente Universal": {
-                nome: "Solvente Universal",
-                tipo: "Difícil",
-                efeito: "Ação",
-                descricao: "Seu oponente descarta TODOS os ingredientes da prateleira dele.",
-                ingredientes: { "Pena de Fênix": 1, "Olhos de Jiboia": 1, "Belladonna": 1, "Unha de Bruxa": 1, "Suor de Sereia": 2 }
-            },
-            "Maldição do Caldeirão Trincado": {
-                nome: "Maldição do Caldeirão Trincado",
-                tipo: "Difícil",
-                efeito: "Ação",
-                descricao: "No próximo turno do seu oponente, a Fase de puxar ingredientes dele termina se ele puxar qualquer ingrediente da cor que você escolher.",
-                ingredientes: { "Musgo Venenoso": 2, "Belladonna": 2 }
-            },
-            "Pasta Prismática": {
-                nome: "Pasta Prismática",
-                tipo: "Difícil",
-                efeito: "Permanente",
-                descricao: "A partir de agora, você pode usar qualquer ingrediente no lugar de somente UM outro ingrediente em suas receitas.",
-                ingredientes: { "Pena de Fênix": 2, "Suor de Sereia": 1, "Chifre de Unicórnio": 2, "Olhos de Jiboia": 1 }
-            },
-            "Fervor do Ousado": {
-                nome: "Fervor do Ousado",
-                tipo: "Difícil",
-                efeito: "Permanente",
-                descricao: "A partir de agora, se você puxar mais de 5 ingredientes sem estourar, suas vendas são dobradas naquele turno.",
-                ingredientes: { "Perna de Sapo": 2, "Cogumelo de Sangue": 2, "Chifre de Unicórnio": 1 }
-            }
+            "Barreira de Bolhas": { nome: "Barreira de Bolhas", tipo: "Fácil", efeito: "Ação", descricao: "Até o início do seu próximo turno, você está imune ao efeito de UMA poção de Ação usada por seu oponente. O efeito é consumido após bloquear.", ingredientes: { "Belladonna": 1 }, corExtra: { "verde": 1 } },
+            "Unguento de Musgo": { nome: "Unguento de Musgo", tipo: "Fácil", efeito: "Momentâneo", descricao: "Na sua próxima Fase da Bolha, ignore a primeira explosão por COR. Não protege contra Sal Negro.", ingredientes: { "Musgo Venenoso": 2 } },
+            "Infusão de Foco": { nome: "Infusão de Foco", tipo: "Médio", efeito: "Permanente", descricao: "Sua Prateleira de Armazenamento é aprimorada em +1 espaço.", ingredientes: { "Asa de Fada": 1}, corExtra: { "amarelo": 2 } },
+            "Pó da Corrosão": { nome: "Pó da Corrosão", tipo: "Fácil", efeito: "Ação", descricao: "Seu oponente descarta 1 ingrediente da prateleira dele (ele escolhe qual).", ingredientes: { "Beterraba Brava": 2} },
+            "Elixir do Mercador": { nome: "Elixir do Mercador", tipo: "Fácil", efeito: "Ação", descricao: "Descarte um cliente do mercado e revele um novo. (Funciona mesmo em clientes com Contrato).", ingredientes: { "Unha de Bruxa": 1, "Asa de Fada": 1 }, corExtra: { "amarelo": 1 } },
+            "Tônico Dourado": { nome: "Tônico Dourado", tipo: "Fácil", efeito: "Ação", descricao: "Ganhe 2 Moedas imediatamente.", ingredientes: { "Cera de Ogro": 1}, corExtra: { "amarelo": 1 } },
+            "Soro da Clarividência": { nome: "Soro da Clarividência", tipo: "Fácil", efeito: "Ação", descricao: "Pegue qualquer ingrediente que precisar diretamente do caldeirão e guarde na sua prateleira.", ingredientes: {"Chifre de Unicórnio": 1 }, corExtra: { "azul": 1 } },
+            "Descarte Oportuno": { nome: "Descarte Oportuno", tipo: "Fácil", efeito: "Ação", descricao: "Escolha 1 ingrediente do seu Balcão e descarte-o de volta no caldeirão para ganhar 1 Moeda.", ingredientes: { "Unha de Bruxa": 1, "Perna de Sapo": 1 } },
+            "Amuleto do Colecionador": { nome: "Amuleto do Colecionador", tipo: "Médio", efeito: "Permanente", descricao: "Você ganha +1 Moeda adicional sempre que vende uma poção.", ingredientes: { "Chifre de Unicórnio": 1, "Perna de Sapo": 1, "Suor de Sereia": 1 }, corExtra: { "vermelho": 1 } },
+            "Mão do Mago": { nome: "Mão do Mago", tipo: "Médio", efeito: "Ação", descricao: "Roube 1 ingrediente da prateleira do seu oponente.", ingredientes: { "Asa de Fada": 1, "Beterraba Brava": 1, "Cera de Ogro": 1 } },
+            "Parasita Mortífero": { nome: "Parasita Mortífero", tipo: "Médio", efeito: "Ação", descricao: "Na próxima venda do seu oponente, você ganha metade das moedas (arredondando para cima). Não pode ser bloqueado.", ingredientes: { "Belladonna": 2 }, corExtra: { "verde": 1 } },
+            "Caldeirão Expansivo": { nome: "Caldeirão Expansivo", tipo: "Médio", efeito: "Permanente", descricao: "Sua Prateleira de Armazenamento é aprimorada em +1 espaço.", ingredientes: {"Pena de Fênix": 1, "Cogumelo de Sangue": 1 }, corExtra: { "verde": 1 } },
+            "Eco Alquímico": { nome: "Eco Alquímico", tipo: "Difícil", efeito: "Ação", descricao: "Escolha um efeito de poção Permanente ativo do seu oponente. Você copia o efeito dessa poção até o final da sua próxima fase de Ação.", ingredientes: { "Pena de Fênix": 1, "Cogumelo de Sangue": 1, "Cera de Ogro": 1 }, corExtra: { "azul": 2 } },
+            "Resiliência do Farsante": { nome: "Resiliência do Farsante", tipo: "Médio", efeito: "Permanente", descricao: "Se seu caldeirão explodir, você pode guardar 1 dos ingredientes na sua prateleira, se houver espaço.", ingredientes: { "Unha de Bruxa": 1, "Suor de Sereia": 1, "Cera de Ogro": 1 }, corExtra: { "azul": 1 } },
+            "Ingrediente Contaminado": { nome: "Ingrediente Contaminado", tipo: "Fácil", efeito: "Ação", descricao: "Dê 1 ingrediente da sua prateleira para seu oponente (se houver espaço na prateleira dele).", ingredientes: { "Musgo Venenoso": 1 }, corExtra: { "amarelo": 1 } },
+            "Contrato de Exclusividade": { nome: "Contrato de Exclusividade", tipo: "Médio", efeito: "Ação", descricao: "Reserve um cliente do mercado para você. Ele não pode ser atendido pelo oponente.", ingredientes: { "Chifre de Unicórnio": 1, "Suor de Sereia": 1, "Beterraba Brava": 1 } },
+            "Estabilizador Cromático": { nome: "Estabilizador Cromático", tipo: "Difícil", efeito: "Permanente", descricao: "Seu caldeirão só explode na TERCEIRA ficha da mesma cor. (A regra do Sal Negro permanece a mesma).", ingredientes: { "Cogumelo de Sangue": 2, "Cera de Ogro": 2, "Suor de Sereia": 1, "Pena de Fênix": 2 } },
+            "Pedra Filosofal": { nome: "Pedra Filosofal", tipo: "Difícil", efeito: "Ação", descricao: "Ganhe 7 Moedas imediatamente.", ingredientes: { "Pena de Fênix": 2, "Chifre de Unicórnio": 1, "Suor de Sereia": 1 } },
+            "Ferrugem Alquímica": { nome: "Ferrugem Alquímica", tipo: "Médio", efeito: "Ação", descricao: "Desativa um aprimoramento Permanente do seu oponente por uma rodada.", ingredientes: { "Musgo Venenoso": 1, "Cogumelo de Sangue": 1, "Beterraba Brava": 1 } },
+            "Poção da Usurpação": { nome: "Poção da Usurpação", tipo: "Difícil", efeito: "Ação", descricao: "Seu oponente te paga 5 Moedas (ou tudo o que ele tiver, se for menos que 5).", ingredientes: { "Pena de Fênix": 1, "Cogumelo de Sangue": 1, "Chifre de Unicórnio": 1, "Cera de Ogro": 1 } },
+            "Solvente Universal": { nome: "Solvente Universal", tipo: "Difícil", efeito: "Ação", descricao: "Seu oponente descarta TODOS os ingredientes da prateleira dele.", ingredientes: { "Pena de Fênix": 1, "Olhos de Jiboia": 1, "Belladonna": 1, "Unha de Bruxa": 1, "Suor de Sereia": 2 } },
+            "Maldição do Caldeirão Trincado": { nome: "Maldição do Caldeirão Trincado", tipo: "Difícil", efeito: "Ação", descricao: "No próximo turno do seu oponente, a Fase de puxar ingredientes dele termina se ele puxar qualquer ingrediente da cor que você escolher.", ingredientes: { "Musgo Venenoso": 2, "Belladonna": 2 } },
+            "Pasta Prismática": { nome: "Pasta Prismática", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, você pode usar qualquer ingrediente no lugar de somente UM outro ingrediente em suas receitas.", ingredientes: { "Pena de Fênix": 2, "Suor de Sereia": 1, "Chifre de Unicórnio": 2, "Olhos de Jiboia": 1 } },
+            "Fervor do Ousado": { nome: "Fervor do Ousado", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, se você puxar mais de 5 ingredientes sem estourar, suas vendas são dobradas naquele turno.", ingredientes: { "Perna de Sapo": 2, "Cogumelo de Sangue": 2, "Chifre de Unicórnio": 1 } }
         };
 
         const INGREDIENT_DATA = {
@@ -218,6 +60,9 @@
         const CLIENT_BONUS = { "Comum": 0, "Rico": 1, "Nobre": 3 };
         const CLIENT_TYPES = ["Comum", "Rico", "Nobre"];
 
+        // ==========================================================
+        // CONFIGURAÇÃO DO FIREBASE
+        // ==========================================================
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
             : {
@@ -239,6 +84,9 @@
             const gamesCollectionPath = `alquimercadores_games`;
             const lobbyCollectionPath = `alquimercadores_lobby`;
             
+            // ==========================================================
+            // VARIÁVEIS DE ESTADO GLOBAIS
+            // ==========================================================
             let isProcessingClick = false;
             let selectedPotion = null; 
             let localGameState = {}; 
@@ -251,10 +99,13 @@
             let unsubscribeLobbyUser = null; 
     
             let recipeCurrentPage = 0;
-            const recipesPerPage = 4; // Ajustado para a nova visualização
+            const recipesPerPage = 4; // Ajustado para o novo layout de 2 colunas 
             let allPotionNames = [];
             let recipeBookMode = 'view';
     
+            // ==========================================================
+            // ELEMENTOS DA DOM
+            // ==========================================================
             const lobbyScreen = document.getElementById('lobby-screen');
             const playerListScreen = document.getElementById('player-list-screen');
             const gameScreen = document.getElementById('game-screen');
@@ -284,42 +135,37 @@
             const player1ShelfEl = document.getElementById('player1-shelf');
             const player2ShelfEl = document.getElementById('player2-shelf');
             const counterAreaEl = document.getElementById('counter-area');
-            
-            // Novos elementos do Painel Superior e Botões
+            const closePotionsBoardBtn = document.getElementById('close-potions-board-btn');
             const cauldronBtn = document.getElementById('cauldron-btn');
             const stopPullingBtn = document.getElementById('stop-pulling-btn');
             const finishProductionBtn = document.getElementById('finish-production-btn');
             const finishActionBtn = document.getElementById('finish-action-btn');
             const activePotionsToggleBtn = document.getElementById('active-potions-toggle');
-            
             const activePotionsBoard = document.getElementById('active-potions-board');
-            const closePotionsBoardBtn = document.getElementById('close-potions-board-btn');
             const player1ActivePotionsEl = document.getElementById('player1-active-potions-list');
             const player2ActivePotionsEl = document.getElementById('player2-active-potions-list');
-            
             const recipeModal = document.getElementById('recipe-modal');
             const closeRecipeModalBtn = document.getElementById('close-recipe-modal-btn');
-            
             const actionModal = document.getElementById('action-modal');
             const actionPotionNameEl = document.getElementById('action-potion-name');
             const actionPotionDescEl = document.getElementById('action-potion-desc');
             const sellBtn = document.getElementById('sell-btn');
             const useBtn = document.getElementById('use-btn');
-            
             const messageModal = document.getElementById('message-modal');
             const messageTextEl = document.getElementById('message-text');
             const closeMessageModalBtn = document.getElementById('close-message-modal-btn');
-            
             const endGameModal = document.getElementById('end-game-modal');
             const winnerTextEl = document.getElementById('winner-text');
             const decisionModal = document.getElementById('decision-modal');
             const decisionTitleEl = document.getElementById('decision-title');
             const decisionOptionsEl = document.getElementById('decision-options');
             const quitGameBtn = document.getElementById('quit-game-btn');
-            
             const mesaBook = document.getElementById('mesa-book-btn');
             mesaBook.addEventListener('click', handleMesaBookClick);
             
+            // ==========================================================
+            // LÓGICA DO JOGO
+            // ==========================================================
             function generateCauldron() {
                 const cauldron = [];
                 for (const ingredient in INGREDIENT_DATA) {
@@ -339,7 +185,6 @@
                     logMessage(`Fervor do Ousado ativado! As vendas de ${playerState.name} serão dobradas neste turno!`);
                     showMessage("Fervor do Ousado Ativado! Suas vendas valerão o dobro!");
                 }
-                
                 localGameState.phase = `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
                 logMessage(`${localGameState.players[localPlayerId].name} parou de puxar.`);
                 updateFirestoreState(localGameState);
@@ -348,12 +193,11 @@
             function triggerStopPullingDiscardDecision(playerId) {
                 decisionTitleEl.textContent = "Descarte Oportuno";
                 let optionsHTML = `<p class="mb-4">Você parou de puxar. Escolha um ingrediente do balcão para descartar por 1 Moeda, ou recuse o efeito.</p>`;
-
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
                 localGameState.currentPull.forEach((ingredientName, index) => {
                     const imgData = INGREDIENT_DATA[ingredientName];
                     ingredientsGridHTML += `
-                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-index="${index}">
+                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-index="${index}">
                             <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
                             <span class="font-bold text-sm mt-1">${ingredientName}</span>
                         </button>
@@ -361,9 +205,7 @@
                 });
                 ingredientsGridHTML += `</div>`;
                 optionsHTML += ingredientsGridHTML;
-                
                 optionsHTML += `<button class="btn btn-red w-full mt-4" data-index="-1">Não usar o efeito</button>`;
-
                 decisionOptionsEl.innerHTML = optionsHTML;
 
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
@@ -372,7 +214,6 @@
                         handleStopPullingDiscardSelection(playerId, index);
                     };
                 });
-
                 decisionModal.classList.remove('hidden');
             }
 
@@ -388,7 +229,6 @@
                 } else {
                     logMessage(`${playerState.name} decidiu não usar o efeito do Descarte Oportuno.`);
                 }
-
                 decisionModal.classList.add('hidden');
                 proceedToPostProduction(); 
             }
@@ -417,7 +257,7 @@
                 spareIngredients.forEach(ingredientName => {
                     const imgData = INGREDIENT_DATA[ingredientName];
                     ingredientsGridHTML += `
-                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-substitute="${ingredientName}">
+                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-substitute="${ingredientName}">
                             <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
                             <span class="font-bold text-sm mt-1">${ingredientName}</span>
                         </button>
@@ -433,7 +273,6 @@
                         handlePrismaticSubstitution(potionName, substituteIngredient);
                     };
                 });
-
                 recipeModal.classList.add('hidden');
                 decisionModal.classList.remove('hidden');
             }
@@ -444,9 +283,7 @@
                 const playerState = localGameState.players[localPlayerId];
 
                 const substituteIndex = pull.indexOf(substituteIngredient);
-                if (substituteIndex > -1) {
-                    pull.splice(substituteIndex, 1);
-                }
+                if (substituteIndex > -1) { pull.splice(substituteIndex, 1); }
 
                 for (const ingredientName in recipe) {
                     const isMissingIngredient = (pull.filter(i => i === ingredientName).length < recipe[ingredientName]);
@@ -460,10 +297,8 @@
                         }
                     }
                 }
-
                 playerState.potionsReady.push(potionName);
                 logMessage(`${playerState.name} usou ${substituteIngredient} como coringa para criar: ${potionName}!`);
-                
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -472,12 +307,11 @@
                 const opponentState = localGameState.players[getOpponentId(playerId)];
                 decisionTitleEl.textContent = "Ferrugem Alquímica";
                 let optionsHTML = `<p class="mb-4">Escolha um aprimoramento de ${opponentState.name} para desativar por uma rodada:</p>`;
-
                 let potionsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
                 targetPotions.forEach(potionName => {
                     potionsGridHTML += `
-                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-potion-name="${potionName}">
-                            <img src="imagens/Poção.png" alt="${potionName}" class="w-16 h-16">
+                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-potion-name="${potionName}">
+                            <img src="imagens/Poção.png" alt="${potionName}" class="w-16 h-16 drop-shadow-lg">
                             <span class="font-bold text-sm mt-1">${potionName}</span>
                         </button>
                     `;
@@ -499,12 +333,11 @@
                 const opponentState = localGameState.players[getOpponentId(playerId)];
                 decisionTitleEl.textContent = "Eco Alquímico";
                 let optionsHTML = `<p class="mb-4">Escolha um aprimoramento de ${opponentState.name} para copiar:</p>`;
-
                 let potionsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
                 targetPotions.forEach(potionName => {
                     potionsGridHTML += `
-                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-potion-name="${potionName}">
-                            <img src="imagens/Poção.png" alt="${potionName}" class="w-16 h-16">
+                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-potion-name="${potionName}">
+                            <img src="imagens/Poção.png" alt="${potionName}" class="w-16 h-16 drop-shadow-lg">
                             <span class="font-bold text-sm mt-1">${potionName}</span>
                         </button>
                     `;
@@ -524,18 +357,12 @@
 
             function handleEchoSelection(playerId, potionToCopy) {
                 const playerState = localGameState.players[playerId];
-
                 if (playerState.copiedEffect) {
                     if (playerState.copiedEffect.name === "Infusão de Foco" || playerState.copiedEffect.name === "Caldeirão Expansivo") {
                         playerState.shelfLimit--;
                     }
                 }
-
-                playerState.copiedEffect = {
-                    name: potionToCopy,
-                    status: 'PENDING_ACTIVATION' 
-                };
-
+                playerState.copiedEffect = { name: potionToCopy, status: 'PENDING_ACTIVATION' };
                 logMessage(`${playerState.name} usou Eco Alquímico e vai copiar o efeito de "${potionToCopy}" no seu próximo turno!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
@@ -554,12 +381,7 @@
                     logMessage(`A prateleira de ${opponentState.name} foi reduzida para ${opponentState.shelfLimit} espaços!`);
                 }
 
-                opponentState.disabledEffect = {
-                    name: potionToDisable,
-                    originalValue: originalValue,
-                    status: 'PENDING_REACTIVATION' 
-                };
-
+                opponentState.disabledEffect = { name: potionToDisable, originalValue: originalValue, status: 'PENDING_REACTIVATION' };
                 logMessage(`${playerState.name} usou Ferrugem Alquímica e desativou a poção "${potionToDisable}" de ${opponentState.name} por uma rodada!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
@@ -568,15 +390,13 @@
             function triggerContaminatedDecision(playerId) {
                 const playerState = localGameState.players[playerId];
                 const opponentState = localGameState.players[getOpponentId(playerId)];
-
                 decisionTitleEl.textContent = "Ingrediente Contaminado";
                 let optionsHTML = `<p class="mb-4">Escolha um ingrediente da sua prateleira para dar para ${opponentState.name}:</p>`;
-
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
                 playerState.shelf.forEach((ingredientName, index) => {
                     const imgData = INGREDIENT_DATA[ingredientName];
                     ingredientsGridHTML += `
-                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-index="${index}">
+                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-index="${index}">
                             <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
                             <span class="font-bold text-sm mt-1">${ingredientName}</span>
                         </button>
@@ -584,7 +404,6 @@
                 });
                 ingredientsGridHTML += `</div>`;
                 optionsHTML += ingredientsGridHTML;
-
                 decisionOptionsEl.innerHTML = optionsHTML;
 
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
@@ -593,7 +412,6 @@
                         handleContaminatedSelection(playerId, index);
                     };
                 });
-
                 decisionModal.classList.remove('hidden');
             }
 
@@ -607,12 +425,9 @@
                     decisionModal.classList.add('hidden');
                     return;
                 }
-
                 const givenIngredient = playerState.shelf.splice(ingredientIndex, 1)[0];
                 opponentState.shelf.push(givenIngredient);
-
                 logMessage(`${playerState.name} usou Ingrediente Contaminado e deu ${givenIngredient} para ${opponentState.name}!`);
-
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -620,15 +435,13 @@
             function triggerMageHandDecision(playerId) {
                 const opponentId = getOpponentId(playerId);
                 const opponentState = localGameState.players[opponentId];
-
                 decisionTitleEl.textContent = "Mão do Mago";
                 let optionsHTML = `<p class="mb-4">Escolha um ingrediente para roubar da prateleira de ${opponentState.name}:</p>`;
-
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
                 opponentState.shelf.forEach((ingredientName, index) => {
                     const imgData = INGREDIENT_DATA[ingredientName];
                     ingredientsGridHTML += `
-                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-index="${index}">
+                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-index="${index}">
                             <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
                             <span class="font-bold text-sm mt-1">${ingredientName}</span>
                         </button>
@@ -636,7 +449,6 @@
                 });
                 ingredientsGridHTML += `</div>`;
                 optionsHTML += ingredientsGridHTML;
-
                 decisionOptionsEl.innerHTML = optionsHTML;
 
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
@@ -645,7 +457,6 @@
                         handleMageHandSelection(playerId, index);
                     };
                 });
-
                 decisionModal.classList.remove('hidden');
             }
 
@@ -665,7 +476,6 @@
                     optionsHTML += `<button class="btn text-white ${colors[color]}" data-color="${color}">${color.charAt(0).toUpperCase() + color.slice(1)}</button>`;
                 }
                 optionsHTML += `</div>`;
-                
                 decisionOptionsEl.innerHTML = optionsHTML;
 
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
@@ -674,7 +484,6 @@
                         handleCurseColorSelection(playerId, chosenColor);
                     };
                 });
-
                 decisionModal.classList.remove('hidden');
             }
 
@@ -682,16 +491,10 @@
                 const playerState = localGameState.players[playerId];
                 const opponentId = getOpponentId(playerId);
                 const opponentState = localGameState.players[opponentId];
-
-                opponentState.activePotions["Maldição do Caldeirão Trincado"] = { 
-                    status: 'PENDING_ACTIVATION', 
-                    color: chosenColor 
-                };
-
+                opponentState.activePotions["Maldição do Caldeirão Trincado"] = { status: 'PENDING_ACTIVATION', color: chosenColor };
                 const message = `${playerState.name} usou a Maldição do Caldeirão Trincado e escolheu a cor: ${chosenColor.toUpperCase()}!`;
                 logMessage(message);
                 showMessage(message); 
-
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -706,27 +509,22 @@
                     decisionModal.classList.add('hidden');
                     return;
                 }
-
                 const stolenIngredient = opponentState.shelf.splice(ingredientIndex, 1)[0];
                 playerState.shelf.push(stolenIngredient);
-
                 logMessage(`${playerState.name} usou Mão do Mago e roubou ${stolenIngredient} de ${opponentState.name}!`);
-
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
 
             function triggerDiscardOpportunityDecision(playerId) {
                 const playerState = localGameState.players[playerId];
-
                 decisionTitleEl.textContent = "Descarte Oportuno";
                 let optionsHTML = `<p class="mb-4">Escolha um ingrediente do seu balcão para descartar e ganhar 1 Moeda:</p>`;
-
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
                 localGameState.currentPull.forEach((ingredientName, index) => {
                     const imgData = INGREDIENT_DATA[ingredientName];
                     ingredientsGridHTML += `
-                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-index="${index}">
+                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-index="${index}">
                             <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
                             <span class="font-bold text-sm mt-1">${ingredientName}</span>
                         </button>
@@ -734,7 +532,6 @@
                 });
                 ingredientsGridHTML += `</div>`;
                 optionsHTML += ingredientsGridHTML;
-
                 decisionOptionsEl.innerHTML = optionsHTML;
 
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
@@ -743,57 +540,47 @@
                         handleDiscardOpportunitySelection(playerId, index);
                     };
                 });
-
                 decisionModal.classList.remove('hidden');
             }
 
             function handleDiscardOpportunitySelection(playerId, ingredientIndex) {
                 const playerState = localGameState.players[playerId];
-
                 if (ingredientIndex < 0 || ingredientIndex >= localGameState.currentPull.length) {
                     decisionModal.classList.add('hidden');
                     return;
                 }
-
                 const discardedIngredient = localGameState.currentPull.splice(ingredientIndex, 1)[0];
                 localGameState.cauldron.push(discardedIngredient);
                 playerState.coins += 1;
-
                 logMessage(`${playerState.name} usou Descarte Oportuno, descartou ${discardedIngredient} e ganhou 1 Moeda!`);
-
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
 
             function triggerClairvoyanceDecision(playerId) {
                 const playerState = localGameState.players[playerId];
-
                 if (playerState.shelf.length >= playerState.shelfLimit) {
                     showMessage("Sua prateleira está cheia! Você não pode usar o Soro da Clarividência agora.");
                     playerState.potionsReady.unshift("Soro da Clarividência");
                     updateFirestoreState(localGameState);
                     return;
                 }
-
                 decisionTitleEl.textContent = "Soro da Clarividência";
                 let optionsHTML = `<p class="mb-4">Você enxerga o conteúdo do caldeirão! Escolha 1 ingrediente para pegar:</p>`;
-
                 const cauldronCounts = getIngredientCounts(localGameState.cauldron);
                 let availableIngredients = false;
-
-                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 max-h-64 overflow-y-auto p-2 bg-black/10 rounded">`;
+                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 max-h-64 overflow-y-auto p-2 bg-black/30 rounded border border-gray-700">`;
 
                 for (const ingredientName in INGREDIENT_DATA) {
                     if (cauldronCounts[ingredientName] > 0) {
                         availableIngredients = true;
                         const imgData = INGREDIENT_DATA[ingredientName];
                         const count = cauldronCounts[ingredientName];
-                        
                         ingredientsGridHTML += `
-                            <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-ingredient="${ingredientName}">
+                            <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-ingredient="${ingredientName}">
                                 <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
                                 <span class="font-bold text-sm mt-1">${ingredientName}</span>
-                                <span class="text-xs">(${count} no caldeirão)</span>
+                                <span class="text-xs text-yellow-300">(${count} no caldeirão)</span>
                             </button>
                         `;
                     }
@@ -801,13 +588,12 @@
                 ingredientsGridHTML += `</div>`;
 
                 if (!availableIngredients) {
-                    optionsHTML += `<p class="text-red-600 mt-4">Não há ingredientes válidos no caldeirão para pegar!</p>`;
+                    optionsHTML += `<p class="text-red-500 font-bold mt-4">Não há ingredientes válidos no caldeirão para pegar!</p>`;
                 } else {
                     optionsHTML += ingredientsGridHTML;
                 }
                 
                 optionsHTML += `<button class="btn btn-red w-full mt-4" data-ingredient="cancel">Cancelar</button>`;
-
                 decisionOptionsEl.innerHTML = optionsHTML;
 
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
@@ -823,19 +609,16 @@
                         }
                     };
                 });
-
                 decisionModal.classList.remove('hidden');
             }
             
             function handleClairvoyanceSelection(playerId, ingredientName) {
                 const playerState = localGameState.players[playerId];
-
                 if (playerState.shelf.length >= playerState.shelfLimit) {
                     showMessage("Sua prateleira ficou cheia! Ação cancelada.");
                     decisionModal.classList.add('hidden');
                     return;
                 }
-
                 const cauldron = localGameState.cauldron;
                 const ingredientIndex = cauldron.indexOf(ingredientName);
 
@@ -846,7 +629,6 @@
                 } else {
                     logMessage(`Tentativa de pegar ${ingredientName} falhou, ingrediente não encontrado no caldeirão.`);
                 }
-
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -855,28 +637,22 @@
                 const client = localGameState.clients[clientIndex];
                 const potion = ARCANO_POTIONUM[client.wants];
                 const basePrice = client.price;
-
                 decisionTitleEl.textContent = "Usar Sal Negro?";
                 decisionOptionsEl.innerHTML = `
                     <p class="mb-4">Você tem Sal Negro na prateleira! Deseja usá-lo para vender a poção <strong>${potion.nome}</strong> por um bônus de +5 moedas?</p>
-                    <p class="mb-4 text-lg">Venda Padrão: ${basePrice} 💰<br>Venda com Sal Negro: ${basePrice + 5} 💰</p>
+                    <p class="mb-4 text-lg">Venda Padrão: ${basePrice} 💰<br>Venda com Sal Negro: <span class="text-green-400 font-bold">${basePrice + 5} 💰</span></p>
                     <div class="grid grid-cols-2 gap-4">
-                        <button class="btn btn-green w-full" data-action="yes">Sim, usar (+5 💰)</button>
+                        <button class="btn btn-green w-full" data-action="yes">Sim, usar (+5)</button>
                         <button class="btn btn-red w-full" data-action="no">Não vender normalmente</button>
                     </div>
                 `;
-
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
                     button.onclick = () => {
                         decisionModal.classList.add('hidden');
-                        if (button.dataset.action === 'yes') {
-                            executeSale(clientIndex, true); 
-                        } else {
-                            executeSale(clientIndex, false); 
-                        }
+                        if (button.dataset.action === 'yes') { executeSale(clientIndex, true); } 
+                        else { executeSale(clientIndex, false); }
                     };
                 });
-
                 decisionModal.classList.remove('hidden');
             }
             
@@ -899,11 +675,7 @@
                         }
                     }
                 });
-
-                if (!canReserve) {
-                    optionsHTML += `<p class="text-red-600 mt-4">Não há clientes disponíveis para reservar no momento!</p>`;
-                }
-
+                if (!canReserve) { optionsHTML += `<p class="text-red-500 font-bold mt-4">Não há clientes disponíveis para reservar no momento!</p>`; }
                 decisionOptionsEl.innerHTML = optionsHTML;
 
                 decisionOptionsEl.querySelectorAll('button[data-index]').forEach(button => {
@@ -912,26 +684,20 @@
                         handleContractSelection(playerId, index);
                     };
                 });
-
                 decisionModal.classList.remove('hidden');
             }
 
             function handleContractSelection(playerId, clientIndex) {
                 if (clientIndex < 0 || clientIndex >= localGameState.clients.length) return;
-                
                 const client = localGameState.clients[clientIndex];
-                
                 if (client.contract) {
                     showMessage("Este cliente já foi reservado!");
                     decisionModal.classList.add('hidden');
                     return;
                 }
-
                 client.contract = playerId;
-
                 const playerName = localGameState.players[playerId].name;
                 logMessage(`${playerName} assinou um Contrato de Exclusividade com o cliente que deseja "${client.wants}".`);
-
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -939,13 +705,12 @@
             function triggerElixirDecision(playerId) {
                 decisionTitleEl.textContent = "Elixir do Mercador";
                 let optionsHTML = `<p class="mb-4">Escolha um cliente do mercado para dispensar e revelar um novo:</p>`;
-
                 localGameState.clients.forEach((client, index) => {
                     if (client && !client.served) {
                         const clientType = client.type;
                         const clientWants = client.wants;
                         const clientPrice = client.price;
-                        optionsHTML += `<button class="btn btn-gray w-full mb-2" data-index="${index}">[ Cliente ${clientType} quer 1 ${clientWants} por ${clientPrice} moedas ]</button>`;
+                        optionsHTML += `<button class="btn bg-slate-700 hover:bg-slate-600 text-white w-full mb-2" data-index="${index}">[ Cliente ${clientType} quer 1 ${clientWants} por ${clientPrice} moedas ]</button>`;
                     }
                 });
                 decisionOptionsEl.innerHTML = optionsHTML;
@@ -956,13 +721,11 @@
                         handleElixirDiscard(playerId, index);
                     };
                 });
-
                 decisionModal.classList.remove('hidden');
             }
 
             function handleElixirDiscard(playerId, clientIndex) {
                 if (clientIndex < 0 || clientIndex >= localGameState.clients.length) return;
-
                 const originalClientType = CLIENT_TYPES[clientIndex];
                 const discardedPotion = localGameState.clients[clientIndex].wants;
                 
@@ -970,14 +733,12 @@
                 const newPotion = localGameState.clients[clientIndex].wants;
 
                 logMessage(`${localGameState.players[playerId].name} usou o Elixir, dispensou o cliente que queria "${discardedPotion}" e atraiu um novo que quer "${newPotion}".`);
-
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
 
             function triggerCorrosionDecision() {
                 const playerState = localGameState.players[localPlayerId];
-                
                 if (playerState.shelf.length === 0) {
                     if(localPlayerId === localGameState.pendingAction.target) {
                        localGameState.pendingAction = null;
@@ -985,15 +746,13 @@
                     }
                     return;
                 }
-
                 decisionTitleEl.textContent = "Pó da Corrosão!";
                 let optionsHTML = `<p class="mb-4">Seu oponente usou Pó da Corrosão. Escolha 1 ingrediente da sua prateleira para descartar:</p>`;
-
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
                 playerState.shelf.forEach((ingredientName, index) => {
                     const imgData = INGREDIENT_DATA[ingredientName];
                     ingredientsGridHTML += `
-                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors" data-index="${index}">
+                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-index="${index}">
                             <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
                             <span class="font-bold text-sm mt-1">${ingredientName}</span>
                         </button>
@@ -1001,7 +760,6 @@
                 });
                 ingredientsGridHTML += `</div>`;
                 optionsHTML += ingredientsGridHTML;
-
                 decisionOptionsEl.innerHTML = optionsHTML;
 
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
@@ -1010,14 +768,12 @@
                         handleCorrosionDiscard(index);
                     };
                 });
-
                 decisionModal.classList.remove('hidden');
             }
 
             function handleCorrosionDiscard(index) {
                 const playerState = localGameState.players[localPlayerId];
                 if (index < 0 || index >= playerState.shelf.length) return;
-
                 const discardedIngredient = playerState.shelf.splice(index, 1)[0];
                 localGameState.cauldron.push(discardedIngredient);
                 logMessage(`${playerState.name} descartou ${discardedIngredient}.`);
@@ -1034,12 +790,7 @@
                 const basePrice = POTION_PRICES[potionData.tipo];
                 const bonus = CLIENT_BONUS[clientType];
                 
-                return {
-                    type: clientType,
-                    wants: randomPotionName,
-                    price: basePrice + bonus,
-                    contract: null 
-                };
+                return { type: clientType, wants: randomPotionName, price: basePrice + bonus, contract: null };
             }
     
             function renderRecipeBookPage() {
@@ -1061,7 +812,6 @@
                     if (!potionName) return '';
                 
                     const potion = ARCANO_POTIONUM[potionName];
-                
                     let starsHTML = '';
                     if (localGameState.clients) {
                         localGameState.clients.forEach(c => {
@@ -1073,56 +823,45 @@
                         });
                     }
                 
-                    const fixos = Object.entries(potion.ingredientes)
-                        .map(([name, count]) => `${name} (x${count})`);
-                
-                    const extras = potion.corExtra 
-                        ? Object.entries(potion.corExtra).map(([cor, count]) => `+ ${count} de qualquer cor ${cor.toUpperCase()}`)
-                        : [];
-                
+                    const fixos = Object.entries(potion.ingredientes).map(([name, count]) => `${name} (x${count})`);
+                    const extras = potion.corExtra ? Object.entries(potion.corExtra).map(([cor, count]) => `+ ${count} de qualquer cor ${cor.toUpperCase()}`) : [];
                     const ingredientsText = [...fixos, ...extras].join(' ');
                     const isCreatable = recipeBookMode === 'create' && creatablePotions.includes(potionName);
                     
                     let creatableMarker = '';
-                    let className = 'receita-item p-3 border-b border-[#5c3d20]/20';
+                    let className = 'receita-item p-3 border-b border-[#5c3d20]/20 text-[#3d2a1a]';
                     let dataAttribute = ''; 
                 
                     if (isCreatable) {
-                        className += ' creatable';
-                        creatableMarker = '<span class="creatable-marker mt-2 text-center bg-green-200 py-1 rounded">Fabricar! (Clique)</span>';
+                        className += ' bg-yellow-200/50 rounded cursor-pointer hover:bg-yellow-300 transition-colors';
+                        creatableMarker = '<span class="block mt-2 text-center bg-green-600 text-white font-bold py-1 rounded shadow">Fabricar! (Clique)</span>';
                         dataAttribute = `data-potion-name="${potionName}"`;
                     }
                 
                     return `
                         <div class="${className}" ${dataAttribute}>
-                            <h4 class="text-lg font-bold text-[#5c3d20] flex items-center justify-between">
-                                <span>${potion.nome} [${potion.tipo}]</span>
+                            <h4 class="text-base font-bold text-[#5c3d20] flex items-center justify-between">
+                                <span>${potion.nome} <span class="text-xs text-gray-500">[${potion.tipo}]</span></span>
                                 <span>${starsHTML}</span>
                             </h4>
-                            <p class="text-sm mt-1"><strong>Ingredientes:</strong> ${ingredientsText}</p>
-                            <p class="text-sm mt-1 italic"><strong>Efeito:</strong> ${potion.descricao}</p>
+                            <p class="text-xs mt-1"><strong>Ingredientes:</strong> ${ingredientsText}</p>
+                            <p class="text-xs mt-1 italic"><strong>Efeito:</strong> ${potion.descricao}</p>
                             ${creatableMarker}
                         </div>
                     `;
                 };
                 
-                // Dividir em duas colunas no modal novo
                 for(let i=0; i<pagePotions.length; i++) {
-                    if (i < 2) {
-                        paginaEsquerdaEl.innerHTML += renderRecipeHTML(pagePotions[i]);
-                    } else {
-                        paginaDireitaEl.innerHTML += renderRecipeHTML(pagePotions[i]);
-                    }
+                    if (i < 2) { paginaEsquerdaEl.innerHTML += renderRecipeHTML(pagePotions[i]); } 
+                    else { paginaDireitaEl.innerHTML += renderRecipeHTML(pagePotions[i]); }
                 }
             
                 if (recipeBookMode === 'create') {
-                    const creatableElements = recipeModal.querySelectorAll('.creatable');
+                    const creatableElements = recipeModal.querySelectorAll('[data-potion-name]');
                     creatableElements.forEach(element => {
                         element.addEventListener('click', () => {
                             const potionNameToCreate = element.dataset.potionName;
-                            if (potionNameToCreate) {
-                                window.handleCreatePotion(potionNameToCreate);
-                            }
+                            if (potionNameToCreate) { window.handleCreatePotion(potionNameToCreate); }
                         });
                     });
                 }
@@ -1133,44 +872,16 @@
     
             function createInitialGameState(player1Name, player1UID) {
                 const startingPlayer = Math.random() < 0.5 ? 'player1' : 'player2';
-                
                 return {
-                    gameId: gameId,
-                    status: 'waiting', 
-                    phase: 'PREPARATION',
-                    currentPlayer: startingPlayer, 
-                    roundStarter: startingPlayer, 
+                    gameId: gameId, status: 'waiting', phase: 'PREPARATION',
+                    currentPlayer: startingPlayer, roundStarter: startingPlayer, 
                     players: {
-                        player1: {
-                            uid: player1UID,
-                            name: player1Name,
-                            coins: 0,
-                            shelf: [], 
-                            shelfLimit: 3,
-                            potionsReady: [], 
-                            activePotions: {},
-                            fervorBonusThisTurn: false
-                        },
-                        player2: {
-                            uid: null,
-                            name: 'Aguardando...',
-                            coins: 0,
-                            shelf: [],
-                            shelfLimit: 3,
-                            potionsReady: [],
-                            activePotions: {},
-                            fervorBonusThisTurn: false
-                        }
+                        player1: { uid: player1UID, name: player1Name, coins: 0, shelf: [], shelfLimit: 3, potionsReady: [], activePotions: {}, fervorBonusThisTurn: false },
+                        player2: { uid: null, name: 'Aguardando...', coins: 0, shelf: [], shelfLimit: 3, potionsReady: [], activePotions: {}, fervorBonusThisTurn: false }
                     },
                     cauldron: generateCauldron(),
-                    clients: [
-                        generateClient('Comum'),
-                        generateClient('Rico'),
-                        generateClient('Nobre')
-                    ],
-                    clientsServed: 0,
-                    currentPull: [], 
-                    log: ["Jogo criado. Aguardando oponente..."]
+                    clients: [ generateClient('Comum'), generateClient('Rico'), generateClient('Nobre') ],
+                    clientsServed: 0, currentPull: [], log: ["Jogo criado. Aguardando oponente..."]
                 };
             }
             
@@ -1187,19 +898,14 @@
             window.updateFirestoreState = updateFirestoreState;
             
             function logMessage(message) {
-                if (!localGameState.log) {
-                    localGameState.log = [];
-                }
+                if (!localGameState.log) { localGameState.log = []; }
                 localGameState.log.unshift(message); 
-                if (localGameState.log.length > 20) {
-                    localGameState.log.pop(); 
-                }
+                if (localGameState.log.length > 20) { localGameState.log.pop(); }
             }
     
             // ==========================================================
             // FUNÇÕES DE TRANSIÇÃO DE FASE
             // ==========================================================
-    
             function startProductionPhase(playerId) {
                 const playerState = localGameState.players[playerId];
 
@@ -1319,17 +1025,12 @@
             
             function startNewRound() {
                 logMessage("Uma nova rodada começa!");
-                
                 localGameState.clients.forEach((client, index) => {
-                    if (client.served) {
-                        localGameState.clients[index] = generateClient(CLIENT_TYPES[index]);
-                    }
+                    if (client.served) { localGameState.clients[index] = generateClient(CLIENT_TYPES[index]); }
                 });
-
                 const nextStarter = localGameState.roundStarter === 'player1' ? 'player2' : 'player1';
                 localGameState.roundStarter = nextStarter;
                 logMessage(`${localGameState.players[nextStarter].name} começa esta rodada.`);
-
                 selectedPotion = null; 
                 startProductionPhase(nextStarter);
             }
@@ -1339,14 +1040,12 @@
                 localGameState.status = 'finished';
                 const p1Coins = localGameState.players.player1.coins;
                 const p2Coins = localGameState.players.player2.coins;
-                
                 let winnerMsg = "";
             
                 if (localGameState.winner) {
                     const winnerName = localGameState.players[localGameState.winner].name;
                     winnerMsg = `${winnerName} venceu por desistência do oponente!`;
-                } 
-                else if (p1Coins > p2Coins) {
+                } else if (p1Coins > p2Coins) {
                     winnerMsg = `${localGameState.players.player1.name} vence com ${p1Coins} moedas!`;
                 } else if (p2Coins > p1Coins) {
                     winnerMsg = `${localGameState.players.player2.name} vence com ${p2Coins} moedas!`;
@@ -1363,43 +1062,27 @@
             // ==========================================================
             // MANIPULADORES DE EVENTOS (HANDLERS)
             // ==========================================================
-            
             function handleClientClick(clientIndex) {
                 if (localGameState.phase !== `ACTION_${localPlayerId.toUpperCase()}`) return;
                 if (!selectedPotion) {
                     showMessage("Selecione uma poção para vender primeiro (Use o painel de Ações).");
                     return;
                 }
-            
                 const client = localGameState.clients[clientIndex];
                 const playerState = localGameState.players[localPlayerId];
             
-                if (client.wants !== selectedPotion) {
-                    showMessage("Este cliente não quer esta poção!");
-                    return;
-                }
-            
-                if (client.contract && client.contract !== localPlayerId) {
-                    showMessage("Este cliente tem um contrato de exclusividade com seu oponente!");
-                    return;
-                }
+                if (client.wants !== selectedPotion) { showMessage("Este cliente não quer esta poção!"); return; }
+                if (client.contract && client.contract !== localPlayerId) { showMessage("Este cliente tem um contrato de exclusividade com seu oponente!"); return; }
             
                 const salNegroIndex = playerState.shelf.indexOf("Sal Negro");
-                
-                if (salNegroIndex > -1) {
-                    triggerSalNegroDecision(clientIndex);
-                } else {
-                    executeSale(clientIndex, false);
-                }
+                if (salNegroIndex > -1) { triggerSalNegroDecision(clientIndex); } 
+                else { executeSale(clientIndex, false); }
             }
 
             function handleMesaBookClick() {
                 const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
-                if (myPostProdPhase) {
-                    handleBookClick('create');
-                } else {
-                    handleBookClick('view');
-                }
+                if (myPostProdPhase) { handleBookClick('create'); } 
+                else { handleBookClick('view'); }
             }
 
             function executeSale(clientIndex, useSalNegro = false) {
@@ -1409,9 +1092,7 @@
                 const potionName = selectedPotion; 
             
                 const potionIndex = playerState.potionsReady.indexOf(potionName);
-                if (potionIndex > -1) {
-                    playerState.potionsReady.splice(potionIndex, 1);
-                }
+                if (potionIndex > -1) { playerState.potionsReady.splice(potionIndex, 1); }
             
                 let finalPrice = potionPrice;
 
@@ -1421,8 +1102,6 @@
                         playerState.shelf.splice(salNegroIndex, 1); 
                         finalPrice += 5;
                         logMessage(`${playerState.name} usou Sal Negro para um bônus de +5 moedas!`);
-                    } else {
-                        logMessage(`Bônus de Sal Negro falhou (item não encontrado na prateleira).`);
                     }
                 }
 
@@ -1444,23 +1123,15 @@
                 }
             
                 logMessage(`${playerState.name} vendeu ${potionName} por ${finalPrice} moedas!`);
-            
                 localGameState.clients[clientIndex].served = true;
                 localGameState.clientsServed++;
-            
                 selectedPotion = null; 
                 actionModal.classList.add('hidden'); 
-                
-                updateFirestoreState(localGameState).then(() => {
-                    showActionModal();
-                });
+                updateFirestoreState(localGameState).then(() => { showActionModal(); });
             }
             
             async function handleCauldronClick() {
-                if (isProcessingClick) {
-                    console.log("Ação já em processamento, clique ignorado.");
-                    return; 
-                }
+                if (isProcessingClick) return; 
                 isProcessingClick = true; 
             
                 if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) {
@@ -1478,15 +1149,13 @@
                 
                 const randomIndex = Math.floor(Math.random() * localGameState.cauldron.length);
                 const pulledIngredient = localGameState.cauldron.splice(randomIndex, 1)[0];
-            
                 localGameState.currentPull.push(pulledIngredient);
-                
                 logMessage(`${playerState.name} puxou: ${pulledIngredient}`);
                 
                 await updateFirestoreState(localGameState);
                 
                 const curseStatus = playerState.activePotions["Maldição do Caldeirão Trincado"];
-                const ingredientColor = INGREDIENT_DATA[pulledIngredient].cor;
+                const ingredientColor = INGREDIENT_DATA[pulledIngredient]?.cor;
             
                 if (curseStatus && curseStatus.status === 'ACTIVE_THIS_TURN' && ingredientColor === curseStatus.color) {
                     logMessage(`BOOM! A Maldição do Caldeirão Trincado foi ativada pelo ingrediente ${pulledIngredient}!`);
@@ -1504,9 +1173,9 @@
                     setTimeout(() => {
                         if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) {
                             isProcessingClick = false;
+                            updateUI(); // BINGO BUG FIX: Atualiza a tela para reativar o botão se o turno mudou
                             return;
                         }
-            
                         if (playerState.activePotions["Resiliência do Farsante"] || playerState.copiedEffect?.name === "Resiliência do Farsante") {
                             logMessage("BOOM! Mas a Resiliência do Farsante salvou um ingrediente!");
                             handleExplosionWithResilience();
@@ -1518,6 +1187,7 @@
                 } 
                 else {
                     isProcessingClick = false;
+                    updateUI(); // BINGO BUG FIX: Atualiza a tela imediatamente para reativar o botão
                 }
             }
             
@@ -1530,25 +1200,20 @@
                 }
 
                 const colorLimit = (playerState.activePotions["Estabilizador Cromático"] || playerState.copiedEffect?.name === "Estabilizador Cromático") ? 3 : 2;
-                const newIngredientColor = INGREDIENT_DATA[newlyPulledIngredient].cor;
+                const newIngredientColor = INGREDIENT_DATA[newlyPulledIngredient]?.cor;
 
-                if (newIngredientColor === 'coringa') return false;
+                if (!newIngredientColor || newIngredientColor === 'coringa') return false;
 
                 const colorCount = currentPull.filter(ing => INGREDIENT_DATA[ing]?.cor === newIngredientColor).length;
 
                 if (colorCount >= colorLimit) {
-                    if (localGameState.unguentoSavedColorThisTurn) {
-                        return true;
-                    }
-
+                    if (localGameState.unguentoSavedColorThisTurn) return true;
                     if (playerState.activePotions["Unguento de Musgo"]) {
                         await consumeUnguentoDeMusgo(localPlayerId, newIngredientColor);
                         return false;
                     }
-                    
                     return true;
                 }
-
                 return false;
             }
     
@@ -1558,13 +1223,13 @@
                 localGameState.currentPull = [];
                 showMessage("EXPLOSÃO! Você perdeu todos os ingredientes deste turno.");
                 isProcessingClick = false; 
+                updateUI(); // BINGO BUG FIX
                 endProductionPhase(); 
             }
     
             function handleExplosionWithResilience() {
                 decisionTitleEl.textContent = "EXPLOSÃO! Resiliência do Farsante ativada!";
                 let optionsHTML = `<p class="mb-4">Escolha 1 ingrediente para salvar na sua prateleira (se houver espaço):</p>`;
-                
                 const playerState = localGameState.players[localPlayerId];
                 const canSave = playerState.shelf.length < playerState.shelfLimit;
 
@@ -1572,9 +1237,8 @@
                 localGameState.currentPull.forEach((ingredientName, index) => {
                     const imgData = INGREDIENT_DATA[ingredientName];
                     const disabledAttribute = !canSave ? 'disabled title="Sua prateleira está cheia!"' : '';
-                    
                     ingredientsGridHTML += `
-                        <button class="flex flex-col items-center p-2 rounded-lg hover:bg-yellow-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" data-index="${index}" ${disabledAttribute}>
+                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" data-index="${index}" ${disabledAttribute}>
                             <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
                             <span class="font-bold text-sm mt-1">${ingredientName}</span>
                         </button>
@@ -1583,18 +1247,13 @@
                 ingredientsGridHTML += `</div>`;
                 optionsHTML += ingredientsGridHTML;
 
-                if (!canSave) {
-                    optionsHTML += `<p class="text-red-600 mt-2">Sua prateleira está cheia! Você não pode salvar nenhum ingrediente.</p>`;
-                }
-                
+                if (!canSave) { optionsHTML += `<p class="text-red-500 font-bold mt-2">Sua prateleira está cheia! Você não pode salvar nenhum ingrediente.</p>`; }
                 optionsHTML += `<button class="btn btn-red w-full mt-4" data-index="-1">Não salvar nada</button>`;
-
                 decisionOptionsEl.innerHTML = optionsHTML;
 
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
                     button.onclick = () => {
                         const index = parseInt(button.dataset.index, 10);
-
                         playerState.activePotions["Descarte Oportuno"] = false;
 
                         if (index === -1) {
@@ -1607,19 +1266,16 @@
                         localGameState.currentPull = [];
                         decisionModal.classList.add('hidden');
                         isProcessingClick = false; 
-                        
+                        updateUI(); // BINGO BUG FIX
                         endProductionPhase(); 
                     };
                 });
-                
                 decisionModal.classList.remove('hidden');
             }
             
             function handleStopPullingClick() {
                 if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
-                
                 const playerState = localGameState.players[localPlayerId];
-                
                 if (playerState.activePotions["Descarte Oportuno"] && localGameState.currentPull.length > 0) {
                     triggerStopPullingDiscardDecision(localPlayerId);
                 } else {
@@ -1634,13 +1290,11 @@
     
             function handleFinishActionClick() {
                 if (localGameState.phase !== `ACTION_${localPlayerId.toUpperCase()}`) return;
-                
                 if (localGameState.players[localPlayerId].potionsReady.length > 0) {
                     showMessage("Você ainda tem poções para resolver. Use ou Venda-as.");
                     showActionModal();
                     return;
                 }
-
                 actionModal.classList.add('hidden');
                 endActionPhase(); 
             }
@@ -1648,15 +1302,12 @@
             // ==========================================================
             // MANIPULADORES DE MODAIS E AÇÕES
             // ==========================================================
-            
             function showActionModal() {
                  if (localGameState.currentPlayer !== localPlayerId || localGameState.phase !== `ACTION_${localPlayerId.toUpperCase()}`) {
                      actionModal.classList.add('hidden');
                      return;
                  }
-
                 const playerState = localGameState.players[localPlayerId];
-                
                 if (!playerState.potionsReady || playerState.potionsReady.length === 0) {
                     actionModal.classList.add('hidden');
                     logMessage(`${playerState.name}, você não tem mais poções para resolver. Finalize suas ações.`);
@@ -1671,7 +1322,6 @@
             
                 sellBtn.onclick = () => handleSellPotion(potionName);
                 useBtn.onclick = () => handleUsePotion(potionName);
-            
                 actionModal.classList.remove('hidden');
             }
             
@@ -1684,41 +1334,21 @@
 
             function handleUsePotion(potionName) {
                 const playerState = localGameState.players[localPlayerId];
-                
                 const potionIndex = playerState.potionsReady.indexOf(potionName);
-                if (potionIndex > -1) {
-                    playerState.potionsReady.splice(potionIndex, 1);
-                } else {
-                    console.error("Tentei usar uma poção que não estava na lista:", potionName);
-                    actionModal.classList.add('hidden'); 
-                    showActionModal(); 
-                    return;
-                }
+                if (potionIndex > -1) { playerState.potionsReady.splice(potionIndex, 1); } 
+                else { actionModal.classList.add('hidden'); showActionModal(); return; }
             
                 logMessage(`${playerState.name} usou: ${potionName}!`);
-                
                 executePotionEffect(potionName, localPlayerId);
-                
                 actionModal.classList.add('hidden');
 
                 const potionsWithOwnUpdate = [
-                    "Eco Alquímico",
-                    "Ferrugem Alquímica",
-                    "Mão do Mago",
-                    "Contrato de Exclusividade",
-                    "Elixir do Mercador",
-                    "Soro da Clarividência",
-                    "Ingrediente Contaminado",
-                    "Maldição do Caldeirão Trincado"
+                    "Eco Alquímico", "Ferrugem Alquímica", "Mão do Mago", "Contrato de Exclusividade",
+                    "Elixir do Mercador", "Soro da Clarividência", "Ingrediente Contaminado", "Maldição do Caldeirão Trincado"
                 ];
 
-                if (potionsWithOwnUpdate.includes(potionName)) {
-                    return; 
-                }
-
-                updateFirestoreState(localGameState).then(() => {
-                    setTimeout(showActionModal, 100); 
-                });
+                if (potionsWithOwnUpdate.includes(potionName)) return; 
+                updateFirestoreState(localGameState).then(() => { setTimeout(showActionModal, 100); });
             }
             
             function handleBookClick(mode = 'view') {
@@ -1731,7 +1361,6 @@
             
             function findCreatablePotions(currentPull, playerId) {
                 const creatable = [];
-            
                 for (const potionName in ARCANO_POTIONUM) {
                     const potion = ARCANO_POTIONUM[potionName];
                     let tempPull = [...currentPull]; 
@@ -1740,31 +1369,20 @@
                     for (const [ingNome, qtd] of Object.entries(potion.ingredientes)) {
                         for (let i = 0; i < qtd; i++) {
                             const idx = tempPull.indexOf(ingNome);
-                            if (idx > -1) {
-                                tempPull.splice(idx, 1);
-                            } else {
-                                canMake = false;
-                                break;
-                            }
+                            if (idx > -1) { tempPull.splice(idx, 1); } 
+                            else { canMake = false; break; }
                         }
                     }
-            
                     if (!canMake) continue;
-            
                     if (potion.corExtra) {
                         for (const [corAlvo, qtd] of Object.entries(potion.corExtra)) {
                             for (let i = 0; i < qtd; i++) {
                                 const idxCor = tempPull.findIndex(ing => INGREDIENT_DATA[ing].cor === corAlvo);
-                                if (idxCor > -1) {
-                                    tempPull.splice(idxCor, 1);
-                                } else {
-                                    canMake = false;
-                                    break;
-                                }
+                                if (idxCor > -1) { tempPull.splice(idxCor, 1); } 
+                                else { canMake = false; break; }
                             }
                         }
                     }
-            
                     if (canMake) creatable.push(potionName);
                 }
                 return creatable;
@@ -1777,32 +1395,22 @@
                 const hasPrismatic = playerState.activePotions["Pasta Prismática"] || playerState.copiedEffect?.name === "Pasta Prismática";
                 
                 let usedIngredients = [];
-                let canMakeNormal = true;
                 let missingCount = 0;
                 let lastMissing = null;
             
                 for (const [ingNome, qtd] of Object.entries(potion.ingredientes)) {
                     for (let i = 0; i < qtd; i++) {
                         const idx = pull.indexOf(ingNome);
-                        if (idx > -1) {
-                            usedIngredients.push(pull.splice(idx, 1)[0]);
-                        } else {
-                            missingCount++;
-                            lastMissing = { type: 'fixo', value: ingNome };
-                        }
+                        if (idx > -1) { usedIngredients.push(pull.splice(idx, 1)[0]); } 
+                        else { missingCount++; lastMissing = { type: 'fixo', value: ingNome }; }
                     }
                 }
-            
                 if (potion.corExtra) {
                     for (const [corAlvo, qtd] of Object.entries(potion.corExtra)) {
                         for (let i = 0; i < qtd; i++) {
                             const idxCor = pull.findIndex(ing => INGREDIENT_DATA[ing].cor === corAlvo);
-                            if (idxCor > -1) {
-                                usedIngredients.push(pull.splice(idxCor, 1)[0]);
-                            } else {
-                                missingCount++;
-                                lastMissing = { type: 'cor', value: corAlvo };
-                            }
+                            if (idxCor > -1) { usedIngredients.push(pull.splice(idxCor, 1)[0]); } 
+                            else { missingCount++; lastMissing = { type: 'cor', value: corAlvo }; }
                         }
                     }
                 }
@@ -1815,36 +1423,28 @@
                     updateFirestoreState(localGameState);
                 } 
                 else if (missingCount === 1 && hasPrismatic) {
-                    if (lastMissing.type === 'fixo') {
-                        triggerPrismaticSubstitutionDecision(potionName, lastMissing.value);
-                    } else {
+                    if (lastMissing.type === 'fixo') { triggerPrismaticSubstitutionDecision(potionName, lastMissing.value); } 
+                    else {
                         showMessage(`Você precisa de mais um ingrediente da cor ${lastMissing.value.toUpperCase()}. Use a Pasta Prismática no balcão.`);
                         triggerPrismaticSubstitutionDecision(potionName, `Qualquer ${lastMissing.value}`);
                     }
                 } 
-                else {
-                    showMessage("Você não tem os ingredientes (fixos + extras de cor) necessários.");
-                }
+                else { showMessage("Você não tem os ingredientes (fixos + extras de cor) necessários."); }
             };
     
             function handleIngredientClick(ingredientName, index) {
                 if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) return;
-                
                 const playerState = localGameState.players[localPlayerId];
-                
                 if (playerState.shelf.length < playerState.shelfLimit) {
                     const ingredientToStore = localGameState.currentPull.splice(index, 1)[0];
                     playerState.shelf.push(ingredientToStore);
                     logMessage(`${playerState.name} guardou ${ingredientToStore} na prateleira.`);
                     updateFirestoreState(localGameState);
-                } else {
-                    showMessage("Sua prateleira está cheia!");
-                }
+                } else { showMessage("Sua prateleira está cheia!"); }
             }
             
             function handleShelfIngredientClick(ingredientName, index) {
                 if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) return;
-    
                 const ingredientToReturn = localGameState.players[localPlayerId].shelf.splice(index, 1)[0];
                 localGameState.currentPull.push(ingredientToReturn);
                 updateFirestoreState(localGameState);
@@ -1858,195 +1458,69 @@
     
                 switch (potionName) {
                     case "Barreira de Bolhas": 
-                        playerState.activePotions["Barreira de Bolhas"] = "new";
-                        logMessage(`${playerState.name} ergueu uma Barreira de Bolhas!`);
-                        break;
+                        playerState.activePotions["Barreira de Bolhas"] = "new"; logMessage(`${playerState.name} ergueu uma Barreira de Bolhas!`); break;
                     case "Unguento de Musgo": 
-                        playerState.activePotions["Unguento de Musgo"] = true; 
-                        break;
+                        playerState.activePotions["Unguento de Musgo"] = true; break;
                     case "Pasta Prismática": 
-                        playerState.activePotions["Pasta Prismática"] = true; 
-                        logMessage(`${playerState.name} agora pode substituir ingredientes graças à Pasta Prismática!`);
-                        break;
+                        playerState.activePotions["Pasta Prismática"] = true; logMessage(`${playerState.name} agora pode substituir ingredientes graças à Pasta Prismática!`); break;
                     case "Infusão de Foco":
-                        if (playerState.shelfLimit < 6) {
-                            playerState.shelfLimit++;
-                            playerState.activePotions["Infusão de Foco"] = (playerState.activePotions["Infusão de Foco"] || 0) + 1;
-                            logMessage(`${playerState.name} usou Infusão de Foco e expandiu sua prateleira para ${playerState.shelfLimit} espaços!`);
-                        } else {
-                            showMessage("Sua prateleira já atingiu a capacidade máxima (6 espaços)!");
-                            logMessage(`${playerState.name} tentou usar Infusão de Foco, mas sua prateleira já está no máximo. A poção foi desperdiçada!`);
-                        }
+                        if (playerState.shelfLimit < 6) { playerState.shelfLimit++; playerState.activePotions["Infusão de Foco"] = (playerState.activePotions["Infusão de Foco"] || 0) + 1; logMessage(`${playerState.name} usou Infusão de Foco e expandiu sua prateleira para ${playerState.shelfLimit} espaços!`); } 
+                        else { showMessage("Sua prateleira já atingiu a capacidade máxima (6 espaços)!"); }
                         break;
-                    case "Tônico Dourado": 
-                        playerState.coins += 2; 
-                        break;
-                    case "Elixir do Mercador":
-                        triggerElixirDecision(playerId);
-                        break;
+                    case "Tônico Dourado": playerState.coins += 2; break;
+                    case "Elixir do Mercador": triggerElixirDecision(playerId); break;
                     case "Pó da Corrosão":
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false;
-                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Pó da Corrosão!`);
-                            showBarrierBlockMessage("Pó da Corrosão");
-                            break;
+                            opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Pó da Corrosão"); break;
                         }
-                        if (opponentState.shelf.length === 0) {
-                            logMessage(`Pó da Corrosão falhou, a prateleira de ${opponentState.name} já estava vazia.`);
-                            break;
-                        }
-                        localGameState.pendingAction = {
-                            type: "Pó da Corrosão",
-                            target: opponentId
-                        };
-                        logMessage(`${playerState.name} usou Pó da Corrosão! Aguardando ${opponentState.name} descartar um ingrediente.`);
-                        break;
-                    case "Amuleto do Colecionador": 
-                        playerState.activePotions["Amuleto do Colecionador"] = true; 
-                        break;
+                        if (opponentState.shelf.length === 0) { logMessage(`Pó da Corrosão falhou, a prateleira de ${opponentState.name} já estava vazia.`); break; }
+                        localGameState.pendingAction = { type: "Pó da Corrosão", target: opponentId }; logMessage(`${playerState.name} usou Pó da Corrosão! Aguardando ${opponentState.name} descartar um ingrediente.`); break;
+                    case "Amuleto do Colecionador": playerState.activePotions["Amuleto do Colecionador"] = true; break;
                     case "Mão do Mago":
-                        if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false;
-                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Mão do Mago!`);
-                            showBarrierBlockMessage("Mão do Mago");
-                            break;
-                        }
-                        if (opponentState.shelf.length === 0) {
-                            logMessage(`Mão do Mago falhou! A prateleira de ${opponentState.name} está vazia.`);
-                            break;
-                        }
-                        if (playerState.shelf.length >= playerState.shelfLimit) {
-                            logMessage(`Mão do Mago falhou! Sua prateleira está cheia.`);
-                            playerState.potionsReady.unshift("Mão do Mago");
-                            break;
-                        }
-                        triggerMageHandDecision(playerId);
-                        break;
-                    case "Parasita Mortífero": 
-                        playerState.activePotions["Parasita Mortífero"] = true; 
-                        break;
-                    
+                        if (opponentState.activePotions["Barreira de Bolhas"]) { opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Mão do Mago"); break; }
+                        if (opponentState.shelf.length === 0) { logMessage(`Mão do Mago falhou! A prateleira de ${opponentState.name} está vazia.`); break; }
+                        if (playerState.shelf.length >= playerState.shelfLimit) { playerState.potionsReady.unshift("Mão do Mago"); break; }
+                        triggerMageHandDecision(playerId); break;
+                    case "Parasita Mortífero": playerState.activePotions["Parasita Mortífero"] = true; break;
                     case "Eco Alquímico": { 
-                        if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            break;
-                        }
+                        if (opponentState.activePotions["Barreira de Bolhas"]) break;
                         const copyablePotions = ["Amuleto do Colecionador", "Resiliência do Farsante", "Estabilizador Cromático", "Pasta Prismática", "Fervor do Ousado"];
                         const opponentActivePermanents = copyablePotions.filter(potion => opponentState.activePotions[potion]);
-                        
-                        if (opponentActivePermanents.length === 0) {
-                            logMessage(`${playerState.name} tentou usar Eco Alquímico, mas ${opponentState.name} não tem efeitos permanentes (copiáveis) ativos.`);
-                            showMessage(`${opponentState.name} não possui aprimoramentos para copiar!`);
-                            break;
-                        }
-                        triggerEchoDecision(playerId, opponentActivePermanents);
-                        break;
+                        if (opponentActivePermanents.length === 0) { showMessage(`${opponentState.name} não possui aprimoramentos para copiar!`); break; }
+                        triggerEchoDecision(playerId, opponentActivePermanents); break;
                     }
-
                     case "Ferrugem Alquímica": { 
-                        if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false;
-                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Ferrugem Alquímica!`);
-                            showBarrierBlockMessage("Ferrugem Alquímica");
-                            break;
-                        }
+                        if (opponentState.activePotions["Barreira de Bolhas"]) { opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Ferrugem Alquímica"); break; }
                         const opponentActivePermanents = permanentPotions.filter(potion => opponentState.activePotions[potion]);
-                        if (opponentActivePermanents.length === 0) {
-                            logMessage(`${playerState.name} tentou usar Ferrugem Alquímica, mas ${opponentState.name} não tem efeitos permanentes ativos. A poção foi desperdiçada!`);
-                            showMessage(`${opponentState.name} não possui aprimoramentos permanentes para desativar!`);
-                            break;
-                        }
-                        triggerRustDecision(playerId, opponentActivePermanents);
-                        break;
+                        if (opponentActivePermanents.length === 0) { showMessage(`${opponentState.name} não possui aprimoramentos permanentes para desativar!`); break; }
+                        triggerRustDecision(playerId, opponentActivePermanents); break;
                     } 
-                    
-                    case "Contrato de Exclusividade":
-                        triggerContractDecision(playerId);
-                        break;
+                    case "Contrato de Exclusividade": triggerContractDecision(playerId); break;
                     case "Caldeirão Expansivo":
-                        if (playerState.shelfLimit < 6) {
-                            playerState.shelfLimit++;
-                            playerState.activePotions["Caldeirão Expansivo"] = (playerState.activePotions["Caldeirão Expansivo"] || 0) + 1;
-                            logMessage(`${playerState.name} usou Caldeirão Expansivo e expandiu sua prateleira para ${playerState.shelfLimit} espaços!`);
-                        } else {
-                            showMessage("Sua prateleira já atingiu a capacidade máxima (6 espaços)!");
-                            logMessage(`${playerState.name} tentou usar Caldeirão Expansivo, mas sua prateleira já está no máximo. A poção foi desperdiçada!`);
-                        }
+                        if (playerState.shelfLimit < 6) { playerState.shelfLimit++; playerState.activePotions["Caldeirão Expansivo"] = (playerState.activePotions["Caldeirão Expansivo"] || 0) + 1; logMessage(`${playerState.name} usou Caldeirão Expansivo e expandiu sua prateleira para ${playerState.shelfLimit} espaços!`); } 
+                        else { showMessage("Sua prateleira já atingiu a capacidade máxima (6 espaços)!"); }
                         break;
-                    case "Resiliência do Farsante": 
-                        playerState.activePotions["Resiliência do Farsante"] = true; 
-                        break;
-                    case "Estabilizador Cromático": 
-                        playerState.activePotions["Estabilizador Cromático"] = true; 
-                        break;
-                    case "Pedra Filosofal": 
-                        playerState.coins += 7; 
-                        break;
+                    case "Resiliência do Farsante": playerState.activePotions["Resiliência do Farsante"] = true; break;
+                    case "Estabilizador Cromático": playerState.activePotions["Estabilizador Cromático"] = true; break;
+                    case "Pedra Filosofal": playerState.coins += 7; break;
                     case "Poção da Usurpação":
-                        if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false;
-                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Poção da Usurpação!`);
-                            showBarrierBlockMessage("Poção da Usurpação");
-                            break;
-                        }
-                        const coinsToSteal = Math.min(opponentState.coins, 5);
-                        opponentState.coins -= coinsToSteal;
-                        playerState.coins += coinsToSteal;
-                        logMessage(`${playerState.name} roubou ${coinsToSteal} moedas de ${opponentState.name}!`);
-                        break;
+                        if (opponentState.activePotions["Barreira de Bolhas"]) { opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Poção da Usurpação"); break; }
+                        const coinsToSteal = Math.min(opponentState.coins, 5); opponentState.coins -= coinsToSteal; playerState.coins += coinsToSteal; logMessage(`${playerState.name} roubou ${coinsToSteal} moedas de ${opponentState.name}!`); break;
                     case "Solvente Universal":
-                        if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false;
-                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Solvente Universal!`);
-                            showBarrierBlockMessage("Solvente Universal");
-                            break;
-                        }
-                        if (opponentState.shelf.length > 0) {
-                            logMessage(`${playerState.name} usou Solvente Universal! A prateleira de ${opponentState.name} foi esvaziada!`);
-                            localGameState.cauldron.push(...opponentState.shelf);
-                            opponentState.shelf = [];
-                        } else {
-                            logMessage("Solvente Universal falhou, a prateleira do oponente já estava vazia.");
-                        }
-                        break;
+                        if (opponentState.activePotions["Barreira de Bolhas"]) { opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Solvente Universal"); break; }
+                        if (opponentState.shelf.length > 0) { localGameState.cauldron.push(...opponentState.shelf); opponentState.shelf = []; } break;
                     case "Maldição do Caldeirão Trincado":
-                        if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false;
-                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou a Maldição do Caldeirão Trincado!`);
-                            showBarrierBlockMessage("Maldição do Caldeirão Trincado");
-                            break;
-                        }
-                        triggerCurseColorDecision(playerId);
-                        break;
-                    case "Fervor do Ousado": 
-                        playerState.activePotions["Fervor do Ousado"] = true; 
-                        break;
-                    case "Soro da Clarividência":
-                        triggerClairvoyanceDecision(playerId);
-                        break;
+                        if (opponentState.activePotions["Barreira de Bolhas"]) { opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Maldição do Caldeirão Trincado"); break; }
+                        triggerCurseColorDecision(playerId); break;
+                    case "Fervor do Ousado": playerState.activePotions["Fervor do Ousado"] = true; break;
+                    case "Soro da Clarividência": triggerClairvoyanceDecision(playerId); break;
                     case "Ingrediente Contaminado":
-                        if (opponentState.activePotions["Barreira de Bolhas"]) {
-                            opponentState.activePotions["Barreira de Bolhas"] = false;
-                            logMessage(`A Barreira de Bolhas de ${opponentState.name} bloqueou o Ingrediente Contaminado!`);
-                            showBarrierBlockMessage("Ingrediente Contaminado");
-                            break;
-                        }
-                        if (playerState.shelf.length === 0) {
-                            logMessage(`${playerState.name} tentou usar Ingrediente Contaminado, mas sua prateleira está vazia. A poção foi desperdiçada!`);
-                            showMessage("Você não tem ingredientes na sua prateleira para dar!");
-                            break;
-                        }
-                        if (opponentState.shelf.length >= opponentState.shelfLimit) {
-                            logMessage(`${playerState.name} tentou usar Ingrediente Contaminado, mas a prateleira de ${opponentState.name} está cheia. A poção foi desperdiçada!`);
-                            showMessage(`A prateleira de ${opponentState.name} está cheia!`);
-                            break;
-                        }
-                        triggerContaminatedDecision(playerId);
-                        break;
+                        if (opponentState.activePotions["Barreira de Bolhas"]) { opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Ingrediente Contaminado"); break; }
+                        if (playerState.shelf.length === 0) { showMessage("Você não tem ingredientes na sua prateleira para dar!"); break; }
+                        if (opponentState.shelf.length >= opponentState.shelfLimit) { showMessage(`A prateleira de ${opponentState.name} está cheia!`); break; }
+                        triggerContaminatedDecision(playerId); break;
                     case "Descarte Oportuno":
-                        playerState.activePotions["Descarte Oportuno"] = true; 
-                        logMessage(`${playerState.name} preparou um Descarte Oportuno para a próxima fase de coleta!`);
-                        showMessage("Efeito ativado! No seu próximo turno, após puxar um ingrediente, você poderá descartá-lo por 1 Moeda.");
-                        break;
+                        playerState.activePotions["Descarte Oportuno"] = true; showMessage("Efeito ativado! No seu próximo turno, após puxar um ingrediente, você poderá descartá-lo por 1 Moeda."); break;
                 }
             }
     
@@ -2055,66 +1529,37 @@
                 try {
                     await runTransaction(db, async (transaction) => {
                         const gameDoc = await transaction.get(gameDocRef);
-                        if (!gameDoc.exists()) {
-                            throw "Documento do jogo não existe!";
-                        }
-
+                        if (!gameDoc.exists()) throw "Documento do jogo não existe!";
                         const currentActivePotions = gameDoc.data().players[playerId].activePotions;
-
                         if (currentActivePotions["Unguento de Musgo"] === true) {
                             const updatePath = `players.${playerId}.activePotions.Unguento de Musgo`;
-                            transaction.update(gameDocRef, {
-                                [updatePath]: false,
-                                "unguentoSavedColorThisTurn": savedColor
-                            });
+                            transaction.update(gameDocRef, { [updatePath]: false, "unguentoSavedColorThisTurn": savedColor });
                         }
                     });
                     logMessage(`O caldeirão tremeu, mas o Unguento de Musgo evitou a explosão da cor ${savedColor}!`);
                     return true;
-                } catch (e) {
-                    console.error("Falha na transação do Unguento de Musgo:", e);
-                    return false;
-                }
+                } catch (e) { console.error("Falha na transação do Unguento de Musgo:", e); return false; }
             }
 
             async function handleForfeit() {
                 if (!gameId || !localPlayerId) return;
-            
                 quitGameBtn.disabled = true; 
-                
                 const opponentId = getOpponentId(localPlayerId);
                 const quittingPlayerName = localGameState.players[localPlayerId].name;
-                
-                const finalState = {
-                    ...localGameState,
-                    status: 'finished',
-                    phase: 'GAME_OVER',
-                    winner: opponentId,
-                    log: [...localGameState.log, `${quittingPlayerName} desistiu da partida.`]
-                };
-                
+                const finalState = { ...localGameState, status: 'finished', phase: 'GAME_OVER', winner: opponentId, log: [...localGameState.log, `${quittingPlayerName} desistiu da partida.`] };
                 const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
                 await updateDoc(lobbyDocRef, { status: "online", invitedBy: null, inviteTo: null, currentGameId: null });
-                
                 await updateFirestoreState(finalState);
-                
-                gameId = null;
-                localPlayerId = null;
-                if (unsubscribeGame) {
-                    unsubscribeGame();
-                    unsubscribeGame = null;
-                }
-                
-                gameScreen.classList.add('hidden');
+                gameId = null; localPlayerId = null;
+                if (unsubscribeGame) { unsubscribeGame(); unsubscribeGame = null; }
+                gameScreen.classList.add('hidden'); gameScreen.classList.remove('flex');
                 playerListScreen.classList.remove('hidden');
-                listenToLobbyList();
-                listenToLobbyUser();
+                listenToLobbyList(); listenToLobbyUser();
             }
     
             // ==========================================================
-            // FUNÇÕES DE UI (RENDERIZAÇÃO)
+            // FUNÇÕES DE UI (RENDERIZAÇÃO MODO WEBAPP)
             // ==========================================================
-            
             function updateUI() {
                 if (!localGameState || !localGameState.players) return;
                 
@@ -2125,15 +1570,11 @@
                 player2ScoreEl.textContent = `${p2.name}: ${p2.coins} 💰`;
                 
                 const clientsCountEl = document.getElementById('clients-count');
-                if (clientsCountEl) {
-                    clientsCountEl.textContent = localGameState.clientsServed || 0;
-                }
+                if (clientsCountEl) { clientsCountEl.textContent = localGameState.clientsServed || 0; }
                 
-                player1NameDisplay.textContent = `${p1.name} (Você)`;
-                player2NameDisplay.textContent = p2.name;
-    
                 const myActionPhase = localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`;
         
+                // Cartas dos Clientes (Mercado)
                 clientBubbles.forEach((bubble, index) => {
                     const client = localGameState.clients[index];
                     bubble.onclick = null;
@@ -2145,13 +1586,9 @@
                         bubble.querySelector('.potion-price').textContent = `💰 ${client.price}`;
                         bubble.querySelector('.client-type').textContent = client.type;
                 
-                        if (client.contract === 'player1') {
-                            bubble.classList.add('border-blue-600');
-                        } else if (client.contract === 'player2') {
-                            bubble.classList.add('border-red-600');
-                        } else {
-                            bubble.classList.add('border-[#5c3d20]');
-                        }
+                        if (client.contract === 'player1') { bubble.classList.add('border-blue-600'); } 
+                        else if (client.contract === 'player2') { bubble.classList.add('border-red-600'); } 
+                        else { bubble.classList.add('border-[#5c3d20]'); }
                 
                         if (myActionPhase && selectedPotion) {
                             bubble.classList.add('cursor-pointer');
@@ -2162,18 +1599,20 @@
                     }
                 });
     
-                // Determina qual prateleira renderizar primeiro dependendo de quem somos nós
-                if(localPlayerId === 'player1') {
-                    renderShelf(player1ShelfEl, p1.shelf, 'player1');
-                    renderShelf(player2ShelfEl, p2.shelf, 'player2');
+                // Reordena as prateleiras flex via CSS Order: O Jogador local SEMPRE fica em baixo
+                if (localPlayerId === 'player1') {
+                    document.getElementById('player2-shelf-section').style.order = '1';
+                    document.getElementById('player1-shelf-section').style.order = '2';
                     player1NameDisplay.textContent = `Você (${p1.name})`;
                     player2NameDisplay.textContent = p2.name;
                 } else {
-                    renderShelf(player1ShelfEl, p2.shelf, 'player2');
-                    renderShelf(player2ShelfEl, p1.shelf, 'player1');
-                    player1NameDisplay.textContent = `Você (${p2.name})`;
-                    player2NameDisplay.textContent = p1.name;
+                    document.getElementById('player1-shelf-section').style.order = '1';
+                    document.getElementById('player2-shelf-section').style.order = '2';
+                    player1NameDisplay.textContent = p1.name;
+                    player2NameDisplay.textContent = `Você (${p2.name})`;
                 }
+                renderShelf(player1ShelfEl, p1.shelf, 'player1');
+                renderShelf(player2ShelfEl, p2.shelf, 'player2');
                 
                 renderCounter();
                 renderReadyPotions();
@@ -2187,8 +1626,8 @@
 
                 cauldronBtn.disabled = !myProdPhase || isGamePaused || isProcessingClick;
                 cauldronBtn.style.cursor = cauldronBtn.disabled ? 'default' : 'pointer';
-                if(cauldronBtn.disabled) cauldronBtn.classList.add('opacity-50');
-                else cauldronBtn.classList.remove('opacity-50');
+                if(cauldronBtn.disabled) cauldronBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                else cauldronBtn.classList.remove('opacity-50', 'cursor-not-allowed');
 
                 stopPullingBtn.classList.toggle('hidden', !myProdPhase || isGamePaused);
                 finishProductionBtn.classList.toggle('hidden', !myPostProdPhase || isGamePaused);
@@ -2198,10 +1637,12 @@
                     mesaBook.title = "Criar Poções com Ingredientes do Balcão";
                     mesaBook.textContent = "📖 Criar Poções";
                     mesaBook.classList.replace('bg-[#5c3d20]', 'bg-yellow-600');
+                    mesaBook.classList.replace('border-[#3d2a1a]', 'border-yellow-800');
                 } else {
                     mesaBook.title = "Ver Arcano Potionum";
                     mesaBook.textContent = "📖 Livro de Receitas";
                     mesaBook.classList.replace('bg-yellow-600', 'bg-[#5c3d20]');
+                    mesaBook.classList.replace('border-yellow-800', 'border-[#3d2a1a]');
                 }
 
                 if (localGameState.pendingAction && localGameState.pendingAction.type === "Pó da Corrosão" && localGameState.pendingAction.target === localPlayerId) {
@@ -2212,13 +1653,9 @@
             function showBarrierBlockMessage(blockedPotionName) {
                 const modal = document.getElementById('barrier-block-modal');
                 const messageEl = document.getElementById('barrier-message-text');
-
                 messageEl.textContent = `Barreira de Bolhas bloqueou: ${blockedPotionName}!`;
                 modal.classList.remove('hidden');
-
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                }, 2500); 
+                setTimeout(() => { modal.classList.add('hidden'); }, 2500); 
             }
             
             function renderShelf(shelfEl, shelfItems, ownerId) {
@@ -2229,7 +1666,7 @@
                 shelfItems.forEach((ingredientName, index) => {
                     const img = createIngredientImage(ingredientName, `Prateleira de ${ownerId}`);
                     if (localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}` && localPlayerId === ownerId) {
-                        img.classList.add('cursor-pointer', 'hover:border-yellow-400');
+                        img.classList.add('cursor-pointer', 'hover:border-yellow-400', 'hover:scale-105');
                         img.onclick = () => handleShelfIngredientClick(ingredientName, index);
                     }
                     shelfEl.appendChild(img);
@@ -2242,55 +1679,39 @@
                     localGameState.currentPull.forEach((ingredientName, index) => {
                         const img = createIngredientImage(ingredientName, `Balcão`);
                         if (localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) {
-                            img.classList.add('cursor-pointer', 'hover:border-yellow-300');
+                            img.classList.add('cursor-pointer', 'hover:border-yellow-300', 'hover:scale-105');
                             img.onclick = () => handleIngredientClick(ingredientName, index);
                         }
                         counterAreaEl.appendChild(img);
                     });
                 } else {
-                    counterAreaEl.innerHTML = '<span class="text-gray-500 text-sm italic py-2">Balcão Vazio</span>';
+                    counterAreaEl.innerHTML = '<span class="text-gray-500 text-sm italic">Balcão Vazio</span>';
                 }
             }
     
             function renderReadyPotions() {
                 const p1ListEl = document.getElementById('player1-ready-potions-list');
                 const p2ListEl = document.getElementById('player2-ready-potions-list');
-                const p1TitleEl = document.getElementById('player1-ready-potions-title');
-                const p2TitleEl = document.getElementById('player2-ready-potions-title');
-            
                 if (!localGameState.players) return;
-            
                 const p1 = localGameState.players.player1;
                 const p2 = localGameState.players.player2;
             
-                p1TitleEl.textContent = `${p1.name}` + (localPlayerId === 'player1' ? " (Você)" : "");
-                p2TitleEl.textContent = `${p2.name}` + (localPlayerId === 'player2' ? " (Você)" : "");
-            
                 const renderListForPlayer = (element, potions, ownerId) => {
                     element.innerHTML = ''; 
-                    
-                    if (!potions || potions.length === 0) {
-                        element.innerHTML = `<p class="text-gray-400 text-sm">Nenhuma poção pronta.</p>`;
-                        return;
-                    }
+                    if (!potions || potions.length === 0) { element.innerHTML = `<p class="text-gray-500 text-sm italic">Nenhuma poção pronta.</p>`; return; }
             
                     potions.forEach(potionName => {
                         const potionContainer = document.createElement('div');
-                        potionContainer.className = 'relative text-center';
-            
+                        potionContainer.className = 'relative text-center flex flex-col items-center w-16';
                         const img = createPotionImage(potionName);
-                        img.className += ' w-12 h-12 object-contain';
-                        
                         if (localPlayerId === ownerId && selectedPotion === potionName) {
-                            img.classList.add('border-4', 'border-yellow-400', 'rounded-lg');
+                            img.classList.add('border-2', 'border-yellow-400', 'rounded-lg');
                         }
                         potionContainer.appendChild(img);
-                        
                         const nameEl = document.createElement('p');
-                        nameEl.className = 'text-xs text-white truncate w-16 mt-1';
+                        nameEl.className = 'text-[10px] text-gray-300 leading-tight text-center mt-1 w-full';
                         nameEl.textContent = potionName;
                         potionContainer.appendChild(nameEl);
-            
                         element.appendChild(potionContainer);
                     });
                 };
@@ -2301,24 +1722,20 @@
             
            function renderActivePotions(listEl, activePotions, ownerId) {
                 listEl.innerHTML = ''; 
-                
                 if (activePotions && typeof activePotions === 'object') {
                     for (const potionName in activePotions) {
                         if (activePotions[potionName]) { 
                             const potion = ARCANO_POTIONUM[potionName];
                             if (potion) {
                                 const li = document.createElement('li');
-                                li.className = 'flex items-center gap-2 p-2 bg-gray-800 rounded';
-                                
+                                li.className = 'flex items-center gap-2 p-2 bg-slate-900 rounded border border-slate-700';
                                 let displayText = potion.nome;
                                 if ((potionName === "Infusão de Foco" || potionName === "Caldeirão Expansivo") && typeof activePotions[potionName] === 'number') {
-                                    const count = activePotions[potionName];
-                                    displayText += ` (${count}x)`;
+                                    const count = activePotions[potionName]; displayText += ` (${count}x)`;
                                 }
-
                                 li.innerHTML = `
                                     <img src="imagens/Poção.png" class="w-8 h-8 object-contain">
-                                    <span class="potion-tooltip relative text-sm">
+                                    <span class="potion-tooltip relative text-xs text-gray-300 flex-1">
                                         ${displayText}
                                         <span class="tooltip-text">${potion.descricao}</span>
                                     </span>
@@ -2328,22 +1745,17 @@
                         }
                     }
                 }
-
                 const playerState = localGameState.players[ownerId];
                 const copiedEffect = playerState.copiedEffect;
-
                 if (copiedEffect && copiedEffect.status === 'ACTIVE_THIS_TURN') {
                     const potion = ARCANO_POTIONUM[copiedEffect.name]; 
-                    
                     if (potion) {
                         const li = document.createElement('li');
-                        li.className = 'flex items-center gap-2 p-2 bg-gray-800 rounded opacity-75 border border-purple-400'; 
-                        
+                        li.className = 'flex items-center gap-2 p-2 bg-indigo-900/50 rounded border border-indigo-400'; 
                         let displayText = `(Copiado) ${potion.nome}`;
-
                         li.innerHTML = `
-                            <img src="imagens/Poção.png" class="w-8 h-8 grayscale object-contain">
-                            <span class="potion-tooltip relative text-sm">
+                            <img src="imagens/Poção.png" class="w-8 h-8 grayscale object-contain opacity-80">
+                            <span class="potion-tooltip relative text-xs text-indigo-200 flex-1">
                                 ${displayText}
                                 <span class="tooltip-text">(Efeito copiado por 1 turno)<br>${potion.descricao}</span>
                             </span>
@@ -2358,7 +1770,7 @@
                 const imgData = INGREDIENT_DATA[ingredientName];
                 img.src = imgData?.img || 'imagens/placeholder.jpg'; 
                 img.title = `${ingredientName} - ${tooltipText}`;
-                img.className = 'w-12 h-12 lg:w-16 lg:h-16 rounded-full border-2 border-black shadow-md object-cover flex-shrink-0';
+                img.className = 'w-12 h-12 lg:w-16 lg:h-16 rounded-full border-2 border-[#1e293b] shadow-md object-cover flex-shrink-0 transition-transform';
                 return img;
             }
     
@@ -2366,7 +1778,7 @@
                 const img = document.createElement('img');
                 img.src = 'imagens/Poção.png';
                 img.title = potionName;
-                img.className = 'w-16 h-16';
+                img.className = 'w-10 h-10 object-contain drop-shadow-md';
                 return img;
             }
     
@@ -2375,16 +1787,12 @@
                 messageModal.classList.remove('hidden');
             }
     
-            function getOpponentId(playerId = localPlayerId) {
-                return playerId === 'player1' ? 'player2' : 'player1';
-            }
+            function getOpponentId(playerId = localPlayerId) { return playerId === 'player1' ? 'player2' : 'player1'; }
     
             function getIngredientCounts(ingredientList) {
                 const counts = {};
                 if (Array.isArray(ingredientList)) {
-                    for (const ingredient of ingredientList) {
-                        counts[ingredient] = (counts[ingredient] || 0) + 1;
-                    }
+                    for (const ingredient of ingredientList) { counts[ingredient] = (counts[ingredient] || 0) + 1; }
                 }
                 return counts;
             }
@@ -2392,37 +1800,20 @@
             // ==========================================================
             // INICIALIZAÇÃO E LISTENERS (LOBBY E JOGO)
             // ==========================================================
-            
             startLobbyBtn.onclick = async () => {
                 const playerName = playerNameInput.value.trim();
-                if (!playerName) {
-                    lobbyStatus.textContent = "Por favor, digite seu nome.";
-                    return;
-                }
-                if (!localUserId) {
-                    lobbyStatus.textContent = "Aguardando autenticação...";
-                    return;
-                }
+                if (!playerName) { lobbyStatus.textContent = "Por favor, digite seu nome."; return; }
+                if (!localUserId) { lobbyStatus.textContent = "Aguardando autenticação..."; return; }
             
                 localPlayerName = playerName;
                 lobbyStatus.textContent = "Entrando no lobby...";
                 
                 const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
                 try {
-                    await setDoc(lobbyDocRef, {
-                        name: localPlayerName,
-                        status: "online",
-                        invitedBy: null,
-                        inviteTo: null,
-                        currentGameId: null
-                    });
-                    
+                    await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null, currentGameId: null });
                     lobbyScreen.classList.add('hidden');
                     playerListScreen.classList.remove('hidden');
-                    
-                    listenToLobbyList();
-                    listenToLobbyUser();
-                    
+                    listenToLobbyList(); listenToLobbyUser();
                 } catch (e) {
                     console.error("Erro ao entrar no lobby:", e);
                     lobbyStatus.textContent = "Erro ao conectar. Tente novamente.";
@@ -2433,7 +1824,6 @@
     
             function listenToLobbyList() {
                 if (unsubscribeLobbyList) unsubscribeLobbyList();
-                
                 const q = query(collection(db, lobbyCollectionPath));
                 unsubscribeLobbyList = onSnapshot(q, (snapshot) => {
                     playerListEl.innerHTML = '';
@@ -2468,9 +1858,7 @@
                         playerListEl.appendChild(btn);
                     });
                     
-                    if (!playersFound) {
-                        playerListEl.innerHTML = `<p class="text-center text-gray-700">Nenhum outro jogador online no momento.</p>`;
-                    }
+                    if (!playersFound) { playerListEl.innerHTML = `<p class="text-center text-gray-700">Nenhum outro jogador online no momento.</p>`; }
                 }, (error) => { 
                     console.error("Erro no listener da lista do lobby:", error);
                     playerListStatus.textContent = "Erro ao carregar jogadores.";
@@ -2481,22 +1869,17 @@
                 try {
                     const gameDocRef = doc(db, gamesCollectionPath, gameIdToCheck);
                     const gameDoc = await getDoc(gameDocRef);
-            
                     if (!gameDoc.exists() || gameDoc.data().status === 'finished') {
                         const lobbyDocRef = doc(db, lobbyCollectionPath, stalePlayerId);
                         await deleteDoc(lobbyDocRef);
                     }
-                } catch (e) {
-                    console.error(`Erro ao verificar jogo obsoleto ${gameIdToCheck} para ${stalePlayerId}:`, e);
-                }
+                } catch (e) { console.error(`Erro ao verificar jogo obsoleto ${gameIdToCheck} para ${stalePlayerId}:`, e); }
             }
             
            async function listenToLobbyUser() {
                 if (unsubscribeLobbyUser) unsubscribeLobbyUser();
-                
                 unsubscribeLobbyUser = onSnapshot(doc(db, lobbyCollectionPath, localUserId), async (docSnap) => {
                     if (!docSnap.exists()) return; 
-                    
                     const lobbyData = docSnap.data();
                     
                     if (lobbyData.status === 'invited' && lobbyData.invitedBy) {
@@ -2509,25 +1892,15 @@
                                 invitationPopup.classList.remove('hidden');
                                 acceptInviteBtn.onclick = () => handleAcceptInvite(inviterId, inviterDoc.data().name);
                                 declineInviteBtn.onclick = () => handleDeclineInvite(inviterId);
-                            } else {
-                                await handleDeclineInvite(inviterId); 
-                            }
-                        } catch(error) {
-                            console.error("Erro ao buscar dados do invitador:", error);
-                             await handleDeclineInvite(inviterId);
-                        }
+                            } else { await handleDeclineInvite(inviterId); }
+                        } catch(error) { console.error("Erro ao buscar dados do invitador:", error); await handleDeclineInvite(inviterId); }
                     } 
                     else if (lobbyData.status === 'ingame') {
                         if (!gameId) { 
-                            gameId = localUserId;
-                            localPlayerId = 'player1';
-                            
-                            stopLobbyListeners();
-                            listenToGameChanges(gameId);
-                            
-                            playerListScreen.classList.add('hidden');
-                            invitationPopup.classList.add('hidden'); 
-                            gameScreen.classList.remove('hidden', 'flex'); // Tailwind flex
+                            gameId = localUserId; localPlayerId = 'player1';
+                            stopLobbyListeners(); listenToGameChanges(gameId);
+                            playerListScreen.classList.add('hidden'); invitationPopup.classList.add('hidden'); 
+                            gameScreen.classList.remove('hidden'); gameScreen.classList.add('flex');
                         }
                     }
                     else if (lobbyData.status === 'online') {
@@ -2538,8 +1911,7 @@
                         playerListStatus.textContent = "Convite enviado. Aguardando resposta...";
                     }
                 }, (error) => {
-                     console.error("Erro no listener do usuário no lobby:", error);
-                     lobbyStatus.textContent = "Erro de conexão no lobby.";
+                     console.error("Erro no listener do usuário no lobby:", error); lobbyStatus.textContent = "Erro de conexão no lobby.";
                 });
             }
             
@@ -2553,11 +1925,8 @@
                 } catch (e) {
                     console.error("Erro ao convidar:", e);
                     playerListStatus.textContent = "Erro ao enviar convite.";
-                    try {
-                       await updateDoc(doc(db, lobbyCollectionPath, localUserId), { status: "online", inviteTo: null });
-                    } catch (resetError) {
-                        console.error("Erro ao resetar status após falha no convite:", resetError);
-                    }
+                    try { await updateDoc(doc(db, lobbyCollectionPath, localUserId), { status: "online", inviteTo: null }); } 
+                    catch (resetError) { console.error("Erro ao resetar status:", resetError); }
                 }
             }
 
@@ -2580,43 +1949,32 @@
             
             async function handleAcceptInvite(inviterId, inviterName) {
                 try {
-                    gameId = inviterId;
-                    localPlayerId = 'player2';
-                    
+                    gameId = inviterId; localPlayerId = 'player2';
                     const initialState = createInitialGameState(inviterName, inviterId);
                     initialState.players.player2.name = localPlayerName;
                     initialState.players.player2.uid = localUserId;
                     initialState.status = 'active';
-    
                     initialState.phase = `PRODUCTION_${initialState.currentPlayer.toUpperCase()}`;
                     const startingPlayerName = initialState.players[initialState.currentPlayer].name;
                     initialState.log.unshift(`${localPlayerName} aceitou o convite! ${startingPlayerName} começa a partida!`);
     
                     await setDoc(doc(db, gamesCollectionPath, gameId), initialState);
-                    
                     const batch = writeBatch(db);
                     batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "ingame", invitedBy: null, inviteTo: null, currentGameId: inviterId }); 
                     batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "ingame", invitedBy: null, inviteTo: null, currentGameId: inviterId }); 
                     await batch.commit();
                     
-                    stopLobbyListeners();
-                    listenToGameChanges(gameId);
-                    
-                    invitationPopup.classList.add('hidden'); 
-                    playerListScreen.classList.add('hidden');
-                    gameScreen.classList.remove('hidden');
-                    
+                    stopLobbyListeners(); listenToGameChanges(gameId);
+                    invitationPopup.classList.add('hidden'); playerListScreen.classList.add('hidden');
+                    gameScreen.classList.remove('hidden'); gameScreen.classList.add('flex');
                 } catch (e) {
-                    console.error("Erro ao aceitar convite:", e);
-                     showMessage("Erro ao iniciar o jogo. Tente novamente.");
+                    console.error("Erro ao aceitar convite:", e); showMessage("Erro ao iniciar o jogo. Tente novamente.");
                      try {
                          const batch = writeBatch(db);
                          batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "online", invitedBy: null });
                          batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "online", inviteTo: null });
                          await batch.commit();
-                     } catch (resetError) {
-                          console.error("Erro ao resetar lobby após falha ao aceitar:", resetError);
-                     }
+                     } catch (resetError) { console.error("Erro ao resetar lobby:", resetError); }
                 }
             }
             
@@ -2624,31 +1982,19 @@
                 try {
                     const batch = writeBatch(db);
                     batch.update(doc(db, lobbyCollectionPath, localUserId), { status: "online", invitedBy: null });
-                    if (inviterId) { 
-                       batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "online", inviteTo: null });
-                    }
+                    if (inviterId) { batch.update(doc(db, lobbyCollectionPath, inviterId), { status: "online", inviteTo: null }); }
                     await batch.commit();
                     invitationPopup.classList.add('hidden');
                 } catch (e) {
-                    console.error("Erro ao recusar convite:", e);
-                     invitationPopup.classList.add('hidden');
-                      try {
-                         await updateDoc(doc(db, lobbyCollectionPath, localUserId), { status: "online", invitedBy: null });
-                      } catch(selfResetError) {
-                          console.error("Erro ao resetar próprio status após falha ao recusar:", selfResetError);
-                      }
+                    console.error("Erro ao recusar convite:", e); invitationPopup.classList.add('hidden');
+                      try { await updateDoc(doc(db, lobbyCollectionPath, localUserId), { status: "online", invitedBy: null }); } 
+                      catch(selfResetError) { console.error("Erro ao resetar:", selfResetError); }
                 }
             }
             
             function stopLobbyListeners() {
-                if (unsubscribeLobbyList) {
-                    unsubscribeLobbyList();
-                    unsubscribeLobbyList = null;
-                }
-                 if (unsubscribeLobbyUser) {
-                    unsubscribeLobbyUser();
-                    unsubscribeLobbyUser = null;
-                 }
+                if (unsubscribeLobbyList) { unsubscribeLobbyList(); unsubscribeLobbyList = null; }
+                 if (unsubscribeLobbyUser) { unsubscribeLobbyUser(); unsubscribeLobbyUser = null; }
             }
     
             cauldronBtn.onclick = handleCauldronClick;
@@ -2658,16 +2004,10 @@
             
             document.getElementById('next-page-btn').onclick = () => {
                 const maxPages = Math.ceil(allPotionNames.length / recipesPerPage);
-                if (recipeCurrentPage < maxPages - 1) {
-                    recipeCurrentPage++;
-                    renderRecipeBookPage();
-                }
+                if (recipeCurrentPage < maxPages - 1) { recipeCurrentPage++; renderRecipeBookPage(); }
             };
             document.getElementById('prev-page-btn').onclick = () => {
-                if (recipeCurrentPage > 0) {
-                    recipeCurrentPage--;
-                    renderRecipeBookPage();
-                }
+                if (recipeCurrentPage > 0) { recipeCurrentPage--; renderRecipeBookPage(); }
             };
             
             closeRecipeModalBtn.onclick = () => recipeModal.classList.add('hidden');
@@ -2675,59 +2015,36 @@
             
             const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
             backToLobbyBtn.onclick = async () => {
-                endGameModal.classList.add('hidden');
-                gameScreen.classList.add('hidden');
+                endGameModal.classList.add('hidden'); gameScreen.classList.add('hidden'); gameScreen.classList.remove('flex');
                 playerListScreen.classList.remove('hidden');
             
                 if(localUserId) { 
                     const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
-                    try {
-                        await setDoc(lobbyDocRef, { 
-                            name: localPlayerName, 
-                            status: "online", 
-                            invitedBy: null, 
-                            inviteTo: null,
-                            currentGameId: null
-                        });
-                    } catch (error) {
-                         console.error("Erro ao resetar status no lobby:", error);
-                    }
+                    try { await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null, currentGameId: null }); } 
+                    catch (error) { console.error("Erro ao resetar status:", error); }
                 }
             
                 if (localPlayerId === 'player1' && gameId) { 
-                   try {
-                       await deleteDoc(doc(db, gamesCollectionPath, gameId));
-                   } catch(error) {
-                        console.error("Erro ao deletar jogo:", error);
-                   }
+                   try { await deleteDoc(doc(db, gamesCollectionPath, gameId)); } 
+                   catch(error) { console.error("Erro ao deletar jogo:", error); }
                 }
                 
-                gameId = null; 
-                localPlayerId = null; 
-                if (unsubscribeGame) { 
-                    unsubscribeGame();
-                    unsubscribeGame = null;
-                }
-                listenToLobbyList();
-                listenToLobbyUser();
+                gameId = null; localPlayerId = null; 
+                if (unsubscribeGame) { unsubscribeGame(); unsubscribeGame = null; }
+                listenToLobbyList(); listenToLobbyUser();
             };
     
             quitGameBtn.onclick = () => {
                 decisionTitleEl.textContent = "Desistir da Partida?";
                 decisionOptionsEl.innerHTML = `
-                    <p class="mb-4">Você tem certeza que deseja desistir? Seu oponente será declarado o vencedor.</p>
-                    <button id="confirm-forfeit-btn" class="btn btn-red w-full mb-2">Sim, desistir</button>
+                    <p class="mb-4 text-center">Você tem certeza que deseja desistir? Seu oponente será declarado o vencedor.</p>
+                    <button id="confirm-forfeit-btn" class="btn btn-red w-full mb-3">Sim, desistir</button>
                     <button id="cancel-forfeit-btn" class="btn btn-gray w-full">Cancelar</button>
                 `;
                 decisionModal.classList.remove('hidden');
                 
-                document.getElementById('confirm-forfeit-btn').onclick = () => {
-                    decisionModal.classList.add('hidden');
-                    handleForfeit();
-                };
-                document.getElementById('cancel-forfeit-btn').onclick = () => {
-                    decisionModal.classList.add('hidden');
-                };
+                document.getElementById('confirm-forfeit-btn').onclick = () => { decisionModal.classList.add('hidden'); handleForfeit(); };
+                document.getElementById('cancel-forfeit-btn').onclick = () => { decisionModal.classList.add('hidden'); };
             };
             
             activePotionsToggleBtn.onclick = () => activePotionsBoard.classList.remove('translate-x-full');
@@ -2739,23 +2056,16 @@
                 unsubscribeGame = onSnapshot(doc(db, gamesCollectionPath, id), (doc) => {
                     if (!doc.exists()) {
                         showMessage("O jogo foi encerrado pelo host ou não existe mais.");
-                        
-                        gameScreen.classList.add('hidden');
+                        gameScreen.classList.add('hidden'); gameScreen.classList.remove('flex');
                         playerListScreen.classList.remove('hidden');
                         if(localUserId) {
                              const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
                              setDoc(lobbyDocRef, { name: localPlayerName || "Jogador", status: "online", invitedBy: null, inviteTo: null, currentGameId: null }, { merge: true })
-                                .then(() => {
-                                      listenToLobbyList();
-                                      listenToLobbyUser();
-                                }).catch(error => console.error("Erro ao resetar lobby após jogo não encontrado:", error));
+                                .then(() => { listenToLobbyList(); listenToLobbyUser(); })
+                                .catch(error => console.error("Erro ao resetar lobby:", error));
                         }
-                        gameId = null;
-                        localPlayerId = null;
-                        if(unsubscribeGame) {
-                            unsubscribeGame();
-                            unsubscribeGame = null;
-                        }
+                        gameId = null; localPlayerId = null;
+                        if(unsubscribeGame) { unsubscribeGame(); unsubscribeGame = null; }
                         return;
                     }
                     
@@ -2765,31 +2075,22 @@
                     if (localPlayerId && oldState.players) { 
                         const oldPlayerState = oldState.players[localPlayerId];
                         const newPlayerState = localGameState.players[localPlayerId];
-        
                         const oldCurse = oldPlayerState.activePotions?.["Maldição do Caldeirão Trincado"];
                         const newCurse = newPlayerState.activePotions?.["Maldição do Caldeirão Trincado"];
-        
                         if (newCurse && newCurse.status === 'ACTIVE_THIS_TURN' && oldCurse?.status !== 'ACTIVE_THIS_TURN') {
-                            const curseMessage = `Seu caldeirão foi amaldiçoado! Cuidado com ingredientes da cor ${newCurse.color.toUpperCase()}!`;
-                            showMessage(curseMessage);
+                            showMessage(`Seu caldeirão foi amaldiçoado! Cuidado com ingredientes da cor ${newCurse.color.toUpperCase()}!`);
                         }
                     }
-
                     window.localGameState = localGameState;
                     
                     if (localUserId === localGameState.players?.player1?.uid) localPlayerId = 'player1';
                     else if (localUserId === localGameState.players?.player2?.uid) localPlayerId = 'player2';
-                    else {
-                        console.error("UID local não corresponde a nenhum jogador no estado do jogo!", localUserId, localGameState.players);
-                        return;
-                    }
+                    else { console.error("UID local não corresponde a nenhum jogador!", localUserId); return; }
     
                     if (localGameState.status === 'active' && gameScreen.classList.contains('hidden')) {
-                        lobbyScreen.classList.add('hidden');
-                        playerListScreen.classList.add('hidden');
+                        lobbyScreen.classList.add('hidden'); playerListScreen.classList.add('hidden');
                         document.getElementById('reconnect-screen').classList.add('hidden'); 
-                        gameScreen.classList.remove('hidden');
-                        gameScreen.classList.add('flex'); // Aplica o Flexbox do Tailwind
+                        gameScreen.classList.remove('hidden'); gameScreen.classList.add('flex'); 
                     }
                     
                     updateUI();
@@ -2797,13 +2098,9 @@
                     if (oldState.phase !== localGameState.phase && localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`) {
                         setTimeout(showActionModal, 150); 
                     }
-                    
-                    if (localGameState.phase === 'GAME_OVER' && oldState.phase !== 'GAME_OVER') {
-                        endGame(); 
-                    }
+                    if (localGameState.phase === 'GAME_OVER' && oldState.phase !== 'GAME_OVER') { endGame(); }
                 }, (error) => { 
-                    console.error(`Erro no listener do jogo ${id}:`, error);
-                    showMessage("Erro de conexão com o jogo. Tentando reconectar...");
+                    console.error(`Erro no listener do jogo ${id}:`, error); showMessage("Erro de conexão com o jogo. Tentando reconectar...");
                 });
             }
             
@@ -2816,21 +2113,16 @@
                     const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
                     try { 
                         const lobbyDoc = await getDoc(lobbyDocRef);
-                        
                         if (lobbyDoc.exists()) {
                             lobbyStatus.textContent = "Verificando sessão anterior...";
-                            
                             const lobbyData = lobbyDoc.data();
-                            localPlayerName = lobbyData.name;
-                            playerNameInput.value = localPlayerName;
+                            localPlayerName = lobbyData.name; playerNameInput.value = localPlayerName;
                             
                             if (lobbyData.status === 'ingame') {
                                 let gameIdToFind = lobbyData.currentGameId;
-                        
                                 if (gameIdToFind) {
                                      try { 
                                         const gameDoc = await getDoc(doc(db, gamesCollectionPath, gameIdToFind));
-                                        
                                         if (gameDoc.exists() && gameDoc.data().status !== 'finished') {
                                             gameId = gameIdToFind;
                                             lobbyScreen.classList.add('hidden');
@@ -2838,8 +2130,7 @@
                                             reconnectScreen.classList.remove('hidden');
                         
                                             document.getElementById('reconnect-yes-btn').onclick = () => {
-                                                reconnectScreen.classList.add('hidden');
-                                                listenToGameChanges(gameId); 
+                                                reconnectScreen.classList.add('hidden'); listenToGameChanges(gameId); 
                                             };
                         
                                             document.getElementById('reconnect-no-btn').onclick = async () => {
@@ -2848,85 +2139,57 @@
                                                     const gameData = gameDoc.data(); 
                                                     const myPlayerId = gameData.players.player1.uid === localUserId ? 'player1' : 'player2';
                                                     const opponentId = myPlayerId === 'player1' ? 'player2' : 'player1';
-                                
                                                     if (gameData.status !== 'finished') {
-                                                        gameData.status = 'finished';
-                                                        gameData.phase = 'GAME_OVER';
-                                                        gameData.winner = opponentId;
-                                                        gameData.log = gameData.log || []; 
+                                                        gameData.status = 'finished'; gameData.phase = 'GAME_OVER'; gameData.winner = opponentId; gameData.log = gameData.log || []; 
                                                         gameData.log.unshift(`${gameData.players[myPlayerId]?.name || 'Jogador'} abandonou a partida.`);
                                                         await setDoc(doc(db, gamesCollectionPath, gameId), gameData);
                                                     }
                                                     await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null, currentGameId: null });
                                                     playerListScreen.classList.remove('hidden');
-                                                    listenToLobbyList();
-                                                    listenToLobbyUser();
-
+                                                    listenToLobbyList(); listenToLobbyUser();
                                                 } catch (abandonError) {
-                                                     console.error("Erro ao abandonar partida:", abandonError);
-                                                     showMessage("Erro ao abandonar a partida. Tente recarregar.");
+                                                     console.error("Erro ao abandonar partida:", abandonError); showMessage("Erro ao abandonar a partida. Tente recarregar.");
                                                      await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null, currentGameId: null });
-                                                     playerListScreen.classList.remove('hidden');
-                                                     listenToLobbyList();
-                                                     listenToLobbyUser();
+                                                     playerListScreen.classList.remove('hidden'); listenToLobbyList(); listenToLobbyUser();
                                                 }
                                             };
-                        
                                         } else {
                                             await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null, currentGameId: null });
-                                            lobbyScreen.classList.add('hidden');
-                                            playerListScreen.classList.remove('hidden');
-                                            listenToLobbyList();
-                                            listenToLobbyUser();
+                                            lobbyScreen.classList.add('hidden'); playerListScreen.classList.remove('hidden');
+                                            listenToLobbyList(); listenToLobbyUser();
                                         }
                                      } catch (gameDocError) {
                                          console.error("Erro ao buscar documento do jogo:", gameDocError);
                                           await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null, currentGameId: null });
-                                          lobbyScreen.classList.add('hidden');
-                                          playerListScreen.classList.remove('hidden');
-                                          listenToLobbyList();
-                                          listenToLobbyUser();
+                                          lobbyScreen.classList.add('hidden'); playerListScreen.classList.remove('hidden');
+                                          listenToLobbyList(); listenToLobbyUser();
                                      }
                                 } else {
                                     await setDoc(lobbyDocRef, { name: localPlayerName, status: "online", invitedBy: null, inviteTo: null, currentGameId: null });
-                                    lobbyScreen.classList.add('hidden');
-                                    playerListScreen.classList.remove('hidden');
-                                    listenToLobbyList();
-                                    listenToLobbyUser();
+                                    lobbyScreen.classList.add('hidden'); playerListScreen.classList.remove('hidden');
+                                    listenToLobbyList(); listenToLobbyUser();
                                 }
                             } else {
-                                lobbyScreen.classList.add('hidden');
-                                playerListScreen.classList.remove('hidden');
-                                listenToLobbyList();
-                                listenToLobbyUser();
+                                lobbyScreen.classList.add('hidden'); playerListScreen.classList.remove('hidden');
+                                listenToLobbyList(); listenToLobbyUser();
                             }
-                        } else {
-                            console.log("Documento do lobby não encontrado para o usuário.");
-                        }
+                        } else { console.log("Documento do lobby não encontrado para o usuário."); }
                     } catch(lobbyDocError) {
-                         console.error("Erro ao buscar documento do lobby:", lobbyDocError);
-                         lobbyStatus.textContent = "Erro ao verificar sessão. Recarregue.";
+                         console.error("Erro ao buscar documento do lobby:", lobbyDocError); lobbyStatus.textContent = "Erro ao verificar sessão. Recarregue.";
                     }
                 } else {
                     try {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { await signInWithCustomToken(auth, __initial_auth_token); } 
+                        else { await signInAnonymously(auth); }
                     } catch (error) {
-                        console.error("Falha na autenticação:", error);
-                        lobbyStatus.textContent = "Erro de autenticação. Recarregue a página.";
-                        startLobbyBtn.disabled = true; 
+                        console.error("Falha na autenticação:", error); lobbyStatus.textContent = "Erro de autenticação. Recarregue a página."; startLobbyBtn.disabled = true; 
                     }
                 }
             });
             
             function cleanupLobbyEntry() {
                 if (!localUserId) return;
-                deleteDoc(doc(db, lobbyCollectionPath, localUserId)).catch(err => {
-                    console.log("Falha ao limpar lobby na saída (ignorado):", err);
-                });
+                deleteDoc(doc(db, lobbyCollectionPath, localUserId)).catch(err => { console.log("Falha ao limpar lobby na saída (ignorado):", err); });
             }
             window.addEventListener('beforeunload', cleanupLobbyEntry);
             
@@ -2941,25 +2204,24 @@
                 </div>
             `;
         }
-
     </script>
     
     <style>
-        body { min-height: 100vh; width: 100vw; overflow: hidden; font-family: 'Times New Roman', Times, serif; }
+        body { min-height: 100vh; width: 100vw; font-family: 'Times New Roman', Times, serif; }
         
         #lobby-screen { background-image: url('imagens/Alquimercadores.jpg'); background-size: cover; background-position: center center; }
         #player-list-screen, #reconnect-screen { background-image: url('imagens/pergaminho_fundo.jpg'); background-size: cover; background-position: center center; }
         .pergaminho-bg { background-image: url('imagens/pergaminho_fundo.jpg'); background-size: cover; background-position: center; color: #3d2a1a; border: 4px solid #5c3d20; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         
-        .potion-tooltip .tooltip-text { visibility: hidden; width: 200px; background-color: #5c3d20; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 50; bottom: 125%; left: 50%; margin-left: -100px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .potion-tooltip .tooltip-text { visibility: hidden; width: 220px; background-color: #1e293b; color: #fff; text-align: center; border-radius: 6px; padding: 8px; position: absolute; z-index: 50; bottom: 125%; left: 50%; margin-left: -110px; opacity: 0; transition: opacity 0.3s; pointer-events: none; border: 1px solid #475569; font-family: sans-serif; }
         .potion-tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
         
         .btn { @apply py-2 px-4 rounded font-bold shadow-lg transition-all duration-200 active:scale-95 border-b-4 disabled:opacity-50 disabled:cursor-not-allowed text-[#3d2a1a] text-center cursor-pointer; }
-        .btn-green { @apply bg-green-400 border-green-600 hover:bg-green-300; }
-        .btn-red { @apply bg-red-400 border-red-600 hover:bg-red-300; }
-        .btn-blue { @apply bg-blue-400 border-blue-600 hover:bg-blue-300; }
-        .btn-gray { @apply bg-gray-300 border-gray-500 hover:bg-gray-200; }
-        .btn-yellow { @apply bg-yellow-400 border-yellow-600 hover:bg-yellow-300; }
+        .btn-green { @apply bg-green-500 border-green-700 hover:bg-green-400 text-white; }
+        .btn-red { @apply bg-red-500 border-red-700 hover:bg-red-400 text-white; }
+        .btn-blue { @apply bg-blue-500 border-blue-700 hover:bg-blue-400 text-white; }
+        .btn-gray { @apply bg-gray-400 border-gray-600 hover:bg-gray-300; }
+        .btn-yellow { @apply bg-yellow-400 border-yellow-600 hover:bg-yellow-300 text-black; }
 
         /* Oculta scrollbar mas permite scroll */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -2974,18 +2236,19 @@
         .star-nobre { color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.9); font-size: 1.2rem; margin-left: 4px; }     
     </style>
 </head>
-<body class="bg-gray-900 text-white selection:bg-yellow-500 selection:text-black">
+<body class="bg-slate-900 text-white selection:bg-yellow-500 selection:text-black overflow-hidden">
 
+    <!-- Telas de Lobby e Conexão -->
     <div id="lobby-screen" class="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div class="p-8 rounded-lg w-full max-w-md text-center text-[#3d2a1a]">
-            <div class="w-64 h-64 md:w-80 md:h-80 bg-transparent rounded-full mx-auto mb-6 flex items-center justify-center">
+            <div class="w-64 h-64 md:w-80 md:h-80 bg-transparent rounded-full mx-auto mb-6 flex items-center justify-center drop-shadow-xl">
                  <img src="imagens/Logo.png" alt="Logo Alquimercadores" class="w-full h-full object-contain">
             </div>
             <div class="mb-4">
-                <input type="text" id="player-name-input" placeholder="Insira seu nome" class="w-full p-3 rounded border-2 bg-purple-200 text-purple-900 placeholder-purple-600 border-purple-400 font-bold">
+                <input type="text" id="player-name-input" placeholder="Insira seu nome" class="w-full p-3 rounded border-2 bg-purple-200 text-purple-900 placeholder-purple-600 border-purple-400 font-bold shadow-inner">
             </div>
-           <button id="start-lobby-btn" class="btn w-full mb-4 bg-purple-500 border-purple-700 hover:bg-purple-400 text-white">Entrar no Mercado</button>
-            <p id="lobby-status" class="text-center text-red-900 font-bold bg-white/50 rounded h-6 mt-4"></p>
+           <button id="start-lobby-btn" class="btn w-full mb-4 bg-purple-600 border-purple-800 hover:bg-purple-500 text-white text-lg">Entrar no Mercado</button>
+            <p id="lobby-status" class="text-center text-red-900 font-bold bg-white/70 rounded h-6 mt-4 shadow"></p>
         </div>
     </div>
     
@@ -2993,13 +2256,13 @@
         <div class="pergaminho-bg p-4 md:p-8 rounded-lg w-full max-w-lg h-[90vh] flex flex-col">
             <h2 class="text-2xl md:text-3xl font-bold text-center text-[#3d2a1a] mb-4">Alquimistas na Guilda</h2>
             <p id="player-list-status" class="text-center text-gray-700 h-6 mb-2">Aguardando convites...</p>
-            <div id="player-list" class="flex-grow overflow-y-auto space-y-2 bg-black/5 p-2 rounded border border-yellow-700/30 hide-scrollbar">
+            <div id="player-list" class="flex-grow overflow-y-auto space-y-2 bg-black/5 p-2 rounded border border-yellow-700/30 hide-scrollbar shadow-inner">
                 <p class="text-center text-gray-700">Procurando jogadores...</p>
             </div>
             <button id="exit-lobby-btn" class="btn btn-gray w-full mt-4">Sair da Guilda</button>
             
             <div id="invitation-popup" class="hidden absolute bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-8 bg-yellow-100 p-4 rounded-lg border-4 border-green-600 shadow-2xl">
-                <p id="invitation-text" class="text-center text-lg md:text-xl font-bold mb-4">...</p>
+                <p id="invitation-text" class="text-center text-lg md:text-xl font-bold mb-4 text-[#3d2a1a]">...</p>
                 <div class="flex gap-4">
                     <button id="accept-invite-btn" class="btn btn-green flex-1">Aceitar</button>
                     <button id="decline-invite-btn" class="btn btn-red flex-1">Recusar</button>
@@ -3011,7 +2274,7 @@
     <div id="reconnect-screen" class="hidden fixed inset-0 flex items-center justify-center z-40 p-4">
         <div class="pergaminho-bg p-8 rounded-lg w-full max-w-md text-center">
             <h2 class="text-2xl font-bold text-[#3d2a1a] mb-4">A Fogueira ainda queima!</h2>
-            <p class="text-lg text-gray-800 mb-6">Você quer voltar para a sua partida anterior?</p>
+            <p class="text-lg text-gray-800 mb-6 font-semibold">Você quer voltar para a sua partida anterior?</p>
             <div class="flex flex-col gap-4">
                 <button id="reconnect-yes-btn" class="btn btn-green w-full">Retornar ao Caldeirão</button>
                 <button id="reconnect-no-btn" class="btn btn-red w-full">Abandonar Partida</button>
@@ -3019,180 +2282,214 @@
         </div>
     </div>
     
-    <div id="game-screen" class="hidden flex-col h-screen w-full bg-slate-900 overflow-hidden relative">
+    <!-- ============================================ -->
+    <!-- TELA DO JOGO (LAYOUT FLEXBOX ROBUSTO)        -->
+    <!-- ============================================ -->
+    <div id="game-screen" class="hidden flex-col h-screen w-full bg-[#0f172a] text-white">
         
-        <header class="bg-[#2a1f18] border-b-2 border-yellow-900/50 p-2 flex justify-between items-center shadow-md z-10 shrink-0">
+        <!-- CABEÇALHO (Não sobrepõe o conteúdo) -->
+        <header class="flex-none bg-[#1e1b18] border-b-2 border-yellow-700/50 p-2 md:p-3 flex justify-between items-center shadow-lg z-10">
+            <!-- Placar Compacto -->
             <div class="flex flex-col">
-                <div class="flex gap-3 text-sm md:text-base font-bold">
-                    <span id="player1-score" class="text-blue-300">J1: 0 💰</span>
-                    <span id="player2-score" class="text-red-300">J2: 0 💰</span>
+                <div class="flex gap-4 text-sm md:text-base font-bold font-sans">
+                    <span id="player1-score" class="text-blue-400 drop-shadow">J1: 0 💰</span>
+                    <span id="player2-score" class="text-red-400 drop-shadow">J2: 0 💰</span>
                 </div>
-                <div class="text-xs text-yellow-500 font-semibold mt-1">
-                    Vendas: <span id="clients-count" class="text-white">0</span>/6
+                <div class="text-[10px] md:text-xs text-yellow-500 font-bold mt-1 uppercase tracking-widest">
+                    Vendas no Mercado: <span id="clients-count" class="text-white">0</span>/6
                 </div>
             </div>
 
+            <!-- Botões Superiores -->
             <div class="flex gap-2">
-                <button id="active-potions-toggle" class="btn bg-indigo-700 border-indigo-900 hover:bg-indigo-600 text-white text-xs px-3 py-1 flex items-center gap-1">
-                    <span>🧪</span> Efeitos
+                <button id="active-potions-toggle" class="btn bg-indigo-600 border-indigo-800 hover:bg-indigo-500 text-white text-xs md:text-sm px-3 py-1 flex items-center gap-2">
+                    <span class="text-lg">🧪</span> <span class="hidden md:inline">Efeitos</span>
                 </button>
-                <button id="quit-game-btn" class="btn btn-red text-xs px-3 py-1">Desistir</button>
+                <button id="quit-game-btn" class="btn btn-red text-xs md:text-sm px-3 py-1">Desistir</button>
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto hide-scrollbar flex flex-col p-2 md:p-4 gap-4 pb-[200px]">
+        <!-- ÁREA CENTRAL (Esta área que rola quando não há espaço) -->
+        <main class="flex-1 overflow-y-auto hide-scrollbar flex flex-col p-3 md:p-4 gap-4 md:gap-6 bg-gradient-to-b from-[#0f172a] to-[#1e293b]">
             
-            <section class="mb-2">
-                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 pl-1 border-b border-gray-700">Mercado</h2>
-                <div id="client-area" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x">
+            <!-- MERCADO -->
+            <section class="flex flex-col flex-none">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 pl-1 border-b border-gray-700/50 pb-1">Mercado</h2>
+                <div id="client-area" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x items-center min-h-[7rem]">
                     
-                    <div id="client-1-bubble" class="snap-start flex-shrink-0 w-36 bg-[#f0e6d2] border-4 border-[#5c3d20] rounded-xl p-3 text-[#3d2a1a] shadow-lg flex flex-col justify-between hidden">
+                    <!-- Carta Cliente 1 -->
+                    <div id="client-1-bubble" class="snap-start flex-shrink-0 w-32 md:w-40 bg-[#f4ebd8] border-4 rounded-xl p-3 text-[#3d2a1a] shadow-lg flex flex-col justify-between hidden">
                         <div>
-                            <span class="client-type text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">...</span>
-                            <p class="potion-name font-bold text-sm leading-tight min-h-[2.5rem]">...</p>
+                            <span class="client-type text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-gray-500 block mb-1">...</span>
+                            <p class="potion-name font-bold text-xs md:text-sm leading-tight min-h-[2.5rem]">...</p>
                         </div>
-                        <p class="potion-price font-bold text-lg text-green-700 mt-2 text-center">💰 ...</p>
+                        <p class="potion-price font-bold text-base md:text-lg text-green-700 mt-2 text-center drop-shadow-sm">💰 ...</p>
                     </div>
 
-                    <div id="client-2-bubble" class="snap-start flex-shrink-0 w-36 bg-[#f0e6d2] border-4 border-[#5c3d20] rounded-xl p-3 text-[#3d2a1a] shadow-lg flex flex-col justify-between hidden">
+                    <!-- Carta Cliente 2 -->
+                    <div id="client-2-bubble" class="snap-start flex-shrink-0 w-32 md:w-40 bg-[#f4ebd8] border-4 rounded-xl p-3 text-[#3d2a1a] shadow-lg flex flex-col justify-between hidden">
                         <div>
-                            <span class="client-type text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">...</span>
-                            <p class="potion-name font-bold text-sm leading-tight min-h-[2.5rem]">...</p>
+                            <span class="client-type text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-gray-500 block mb-1">...</span>
+                            <p class="potion-name font-bold text-xs md:text-sm leading-tight min-h-[2.5rem]">...</p>
                         </div>
-                        <p class="potion-price font-bold text-lg text-green-700 mt-2 text-center">💰 ...</p>
+                        <p class="potion-price font-bold text-base md:text-lg text-green-700 mt-2 text-center drop-shadow-sm">💰 ...</p>
                     </div>
 
-                    <div id="client-3-bubble" class="snap-start flex-shrink-0 w-36 bg-[#f0e6d2] border-4 border-[#5c3d20] rounded-xl p-3 text-[#3d2a1a] shadow-lg flex flex-col justify-between hidden">
+                    <!-- Carta Cliente 3 -->
+                    <div id="client-3-bubble" class="snap-start flex-shrink-0 w-32 md:w-40 bg-[#f4ebd8] border-4 rounded-xl p-3 text-[#3d2a1a] shadow-lg flex flex-col justify-between hidden">
                         <div>
-                            <span class="client-type text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">...</span>
-                            <p class="potion-name font-bold text-sm leading-tight min-h-[2.5rem]">...</p>
+                            <span class="client-type text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-gray-500 block mb-1">...</span>
+                            <p class="potion-name font-bold text-xs md:text-sm leading-tight min-h-[2.5rem]">...</p>
                         </div>
-                        <p class="potion-price font-bold text-lg text-green-700 mt-2 text-center">💰 ...</p>
+                        <p class="potion-price font-bold text-base md:text-lg text-green-700 mt-2 text-center drop-shadow-sm">💰 ...</p>
                     </div>
 
                 </div>
             </section>
 
-            <section class="bg-red-900/20 border border-red-900/50 rounded-xl p-3">
-                <h3 id="player2-name-display" class="font-bold text-red-400 mb-2">Oponente</h3>
-                <div id="player2-shelf" class="flex flex-wrap gap-2 min-h-[4rem] bg-black/40 rounded-lg p-2 items-center"></div>
-            </section>
+            <!-- PRATELEIRAS (Em container flex para mudar a ordem) -->
+            <div class="flex flex-col gap-4 flex-none pb-4">
+                <!-- Seção Player 2 -->
+                <section id="player2-shelf-section" class="bg-red-950/20 border border-red-900/30 rounded-xl p-3 flex flex-col shadow-inner">
+                    <h3 id="player2-name-display" class="font-bold text-red-400 mb-2 font-sans text-sm md:text-base">Oponente</h3>
+                    <div id="player2-shelf" class="flex flex-wrap gap-2 min-h-[4rem] md:min-h-[5rem] bg-black/40 rounded-lg p-2 items-center border border-black/50 shadow-inner"></div>
+                </section>
 
-            <section class="bg-blue-900/20 border border-blue-900/50 rounded-xl p-3 relative">
-                <h3 id="player1-name-display" class="font-bold text-blue-400 mb-2">Você</h3>
-                <div id="player1-shelf" class="flex flex-wrap gap-2 min-h-[4rem] bg-black/40 rounded-lg p-2 items-center"></div>
-            </section>
+                <!-- Seção Player 1 -->
+                <section id="player1-shelf-section" class="bg-blue-950/20 border border-blue-900/30 rounded-xl p-3 flex flex-col shadow-inner relative">
+                    <h3 id="player1-name-display" class="font-bold text-blue-400 mb-2 font-sans text-sm md:text-base">Você</h3>
+                    <div id="player1-shelf" class="flex flex-wrap gap-2 min-h-[4rem] md:min-h-[5rem] bg-black/40 rounded-lg p-2 items-center border border-black/50 shadow-inner"></div>
+                </section>
+            </div>
 
         </main>
 
-        <footer class="absolute bottom-0 w-full bg-gray-800 border-t-4 border-gray-900 p-3 shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.5)] z-20">
+        <!-- RODAPÉ (Área de Ação Sempre Visível) -->
+        <footer class="flex-none w-full bg-[#1e293b] border-t-4 border-[#0f172a] p-3 shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.7)] z-20">
+            
+            <!-- Balcão -->
             <div class="mb-3">
-                <h3 class="text-gray-400 text-xs uppercase tracking-wider font-bold mb-1">Balcão de Preparo</h3>
-                <div id="counter-area" class="flex overflow-x-auto hide-scrollbar items-center gap-2 h-[4rem] bg-black/50 rounded-lg p-2 border border-gray-700"></div>
+                <h3 class="text-gray-400 text-[10px] md:text-xs uppercase tracking-widest font-bold mb-1 pl-1">Balcão de Preparo</h3>
+                <div id="counter-area" class="flex overflow-x-auto hide-scrollbar items-center gap-2 h-[4rem] md:h-[4.5rem] bg-black/50 rounded-lg p-2 border border-gray-700 shadow-inner"></div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2">
-                <button id="cauldron-btn" class="btn bg-purple-600 border-purple-800 hover:bg-purple-500 text-white py-3 col-span-2 text-lg font-bold flex items-center justify-center gap-2">
-                    <span class="text-2xl">🧪</span> Puxar Ingrediente
+            <!-- Botões de Ação Dinâmicos -->
+            <div class="flex flex-col gap-2">
+                <!-- Botão Principal de Puxar -->
+                <button id="cauldron-btn" class="btn bg-purple-600 border-purple-800 hover:bg-purple-500 text-white w-full py-3 md:py-4 text-lg md:text-xl font-bold flex items-center justify-center gap-3">
+                    <span class="text-2xl drop-shadow">🧪</span> Puxar Ingrediente
                 </button>
-                <button id="stop-pulling-btn" class="btn btn-red hidden py-3 text-sm">Parar</button>
-                <button id="finish-production-btn" class="btn btn-yellow hidden py-3 col-span-2 text-sm">Finalizar Preparo</button>
-                <button id="finish-action-btn" class="btn btn-green hidden py-3 col-span-2 text-sm">Passar Turno</button>
-                <button id="mesa-book-btn" class="btn bg-[#5c3d20] border-[#3d2a1a] text-white py-2 col-span-2 text-sm mt-1">📖 Livro de Receitas</button>
+                
+                <!-- Botões de Finalização (Em grid se forem 2, ou empilhados) -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="stop-pulling-btn" class="hidden btn btn-red w-full py-2 text-sm col-span-2">Parar de Puxar</button>
+                    <button id="finish-production-btn" class="hidden btn btn-yellow w-full py-2 text-sm col-span-2">Finalizar Preparo</button>
+                    <button id="finish-action-btn" class="hidden btn btn-green w-full py-2 text-sm col-span-2">Passar Turno</button>
+                    <button id="mesa-book-btn" class="btn bg-[#5c3d20] border-[#3d2a1a] text-white w-full py-2 text-sm col-span-2 shadow flex items-center justify-center gap-2">
+                        📖 Livro de Receitas
+                    </button>
+                </div>
             </div>
         </footer>
 
-        <div id="active-potions-board" class="absolute top-0 right-0 w-80 max-w-[85vw] h-full bg-slate-800/95 backdrop-blur-md p-4 border-l-4 border-indigo-900 z-50 translate-x-full shadow-2xl flex flex-col">
+        <!-- PAINEL LATERAL: Poções Ativas e Prontas -->
+        <div id="active-potions-board" class="absolute top-0 right-0 w-72 md:w-80 max-w-[85vw] h-full bg-[#0f172a]/95 backdrop-blur-md p-4 border-l-4 border-indigo-900 z-50 translate-x-full shadow-2xl flex flex-col font-sans transition-transform duration-300">
             <div class="flex justify-between items-center mb-4 border-b-2 border-indigo-500/30 pb-2">
-                <h3 class="text-xl font-bold text-indigo-300">Status Mágico</h3>
-                <button id="close-potions-board-btn" class="text-3xl text-gray-400 hover:text-white">&times;</button>
+                <h3 class="text-lg md:text-xl font-bold text-indigo-300 uppercase tracking-widest">Status Mágico</h3>
+                <button id="close-potions-board-btn" class="text-3xl text-gray-400 hover:text-white transition-colors">&times;</button>
             </div>
             
             <div class="flex-1 overflow-y-auto hide-scrollbar space-y-6">
+                <!-- Poções Prontas -->
                 <div>
-                    <h4 class="text-sm uppercase tracking-widest text-gray-400 mb-2">Poções no Cinto</h4>
-                    <div class="bg-black/30 p-2 rounded border border-gray-700/50 mb-3">
-                        <h5 id="player1-ready-potions-title" class="text-sm font-semibold text-blue-300 mb-1">Você:</h5>
-                        <div id="player1-ready-potions-list" class="flex flex-wrap gap-2 min-h-[3rem]"></div>
+                    <h4 class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-2">Poções no Cinto</h4>
+                    <div class="bg-black/40 p-2 rounded border border-gray-700/50 mb-3 shadow-inner">
+                        <h5 id="player1-ready-potions-title" class="text-xs font-bold text-blue-400 mb-2 uppercase tracking-wide">Você:</h5>
+                        <div id="player1-ready-potions-list" class="flex flex-wrap gap-2 min-h-[3rem] items-start"></div>
                     </div>
-                    <div class="bg-black/30 p-2 rounded border border-gray-700/50">
-                        <h5 id="player2-ready-potions-title" class="text-sm font-semibold text-red-300 mb-1">Oponente:</h5>
-                        <div id="player2-ready-potions-list" class="flex flex-wrap gap-2 min-h-[3rem]"></div>
+                    <div class="bg-black/40 p-2 rounded border border-gray-700/50 shadow-inner">
+                        <h5 id="player2-ready-potions-title" class="text-xs font-bold text-red-400 mb-2 uppercase tracking-wide">Oponente:</h5>
+                        <div id="player2-ready-potions-list" class="flex flex-wrap gap-2 min-h-[3rem] items-start"></div>
                     </div>
                 </div>
         
+                <!-- Efeitos Passivos -->
                 <div>
-                    <h4 class="text-sm uppercase tracking-widest text-gray-400 mb-2">Efeitos Ativos</h4>
+                    <h4 class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-2">Auras Ativas</h4>
                     <div class="mb-3">
-                        <h5 class="text-sm font-semibold text-blue-300 mb-1">Sua Aura:</h5>
-                        <ul id="player1-active-potions-list" class="flex flex-col gap-1"></ul>
+                        <h5 class="text-xs font-bold text-blue-400 mb-2 uppercase tracking-wide">Sua Aura:</h5>
+                        <ul id="player1-active-potions-list" class="flex flex-col gap-1.5"></ul>
                     </div>
                     <div>
-                        <h5 class="text-sm font-semibold text-red-300 mb-1">Aura Oponente:</h5>
-                        <ul id="player2-active-potions-list" class="flex flex-col gap-1"></ul>
+                        <h5 class="text-xs font-bold text-red-400 mb-2 uppercase tracking-wide">Aura Oponente:</h5>
+                        <ul id="player2-active-potions-list" class="flex flex-col gap-1.5"></ul>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div id="recipe-modal" class="hidden fixed inset-0 bg-black/90 flex flex-col items-center justify-start p-2 md:p-8 z-50 overflow-y-auto">
-            <div class="bg-[#f0e6d2] w-full max-w-3xl rounded-xl border-4 border-[#5c3d20] flex flex-col p-4 my-auto relative shadow-2xl text-[#3d2a1a]">
-                <button id="close-recipe-modal-btn" class="absolute top-2 right-4 text-4xl hover:text-red-600 font-bold">&times;</button>
-                <h2 class="text-2xl font-bold mb-4 border-b-2 border-[#5c3d20]/30 pb-2 text-center uppercase tracking-widest">Arcano Potionum</h2>
+        <!-- MODAIS -->
+        
+        <!-- Livro de Receitas -->
+        <div id="recipe-modal" class="hidden fixed inset-0 bg-black/90 flex flex-col items-center justify-center p-2 md:p-8 z-50">
+            <div class="bg-[#f4ebd8] w-full max-w-4xl max-h-[95vh] rounded-xl border-4 border-[#5c3d20] flex flex-col p-4 relative shadow-[0_0_40px_rgba(0,0,0,0.8)] text-[#3d2a1a] font-sans">
+                <button id="close-recipe-modal-btn" class="absolute top-2 right-4 text-4xl hover:text-red-600 font-bold transition-colors z-10">&times;</button>
+                <h2 class="text-xl md:text-2xl font-bold mb-3 border-b-2 border-[#5c3d20]/30 pb-2 text-center uppercase tracking-widest font-serif">Arcano Potionum</h2>
                 
-                <div class="flex flex-col md:flex-row gap-4 h-[60vh] overflow-y-auto hide-scrollbar">
+                <!-- Colunas de Receitas -->
+                <div class="flex flex-col md:flex-row gap-4 overflow-y-auto hide-scrollbar flex-1 bg-black/5 p-2 rounded-lg border border-[#5c3d20]/20 shadow-inner">
                     <div id="pagina-esquerda" class="flex-1 space-y-2"></div>
                     <div id="pagina-direita" class="flex-1 space-y-2"></div>
                 </div>
                 
-                <div class="flex justify-between mt-4 border-t-2 border-[#5c3d20]/30 pt-4">
-                    <button id="prev-page-btn" class="btn bg-[#5c3d20] border-[#3d2a1a] text-white px-4 md:px-8">Anterior</button>
-                    <span class="self-center text-sm font-bold opacity-50">Páginas</span>
-                    <button id="next-page-btn" class="btn bg-[#5c3d20] border-[#3d2a1a] text-white px-4 md:px-8">Próxima</button>
+                <div class="flex justify-between items-center mt-3 border-t-2 border-[#5c3d20]/30 pt-3">
+                    <button id="prev-page-btn" class="btn bg-[#5c3d20] border-[#3d2a1a] text-white px-4 md:px-8 text-sm">Anterior</button>
+                    <span class="text-xs md:text-sm font-bold uppercase tracking-widest text-[#5c3d20]/70">Receitas</span>
+                    <button id="next-page-btn" class="btn bg-[#5c3d20] border-[#3d2a1a] text-white px-4 md:px-8 text-sm">Próxima</button>
                 </div>
             </div>
         </div>
         
         <div id="action-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-            <div class="bg-[#f0e6d2] text-[#3d2a1a] border-4 border-[#5c3d20] p-6 rounded-xl w-full max-w-sm text-center shadow-2xl">
-                <h2 class="text-lg font-bold text-gray-500 uppercase tracking-widest mb-1">Poção Pronta</h2>
-                <h3 id="action-potion-name" class="text-2xl font-bold mb-3">...</h3>
-                <p id="action-potion-desc" class="text-sm italic border-y border-[#5c3d20]/20 py-3 mb-6 min-h-[4rem] flex items-center justify-center">...</p>
-                <div class="flex flex-col gap-3">
+            <div class="bg-[#f4ebd8] text-[#3d2a1a] border-4 border-[#5c3d20] p-6 rounded-xl w-full max-w-sm text-center shadow-2xl">
+                <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1 border-b border-gray-300 pb-1">Analisando Poção</h2>
+                <h3 id="action-potion-name" class="text-xl md:text-2xl font-bold mb-3 mt-2 text-[#5c3d20]">...</h3>
+                <p id="action-potion-desc" class="text-sm font-sans italic border-y border-[#5c3d20]/20 py-3 mb-6 min-h-[4rem] flex items-center justify-center">...</p>
+                <div class="flex flex-col gap-3 font-sans">
                     <button id="sell-btn" class="btn btn-green w-full py-3">Vender no Mercado</button>
-                    <button id="use-btn" class="btn btn-blue w-full py-3">Beber / Usar Efeito</button>
-                    <button onclick="document.getElementById('action-modal').classList.add('hidden')" class="btn btn-gray w-full mt-2">Fechar</button>
+                    <button id="use-btn" class="btn btn-blue w-full py-3">Beber / Lançar Efeito</button>
+                    <button onclick="document.getElementById('action-modal').classList.add('hidden')" class="btn btn-gray w-full mt-2">Guardar por enquanto</button>
                 </div>
             </div>
         </div>
         
         <div id="message-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[60]">
             <div class="bg-slate-800 text-white border-2 border-yellow-600 p-6 rounded-xl w-full max-w-xs text-center shadow-2xl">
-                <h2 id="message-text" class="text-lg font-bold mb-6">...</h2>
+                <h2 id="message-text" class="text-base md:text-lg font-bold mb-6 font-sans">...</h2>
                 <button id="close-message-modal-btn" class="btn btn-gray w-full">Certo</button>
             </div>
         </div>
         
         <div id="decision-modal" class="hidden fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-[60]">
-            <div class="bg-slate-800 text-white border-2 border-yellow-600 p-6 rounded-xl w-full max-w-sm text-center shadow-2xl max-h-[90vh] flex flex-col">
-                <h2 id="decision-title" class="text-xl font-bold mb-4 text-yellow-400">...</h2>
+            <div class="bg-slate-800 text-white border-2 border-yellow-600 p-6 rounded-xl w-full max-w-sm text-center shadow-2xl max-h-[90vh] flex flex-col font-sans">
+                <h2 id="decision-title" class="text-lg md:text-xl font-bold mb-4 text-yellow-400 border-b border-yellow-600/30 pb-2">...</h2>
                 <div id="decision-options" class="space-y-3 overflow-y-auto hide-scrollbar flex-1"></div>
             </div>
         </div>
 
         <div id="end-game-modal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-[70]">
-            <div class="bg-slate-900 text-white border-4 border-yellow-600 p-8 rounded-xl w-full max-w-md text-center shadow-2xl">
-                <h2 class="text-3xl font-bold text-yellow-500 mb-2 uppercase tracking-widest">O Mercado Fechou!</h2>
-                <div class="w-full h-1 bg-yellow-600/30 mb-6"></div>
-                <p id="winner-text" class="text-xl font-semibold mb-8 min-h-[4rem] flex items-center justify-center">...</p>
+            <div class="bg-slate-900 text-white border-4 border-yellow-600 p-8 rounded-xl w-full max-w-md text-center shadow-[0_0_50px_rgba(202,138,4,0.3)]">
+                <h2 class="text-2xl md:text-3xl font-bold text-yellow-500 mb-2 uppercase tracking-widest font-serif">O Mercado Fechou!</h2>
+                <div class="w-full h-1 bg-gradient-to-r from-transparent via-yellow-600 to-transparent mb-6"></div>
+                <p id="winner-text" class="text-lg md:text-xl font-semibold mb-8 min-h-[4rem] flex items-center justify-center text-gray-200">...</p>
                 <button id="back-to-lobby-btn" class="btn btn-blue w-full py-4 text-lg">Retornar à Guilda</button>
             </div>
         </div>
 
         <div id="barrier-block-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[80] transition-opacity duration-500">
-            <div class="bg-blue-900 text-blue-100 border-4 border-blue-400 p-6 rounded-xl w-full max-w-xs text-center shadow-blue-500/50 shadow-2xl scale-110">
-                <div class="text-4xl mb-2">🛡️</div>
-                <h2 id="barrier-message-text" class="text-lg font-bold">...</h2>
+            <div class="bg-blue-950 text-blue-100 border-4 border-blue-500 p-6 rounded-xl w-full max-w-xs text-center shadow-[0_0_30px_rgba(59,130,246,0.6)] scale-110 font-sans">
+                <div class="text-5xl mb-3 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">🛡️</div>
+                <h2 id="barrier-message-text" class="text-base font-bold">...</h2>
             </div>
         </div>
     </div>
