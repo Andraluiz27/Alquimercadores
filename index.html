@@ -1410,9 +1410,9 @@
                     return;
                 }
             
-                // Agora ele pega a poção específica que você clicou no painel
+                // Pega a poção específica que você clicou no cinto
                 const potionName = playerState.potionsReady[potionIndex];
-                if (!potionName) return; // Segurança extra
+                if (!potionName) return;
 
                 const potionData = ARCANO_POTIONUM[potionName];
             
@@ -1868,29 +1868,29 @@
                     element.innerHTML = ''; 
                     if (!potions || potions.length === 0) { element.innerHTML = `<p class="text-gray-500 text-sm italic">Nenhuma poção pronta.</p>`; return; }
             
-                    potions.forEach(potionName => {
+                    potions.forEach((potionName, index) => {
                         const potionContainer = document.createElement('div');
                         potionContainer.className = 'relative text-center flex flex-col items-center w-16';
                         const img = createPotionImage(potionName);
+                        
                         if (localPlayerId === ownerId && selectedPotion === potionName) {
                             img.classList.add('border-2', 'border-yellow-400', 'rounded-lg');
                         }
 
-                        // --- NOVA LÓGICA: POÇÕES CLICÁVEIS ---
+                        // --- ADICIONADO: CLIQUE PARA ABRIR O MENU ---
                         if (localPlayerId === ownerId) {
                             img.classList.add('cursor-pointer', 'hover:scale-110', 'transition-transform');
-                            img.title = "Clique para Usar/Vender";
                             img.onclick = () => {
+                                // Só abre se for a fase de Ação (Uso e Venda)
                                 if (localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`) {
-                                    showActionModal(index); // Abre o modal para esta poção específica
-                                    // Fecha o painel lateral para você ver o modal no centro
-                                    document.getElementById('active-potions-board').classList.add('translate-x-full');
+                                    showActionModal(index);
+                                    // Opcional: fecha a barra lateral para ver o modal melhor
+                                    activePotionsBoard.classList.add('translate-x-full');
                                 }
                             };
                         }
-                        // -------------------------------------
+                        // -------------------------------------------
 
-                        
                         potionContainer.appendChild(img);
                         const nameEl = document.createElement('p');
                         nameEl.className = 'text-[10px] text-gray-300 leading-tight text-center mt-1 w-full';
@@ -2326,9 +2326,6 @@
                     
                     updateUI();
                     
-                    if (oldState.phase !== localGameState.phase && localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`) {
-                        setTimeout(showActionModal, 150); 
-                    }
                     if (localGameState.phase === 'GAME_OVER' && oldState.phase !== 'GAME_OVER') { endGame(); }
                 }, (error) => { 
                     console.error(`Erro no listener do jogo ${id}:`, error); showMessage("Erro de conexão com o jogo. Tentando reconectar...");
