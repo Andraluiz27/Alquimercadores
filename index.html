@@ -20,10 +20,10 @@
             "Pó da Corrosão": { nome: "Pó da Corrosão", tipo: "Fácil", efeito: "Ação", descricao: "Seu oponente descarta 1 ingrediente da prateleira dele (ele escolhe qual).", ingredientes: { "Beterraba Brava": 2} },
             "Elixir do Mercador": { nome: "Elixir do Mercador", tipo: "Fácil", efeito: "Ação", descricao: "Descarte um cliente do mercado e revele um novo. (Funciona mesmo em clientes com Contrato).", ingredientes: { "Unha de Bruxa": 1, "Asa de Fada": 1 }, corExtra: { "amarelo": 1 } },
             "Tônico Dourado": { nome: "Tônico Dourado", tipo: "Fácil", efeito: "Ação", descricao: "Ganhe 2 Moedas imediatamente.", ingredientes: { "Cera de Ogro": 1}, corExtra: { "amarelo": 1 } },
-            "Soro da Clarividência": { nome: "Soro da Clarividência", tipo: "Fácil", efeito: "Ação", descricao: "Pegue qualquer ingrediente que precisar diretamente do caldeirão e guarde na sua prateleira.", ingredientes: {"Chifre de Unicórnio": 1 }, corExtra: { "azul": 1 } },
-            "Descarte Oportuno": { nome: "Descarte Oportuno", tipo: "Fácil", efeito: "Ação", descricao: "Escolha 1 ingrediente do seu Balcão e descarte-o de volta no caldeirão para ganhar 1 Moeda.", ingredientes: { "Unha de Bruxa": 1, "Perna de Sapo": 1 } },
+            "Soro da Clarividência": { nome: "Soro da Clarividência", tipo: "Fácil", efeito: "Ação", descricao: "Pegue qualquer ingrediente que precisar diretamente do caldeirão e guarde na sua prateleira.", ingredientes: {}, corExtra: { "amarelo": 1, "azul": 1 } },
+            "Descarte Oportuno": { nome: "Descarte Oportuno", tipo: "Fácil", efeito: "Ação", descricao: "Escolha quantos ingredientes quiser do seu Balcão e descarte-os de volta no caldeirão para ganhar 1 Moeda por cada ingrediente descartado.", ingredientes: { "Unha de Bruxa": 1 }, corExtra: { "verde": 2 } },
             "Amuleto do Colecionador": { nome: "Amuleto do Colecionador", tipo: "Médio", efeito: "Permanente", descricao: "Você ganha +1 Moeda adicional sempre que vende uma poção.", ingredientes: { "Chifre de Unicórnio": 1, "Perna de Sapo": 1, "Suor de Sereia": 1 }, corExtra: { "vermelho": 1 } },
-            "Mão do Mago": { nome: "Mão do Mago", tipo: "Médio", efeito: "Ação", descricao: "Roube 1 ingrediente da prateleira do seu oponente.", ingredientes: { "Asa de Fada": 1, "Beterraba Brava": 1, "Cera de Ogro": 1 } },
+            "Mão do Mago": { nome: "Mão do Mago", tipo: "Médio", efeito: "Ação", descricao: "Roube 1 ingrediente da prateleira do seu oponente.", ingredientes: { "Cera de Ogro": 1 }, corExtra: { "vermelho": 1, "azul": 1 } },
             "Parasita Mortífero": { nome: "Parasita Mortífero", tipo: "Médio", efeito: "Ação", descricao: "Na próxima venda do seu oponente, você ganha metade das moedas (arredondando para cima). Não pode ser bloqueado.", ingredientes: { "Belladonna": 2 }, corExtra: { "verde": 1 } },
             "Caldeirão Expansivo": { nome: "Caldeirão Expansivo", tipo: "Médio", efeito: "Permanente", descricao: "Sua Prateleira de Armazenamento é aprimorada em +1 espaço.", ingredientes: {"Pena de Fênix": 1, "Cogumelo de Sangue": 1 }, corExtra: { "verde": 1 } },
             "Eco Alquímico": { nome: "Eco Alquímico", tipo: "Difícil", efeito: "Ação", descricao: "Escolha um efeito de poção Permanente ativo do seu oponente. Você copia o efeito dessa poção até o final da sua próxima fase de Ação.", ingredientes: { "Pena de Fênix": 1, "Cogumelo de Sangue": 1, "Cera de Ogro": 1 }, corExtra: { "azul": 2 } },
@@ -37,7 +37,7 @@
             "Solvente Universal": { nome: "Solvente Universal", tipo: "Difícil", efeito: "Ação", descricao: "Seu oponente descarta TODOS os ingredientes da prateleira dele.", ingredientes: { "Pena de Fênix": 1, "Olhos de Jiboia": 1, "Belladonna": 1, "Unha de Bruxa": 1, "Suor de Sereia": 2 } },
             "Maldição do Caldeirão Trincado": { nome: "Maldição do Caldeirão Trincado", tipo: "Difícil", efeito: "Ação", descricao: "No próximo turno do seu oponente, a Fase de puxar ingredientes dele termina se ele puxar qualquer ingrediente da cor que você escolher.", ingredientes: { "Musgo Venenoso": 2, "Belladonna": 2 } },
             "Pasta Prismática": { nome: "Pasta Prismática", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, você pode usar qualquer ingrediente no lugar de somente UM outro ingrediente em suas receitas.", ingredientes: { "Pena de Fênix": 2, "Suor de Sereia": 1, "Chifre de Unicórnio": 2, "Olhos de Jiboia": 1 } },
-            "Fervor do Ousado": { nome: "Fervor do Ousado", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, se você puxar mais de 5 ingredientes sem estourar, suas vendas são dobradas naquele turno.", ingredientes: { "Perna de Sapo": 2, "Cogumelo de Sangue": 2, "Chifre de Unicórnio": 1 } }
+            "Fervor do Ousado": { nome: "Fervor do Ousado", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, se você puxar 4 ou mais ingredientes sem estourar, suas vendas são dobradas naquele turno.", ingredientes: { "Perna de Sapo": 2, "Cogumelo de Sangue": 2, "Chifre de Unicórnio": 1 } }
         };
 
         const INGREDIENT_DATA = {
@@ -189,7 +189,7 @@
             function proceedToPostProduction() {
                 const playerState = localGameState.players[localPlayerId];
                 playerState.fervorBonusThisTurn = false; 
-                if ((playerState.activePotions["Fervor do Ousado"] || playerState.copiedEffect?.name === "Fervor do Ousado") && localGameState.currentPull.length > 5) {
+                if ((playerState.activePotions["Fervor do Ousado"] || playerState.copiedEffect?.name === "Fervor do Ousado") && localGameState.currentPull.length >= 4) {
                     playerState.fervorBonusThisTurn = true;
                     logMessage(`Fervor do Ousado ativado! As vendas de ${playerState.name} serão dobradas neste turno!`);
                     showMessage("Fervor do Ousado Ativado! Suas vendas valerão o dobro!");
@@ -200,21 +200,30 @@
             }
 
             function triggerStopPullingDiscardDecision(playerId) {
+                const playerState = localGameState.players[playerId];
                 decisionTitleEl.textContent = "Descarte Oportuno";
-                let optionsHTML = `<p class="mb-4">Você parou de puxar. Escolha um ingrediente do balcão para descartar por 1 Moeda, ou recuse o efeito.</p>`;
-                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
-                localGameState.currentPull.forEach((ingredientName, index) => {
-                    const imgData = INGREDIENT_DATA[ingredientName];
-                    ingredientsGridHTML += `
-                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-index="${index}">
-                            <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
-                            <span class="font-bold text-sm mt-1">${ingredientName}</span>
-                        </button>
-                    `;
-                });
+                
+                let optionsHTML = `<p class="mb-4">Clique nos ingredientes do balcão que deseja descartar (1 💰 por cada). Depois clique em Concluir.</p>`;
+                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2 max-h-64 overflow-y-auto">`;
+                
+                if (localGameState.currentPull.length === 0) {
+                    ingredientsGridHTML += `<p class="text-gray-400 italic">Balcão vazio.</p>`;
+                } else {
+                    localGameState.currentPull.forEach((ingredientName, index) => {
+                        const imgData = INGREDIENT_DATA[ingredientName];
+                        ingredientsGridHTML += `
+                            <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-index="${index}">
+                                <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
+                                <span class="font-bold text-sm mt-1">${ingredientName}</span>
+                            </button>
+                        `;
+                    });
+                }
                 ingredientsGridHTML += `</div>`;
                 optionsHTML += ingredientsGridHTML;
-                optionsHTML += `<button class="btn btn-red w-full mt-4" data-index="-1">Não usar o efeito</button>`;
+                
+                optionsHTML += `<button class="btn btn-green w-full mt-4" data-index="-1">Concluir Descartes</button>`;
+                
                 decisionOptionsEl.innerHTML = optionsHTML;
 
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
@@ -228,18 +237,24 @@
 
             function handleStopPullingDiscardSelection(playerId, ingredientIndex) {
                 const playerState = localGameState.players[playerId];
-                playerState.activePotions["Descarte Oportuno"] = false;
 
-                if (ingredientIndex > -1 && ingredientIndex < localGameState.currentPull.length) {
+                if (ingredientIndex === -1) {
+                    // Finalizar a tela de descarte
+                    playerState.activePotions["Descarte Oportuno"] = false;
+                    decisionModal.classList.add('hidden');
+                    updateFirestoreState(localGameState).then(() => {
+                        proceedToPostProduction(); 
+                    });
+                } else if (ingredientIndex > -1 && ingredientIndex < localGameState.currentPull.length) {
+                    // Descarta um ingrediente e ganha a moeda
                     const discardedIngredient = localGameState.currentPull.splice(ingredientIndex, 1)[0];
                     localGameState.cauldron.push(discardedIngredient);
                     playerState.coins += 1;
-                    logMessage(`${playerState.name} usou Descarte Oportuno, descartou ${discardedIngredient} e ganhou 1 Moeda!`);
-                } else {
-                    logMessage(`${playerState.name} decidiu não usar o efeito do Descarte Oportuno.`);
+                    logMessage(`${playerState.name} descartou ${discardedIngredient} e ganhou 1 Moeda!`);
+                    
+                    // Re-renderiza a tela para permitir clicar em mais ingredientes
+                    triggerStopPullingDiscardDecision(playerId);
                 }
-                decisionModal.classList.add('hidden');
-                proceedToPostProduction(); 
             }
 
             function triggerPrismaticSubstitutionDecision(potionName, missingIngredient) {
@@ -1333,11 +1348,14 @@
     
             function handleFinishActionClick() {
                 if (localGameState.phase !== `ACTION_${localPlayerId.toUpperCase()}`) return;
-                if (localGameState.players[localPlayerId].potionsReady.length > 0) {
-                    showMessage("Você ainda tem poções para resolver. Use ou Venda-as.");
-                    showActionModal();
+                
+                // NOVA REGRA: Limite máximo de 3 poções guardadas
+                if (localGameState.players[localPlayerId].potionsReady.length > 3) {
+                    showMessage("Seu cinto está muito pesado! Você só pode passar o turno com no máximo 3 poções guardadas. Use ou venda o excesso.");
+                    showActionModal(0);
                     return;
                 }
+                
                 actionModal.classList.add('hidden');
                 endActionPhase(); 
             }
@@ -1345,7 +1363,7 @@
             // ==========================================================
             // MANIPULADORES DE MODAIS E AÇÕES
             // ==========================================================
-            function showActionModal() {
+            function showActionModal(potionIndex = 0) {
                  if (localGameState.currentPlayer !== localPlayerId || localGameState.phase !== `ACTION_${localPlayerId.toUpperCase()}`) {
                      actionModal.classList.add('hidden');
                      return;
@@ -1353,11 +1371,13 @@
                 const playerState = localGameState.players[localPlayerId];
                 if (!playerState.potionsReady || playerState.potionsReady.length === 0) {
                     actionModal.classList.add('hidden');
-                    logMessage(`${playerState.name}, você não tem mais poções para resolver. Finalize suas ações.`);
                     return;
                 }
             
-                const potionName = playerState.potionsReady[0];
+                // Agora ele pega a poção específica que você clicou no painel
+                const potionName = playerState.potionsReady[potionIndex];
+                if (!potionName) return; // Segurança extra
+
                 const potionData = ARCANO_POTIONUM[potionName];
             
                 actionPotionNameEl.textContent = potionData.nome;
@@ -1564,7 +1584,7 @@
                         if (opponentState.shelf.length >= opponentState.shelfLimit) { showMessage(`A prateleira de ${opponentState.name} está cheia!`); break; }
                         triggerContaminatedDecision(playerId); break;
                     case "Descarte Oportuno":
-                        playerState.activePotions["Descarte Oportuno"] = true; showMessage("Efeito ativado! No seu próximo turno, após puxar um ingrediente, você poderá descartá-lo por 1 Moeda."); break;
+                        playerState.activePotions["Descarte Oportuno"] = true; showMessage("Efeito ativado! No seu próximo turno, ao parar de puxar, você poderá descartar quantos ingredientes quiser por 1 Moeda cada."); break;
                 }
             }
     
@@ -1649,11 +1669,23 @@
                     document.getElementById('player1-shelf-section').style.order = '2';
                     player1NameDisplay.textContent = `Você (${p1.name})`;
                     player2NameDisplay.textContent = p2.name;
+                    
+                    // Atualiza textos do painel lateral para o Player 1
+                    document.getElementById('player1-ready-potions-title').textContent = `Você (${p1.name}):`;
+                    document.getElementById('player2-ready-potions-title').textContent = `${p2.name}:`;
+                    document.getElementById('player1-aura-title').textContent = `Sua Aura:`;
+                    document.getElementById('player2-aura-title').textContent = `Aura de ${p2.name}:`;
                 } else {
                     document.getElementById('player1-shelf-section').style.order = '1';
                     document.getElementById('player2-shelf-section').style.order = '2';
                     player1NameDisplay.textContent = p1.name;
                     player2NameDisplay.textContent = `Você (${p2.name})`;
+                    
+                    // Atualiza textos do painel lateral para o Player 2
+                    document.getElementById('player1-ready-potions-title').textContent = `${p1.name}:`;
+                    document.getElementById('player2-ready-potions-title').textContent = `Você (${p2.name}):`;
+                    document.getElementById('player1-aura-title').textContent = `Aura de ${p1.name}:`;
+                    document.getElementById('player2-aura-title').textContent = `Sua Aura:`;
                 }
                 renderShelf(player1ShelfEl, p1.shelf, 'player1');
                 renderShelf(player2ShelfEl, p2.shelf, 'player2');
@@ -1786,6 +1818,22 @@
                         if (localPlayerId === ownerId && selectedPotion === potionName) {
                             img.classList.add('border-2', 'border-yellow-400', 'rounded-lg');
                         }
+
+                        // --- NOVA LÓGICA: POÇÕES CLICÁVEIS ---
+                        if (localPlayerId === ownerId) {
+                            img.classList.add('cursor-pointer', 'hover:scale-110', 'transition-transform');
+                            img.title = "Clique para Usar/Vender";
+                            img.onclick = () => {
+                                if (localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`) {
+                                    showActionModal(index); // Abre o modal para esta poção específica
+                                    // Fecha o painel lateral para você ver o modal no centro
+                                    document.getElementById('active-potions-board').classList.add('translate-x-full');
+                                }
+                            };
+                        }
+                        // -------------------------------------
+
+                        
                         potionContainer.appendChild(img);
                         const nameEl = document.createElement('p');
                         nameEl.className = 'text-[10px] text-gray-300 leading-tight text-center mt-1 w-full';
@@ -2543,11 +2591,11 @@
                 <div>
                     <h4 class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-2">Auras Ativas</h4>
                     <div class="mb-3">
-                        <h5 class="text-xs font-bold text-blue-400 mb-2 uppercase tracking-wide">Sua Aura:</h5>
+                        <h5 id="player1-aura-title" class="text-xs font-bold text-blue-400 mb-2 uppercase tracking-wide">Sua Aura:</h5>
                         <ul id="player1-active-potions-list" class="flex flex-col gap-1.5"></ul>
                     </div>
                     <div>
-                        <h5 class="text-xs font-bold text-red-400 mb-2 uppercase tracking-wide">Aura Oponente:</h5>
+                        <h5 id="player2-aura-title" class="text-xs font-bold text-red-400 mb-2 uppercase tracking-wide">Aura Oponente:</h5>
                         <ul id="player2-active-potions-list" class="flex flex-col gap-1.5"></ul>
                     </div>
                 </div>
