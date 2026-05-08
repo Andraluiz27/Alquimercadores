@@ -178,7 +178,7 @@
             function generateCauldron() {
                 const cauldron = [];
                 for (const ingredient in INGREDIENT_DATA) {
-                    const count = 5; 
+                    const count = 7; 
                     for (let i = 0; i < count; i++) {
                         cauldron.push(ingredient);
                     }
@@ -1427,6 +1427,7 @@
                 if (missingCount === 0) {
                     localGameState.currentPull = pull; 
                     playerState.potionsReady.push(potionName);
+                    localGameState.cauldron.push(...usedIngredients);
                     logMessage(`${playerState.name} criou: ${potionName}!`);
                     recipeModal.classList.add('hidden');
                     updateFirestoreState(localGameState);
