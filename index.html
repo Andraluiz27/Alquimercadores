@@ -795,7 +795,12 @@
                 const originalClientType = CLIENT_TYPES[clientIndex];
                 const discardedPotion = localGameState.clients[clientIndex].wants;
                 
-                localGameState.clients[clientIndex] = generateClient(originalClientType);
+                // Pega as poções dos OUTROS clientes que vão continuar no mercado
+                let currentMarketPotions = localGameState.clients
+                    .filter((c, i) => i !== clientIndex && c && !c.served)
+                    .map(c => c.wants);
+                
+                localGameState.clients[clientIndex] = generateClient(originalClientType, currentMarketPotions);
                 const newPotion = localGameState.clients[clientIndex].wants;
 
                 logMessage(`${localGameState.players[playerId].name} usou o Elixir, dispensou o cliente que queria "${discardedPotion}" e atraiu um novo que quer "${newPotion}".`);
@@ -849,9 +854,16 @@
                 updateFirestoreState(localGameState);
             }
 
-            function generateClient(clientType) {
+            function generateClient(clientType, currentMarketPotions = []) {
                 const allPotionNames = Object.keys(ARCANO_POTIONUM);
-                const randomPotionName = allPotionNames[Math.floor(Math.random() * allPotionNames.length)];
+                
+                // Filtra as poções para não repetir as que já estão no mercado
+                const availablePotions = allPotionNames.filter(name => !currentMarketPotions.includes(name));
+                
+                // Fallback de segurança: se por acaso a lista filtrar tudo, usa a lista completa
+                const pool = availablePotions.length > 0 ? availablePotions : allPotionNames;
+
+                const randomPotionName = pool[Math.floor(Math.random() * pool.length)];
                 const potionData = ARCANO_POTIONUM[randomPotionName];
                 const basePrice = POTION_PRICES[potionData.tipo];
                 const bonus = CLIENT_BONUS[clientType];
@@ -972,6 +984,12 @@
     
             function createInitialGameState(player1Name, player1UID) {
                 const startingPlayer = Math.random() < 0.5 ? 'player1' : 'player2';
+                
+                // Gera os clientes garantindo que não se repitam no início do jogo
+                const client1 = generateClient('Comum', []);
+                const client2 = generateClient('Rico', [client1.wants]);
+                const client3 = generateClient('Nobre', [client1.wants, client2.wants]);
+
                 return {
                     gameId: gameId, status: 'waiting', phase: 'PREPARATION',
                     currentPlayer: startingPlayer, roundStarter: startingPlayer, 
@@ -980,7 +998,7 @@
                         player2: { uid: null, name: 'Aguardando...', coins: 0, shelf: [], shelfLimit: 3, potionsReady: [], activePotions: {}, fervorBonusThisTurn: false }
                     },
                     cauldron: generateCauldron(),
-                    clients: [ generateClient('Comum'), generateClient('Rico'), generateClient('Nobre') ],
+                    clients: [ client1, client2, client3 ],
                     clientsServed: 0, currentPull: [], log: ["Jogo criado. Aguardando oponente..."], chat: []
                 };
             }
@@ -1125,9 +1143,21 @@
             
             function startNewRound() {
                 logMessage("Uma nova rodada começa!");
+                
+                // Coleta o que já está no mercado para o novo cliente não repetir
+                let currentMarketPotions = localGameState.clients
+                    .filter(c => c && !c.served)
+                    .map(c => c.wants);
+
                 localGameState.clients.forEach((client, index) => {
-                    if (client.served) { localGameState.clients[index] = generateClient(CLIENT_TYPES[index]); }
+                    if (client.served) { 
+                        const newClient = generateClient(CLIENT_TYPES[index], currentMarketPotions);
+                        localGameState.clients[index] = newClient;
+                        // Adiciona a nova poção à lista de bloqueio para o próximo cliente (caso 2 tenham sido vendidos)
+                        currentMarketPotions.push(newClient.wants); 
+                    }
                 });
+                
                 const nextStarter = localGameState.roundStarter === 'player1' ? 'player2' : 'player1';
                 localGameState.roundStarter = nextStarter;
                 logMessage(`${localGameState.players[nextStarter].name} começa esta rodada.`);
