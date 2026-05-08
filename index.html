@@ -121,6 +121,11 @@
             const closeHelpBtn = document.getElementById('close-help-btn');
             const closeHelpBottomBtn = document.getElementById('close-help-bottom-btn');
             const helpModal = document.getElementById('help-modal');
+
+            / Elementos de Áudio
+            const bgMusic = document.getElementById('bg-music');
+            const musicToggleBtn = document.getElementById('music-toggle-btn');
+            let isMusicPlaying = false;
     
             const playerListEl = document.getElementById('player-list');
             const playerListStatus = document.getElementById('player-list-status');
@@ -2025,6 +2030,15 @@
                 if (!playerName) { lobbyStatus.textContent = "Por favor, digite seu nome."; return; }
                 if (!localUserId) { lobbyStatus.textContent = "Aguardando autenticação..."; return; }
             
+                // Tenta tocar a música assim que o jogador interage
+                if (!isMusicPlaying) {
+                    bgMusic.volume = 0.4; // Volume em 40% para não ficar ensurdecedor
+                    bgMusic.play().then(() => {
+                        isMusicPlaying = true;
+                        musicToggleBtn.textContent = '🔊';
+                    }).catch(e => console.log("Autoplay bloqueado pelo navegador até maior interação."));
+                }
+
                 localPlayerName = playerName;
                 lobbyStatus.textContent = "Entrando no lobby...";
                 
@@ -2237,6 +2251,20 @@
             openHelpBtn.onclick = () => helpModal.classList.remove('hidden');
             closeHelpBtn.onclick = () => helpModal.classList.add('hidden');
             closeHelpBottomBtn.onclick = () => helpModal.classList.add('hidden');
+
+            // Controle da Música de Fundo
+            musicToggleBtn.onclick = () => {
+                if (isMusicPlaying) {
+                    bgMusic.pause();
+                    musicToggleBtn.textContent = '🔇';
+                    isMusicPlaying = false;
+                } else {
+                    bgMusic.volume = 0.4;
+                    bgMusic.play();
+                    musicToggleBtn.textContent = '🔊';
+                    isMusicPlaying = true;
+                }
+            };
             
             const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
             backToLobbyBtn.onclick = async () => {
@@ -2812,5 +2840,12 @@
             </div>
         </div>
     </div>
+    <audio id="bg-music" loop>
+        <source src="audio/musica_fundo.mp3" type="audio/mpeg">
+    </audio>
+
+    <button id="music-toggle-btn" class="fixed top-4 left-4 z-[100] bg-slate-800 border-2 border-yellow-600 text-white rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center shadow-lg hover:scale-110 transition-transform text-lg md:text-xl" title="Ligar/Desligar Música">
+        🔇
+    </button>
 </body>
 </html>
