@@ -257,31 +257,42 @@
                 }
             }
 
-            function triggerPrismaticSubstitutionDecision(potionName, missingIngredient) {
-                const recipe = ARCANO_POTIONUM[potionName].ingredientes;
+            function triggerPrismaticSubstitutionDecision(potionName, lastMissing) {
+                const potion = ARCANO_POTIONUM[potionName];
                 const pull = localGameState.currentPull;
                 let spareIngredients = [...pull];
 
-                for (const ingredientName in recipe) {
-                    if (ingredientName !== missingIngredient) {
-                        let countToRemove = recipe[ingredientName];
-                        for (let i = spareIngredients.length - 1; i >= 0; i--) {
-                            if (spareIngredients[i] === ingredientName && countToRemove > 0) {
-                                spareIngredients.splice(i, 1);
-                                countToRemove--;
-                            }
+                // Remove os fixos que já vão ser usados
+                for (const [ingName, count] of Object.entries(potion.ingredientes)) {
+                    let countToRemove = count;
+                    if (lastMissing.type === 'fixo' && ingName === lastMissing.value) countToRemove--;
+                    for (let i = 0; i < countToRemove; i++) {
+                        const idx = spareIngredients.indexOf(ingName);
+                        if (idx > -1) spareIngredients.splice(idx, 1);
+                    }
+                }
+
+                // Remove as cores extras que já vão ser usadas
+                if (potion.corExtra) {
+                    for (const [corAlvo, count] of Object.entries(potion.corExtra)) {
+                        let countToRemove = count;
+                        if (lastMissing.type === 'cor' && corAlvo === lastMissing.value) countToRemove--;
+                        for (let i = 0; i < countToRemove; i++) {
+                            const idx = spareIngredients.findIndex(ing => INGREDIENT_DATA[ing].cor === corAlvo);
+                            if (idx > -1) spareIngredients.splice(idx, 1);
                         }
                     }
                 }
 
                 decisionTitleEl.textContent = "Pasta Prismática";
-                let optionsHTML = `<p class="mb-4">Você precisa de 1 <strong>${missingIngredient}</strong>. Escolha um ingrediente sobrando para usar no lugar:</p>`;
-                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
+                let descText = lastMissing.type === 'fixo' ? lastMissing.value : `qualquer ingrediente da cor ${lastMissing.value.toUpperCase()}`;
+                let optionsHTML = `<p class="mb-4">Você precisa de 1 <strong>${descText}</strong>. Escolha um ingrediente sobrando para usar no lugar:</p>`;
                 
-                spareIngredients.forEach(ingredientName => {
+                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
+                spareIngredients.forEach((ingredientName, index) => {
                     const imgData = INGREDIENT_DATA[ingredientName];
                     ingredientsGridHTML += `
-                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-substitute="${ingredientName}">
+                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-substitute-index="${index}">
                             <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
                             <span class="font-bold text-sm mt-1">${ingredientName}</span>
                         </button>
@@ -289,39 +300,64 @@
                 });
                 ingredientsGridHTML += `</div>`;
                 optionsHTML += ingredientsGridHTML;
+                optionsHTML += `<button class="btn btn-red w-full mt-4" data-substitute-index="-1">Cancelar</button>`;
+                
                 decisionOptionsEl.innerHTML = optionsHTML;
 
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
                     button.onclick = () => {
-                        const substituteIngredient = button.dataset.substitute;
-                        handlePrismaticSubstitution(potionName, substituteIngredient);
+                        const index = parseInt(button.dataset.substituteIndex, 10);
+                        if (index === -1) {
+                            decisionModal.classList.add('hidden');
+                        } else {
+                            const substituteIngredient = spareIngredients[index];
+                            handlePrismaticSubstitution(potionName, substituteIngredient, lastMissing);
+                        }
                     };
                 });
                 recipeModal.classList.add('hidden');
                 decisionModal.classList.remove('hidden');
             }
 
-            function handlePrismaticSubstitution(potionName, substituteIngredient) {
-                const recipe = ARCANO_POTIONUM[potionName].ingredientes;
+            function handlePrismaticSubstitution(potionName, substituteIngredient, lastMissing) {
+                const potion = ARCANO_POTIONUM[potionName];
                 const pull = localGameState.currentPull;
                 const playerState = localGameState.players[localPlayerId];
+                let usedIngredients = [];
 
+                // 1. Remove o ingrediente sacrificado
                 const substituteIndex = pull.indexOf(substituteIngredient);
-                if (substituteIndex > -1) { pull.splice(substituteIndex, 1); }
+                if (substituteIndex > -1) { 
+                    usedIngredients.push(pull.splice(substituteIndex, 1)[0]); 
+                }
 
-                for (const ingredientName in recipe) {
-                    const isMissingIngredient = (pull.filter(i => i === ingredientName).length < recipe[ingredientName]);
-                    if (!isMissingIngredient) {
-                        let countToRemove = recipe[ingredientName];
-                        for (let i = pull.length - 1; i >= 0; i--) {
-                            if (pull[i] === ingredientName && countToRemove > 0) {
-                                pull.splice(i, 1);
-                                countToRemove--;
-                            }
+                // 2. Remove os ingredientes fixos necessários
+                for (const [ingName, count] of Object.entries(potion.ingredientes)) {
+                    let countToRemove = count;
+                    if (lastMissing.type === 'fixo' && ingName === lastMissing.value) countToRemove--;
+                    for (let i = 0; i < countToRemove; i++) {
+                        const idx = pull.indexOf(ingName);
+                        if (idx > -1) { usedIngredients.push(pull.splice(idx, 1)[0]); }
+                    }
+                }
+
+                // 3. Remove os ingredientes de cor extra necessários
+                if (potion.corExtra) {
+                    for (const [corAlvo, count] of Object.entries(potion.corExtra)) {
+                        let countToRemove = count;
+                        if (lastMissing.type === 'cor' && corAlvo === lastMissing.value) countToRemove--;
+                        for (let i = 0; i < countToRemove; i++) {
+                            const idx = pull.findIndex(ing => INGREDIENT_DATA[ing].cor === corAlvo);
+                            if (idx > -1) { usedIngredients.push(pull.splice(idx, 1)[0]); }
                         }
                     }
                 }
+
                 playerState.potionsReady.push(potionName);
+                
+                // DEVOLVE OS INGREDIENTES PARA O CALDEIRÃO
+                localGameState.cauldron.push(...usedIngredients);
+
                 logMessage(`${playerState.name} usou ${substituteIngredient} como coringa para criar: ${potionName}!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
@@ -1424,29 +1460,48 @@
             
             function findCreatablePotions(currentPull, playerId) {
                 const creatable = [];
+                const playerState = localGameState.players[playerId];
+                
+                // Verifica se a Pasta Prismática está ativa (na Aura ou copiada)
+                const hasPrismatic = playerState.activePotions["Pasta Prismática"] || playerState.copiedEffect?.name === "Pasta Prismática";
+
                 for (const potionName in ARCANO_POTIONUM) {
                     const potion = ARCANO_POTIONUM[potionName];
                     let tempPull = [...currentPull]; 
-                    let canMake = true;
-            
+                    let missingCount = 0;
+
+                    // 1. Conta quantos ingredientes fixos estão faltando
                     for (const [ingNome, qtd] of Object.entries(potion.ingredientes)) {
                         for (let i = 0; i < qtd; i++) {
                             const idx = tempPull.indexOf(ingNome);
-                            if (idx > -1) { tempPull.splice(idx, 1); } 
-                            else { canMake = false; break; }
+                            if (idx > -1) {
+                                tempPull.splice(idx, 1);
+                            } else {
+                                missingCount++;
+                            }
                         }
                     }
-                    if (!canMake) continue;
+
+                    // 2. Conta quantos ingredientes de cor (corExtra) estão faltando
                     if (potion.corExtra) {
                         for (const [corAlvo, qtd] of Object.entries(potion.corExtra)) {
                             for (let i = 0; i < qtd; i++) {
                                 const idxCor = tempPull.findIndex(ing => INGREDIENT_DATA[ing].cor === corAlvo);
-                                if (idxCor > -1) { tempPull.splice(idxCor, 1); } 
-                                else { canMake = false; break; }
+                                if (idxCor > -1) {
+                                    tempPull.splice(idxCor, 1);
+                                } else {
+                                    missingCount++;
+                                }
                             }
                         }
                     }
-                    if (canMake) creatable.push(potionName);
+
+                    // CONDIÇÃO MÁGICA:
+                    // Se faltar 0: Pode fazer normal.
+                    // Se faltar 1 E tiver a Pasta: O livro "acende" para você fabricar!
+                    if (missingCount === 0 || (missingCount === 1 && hasPrismatic)) {
+                        creatable.push(potionName);
+                    }
                 }
                 return creatable;
             }
@@ -1487,13 +1542,15 @@
                     updateFirestoreState(localGameState);
                 } 
                 else if (missingCount === 1 && hasPrismatic) {
-                    if (lastMissing.type === 'fixo') { triggerPrismaticSubstitutionDecision(potionName, lastMissing.value); } 
+                    if (lastMissing.type === 'fixo') { 
+                        triggerPrismaticSubstitutionDecision(potionName, lastMissing); 
+                    } 
                     else {
-                        showMessage(`Você precisa de mais um ingrediente da cor ${lastMissing.value.toUpperCase()}. Use a Pasta Prismática no balcão.`);
-                        triggerPrismaticSubstitutionDecision(potionName, `Qualquer ${lastMissing.value}`);
+                        showMessage(`Você precisa de mais um ingrediente da cor ${lastMissing.value.toUpperCase()}. Escolha um substituto no balcão.`);
+                        triggerPrismaticSubstitutionDecision(potionName, lastMissing);
                     }
                 } 
-                else { showMessage("Você não tem os ingredientes (fixos + extras de cor) necessários."); }
+                else { showMessage("Você não tem os ingredientes necessários."); }
             };
     
             function handleIngredientClick(ingredientName, index) {
