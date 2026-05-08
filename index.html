@@ -110,11 +110,17 @@
             const playerListScreen = document.getElementById('player-list-screen');
             const gameScreen = document.getElementById('game-screen');
             
-            const playerNameInput = document.getElementById('player-name-input');
+           const playerNameInput = document.getElementById('player-name-input');
             const startLobbyBtn = document.getElementById('start-lobby-btn');
             const lobbyStatus = document.getElementById('lobby-status');
             startLobbyBtn.disabled = true; 
-            lobbyStatus.textContent = "Autenticando...";
+            // Texto de autenticação removido da inicialização
+            
+            // Novos elementos do Manual de Ajuda
+            const openHelpBtn = document.getElementById('open-help-btn');
+            const closeHelpBtn = document.getElementById('close-help-btn');
+            const closeHelpBottomBtn = document.getElementById('close-help-bottom-btn');
+            const helpModal = document.getElementById('help-modal');
     
             const playerListEl = document.getElementById('player-list');
             const playerListStatus = document.getElementById('player-list-status');
@@ -2197,6 +2203,11 @@
             closeRecipeModalBtn.onclick = () => recipeModal.classList.add('hidden');
             closeMessageModalBtn.onclick = () => messageModal.classList.add('hidden');
             
+            // Eventos do Manual de Ajuda
+            openHelpBtn.onclick = () => helpModal.classList.remove('hidden');
+            closeHelpBtn.onclick = () => helpModal.classList.add('hidden');
+            closeHelpBottomBtn.onclick = () => helpModal.classList.add('hidden');
+            
             const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
             backToLobbyBtn.onclick = async () => {
                 endGameModal.classList.add('hidden'); gameScreen.classList.add('hidden'); gameScreen.classList.remove('flex');
@@ -2336,7 +2347,7 @@
                 if (user) {
                     localUserId = user.uid;
                     startLobbyBtn.disabled = false;
-                    lobbyStatus.textContent = "Autenticado. Insira seu nome.";
+                    // O texto "Autenticado. Insira seu nome." foi removido daqui para deixar a tela limpa
                     
                     const lobbyDocRef = doc(db, lobbyCollectionPath, localUserId);
                     try { 
@@ -2468,14 +2479,68 @@
 
     <div id="lobby-screen" class="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div class="p-8 rounded-lg w-full max-w-md text-center text-[#3d2a1a]">
-            <div class="w-64 h-64 md:w-80 md:h-80 bg-transparent rounded-full mx-auto mb-6 flex items-center justify-center drop-shadow-xl">
+            <div class="w-56 h-56 md:w-64 md:h-64 bg-transparent mx-auto mb-4 flex items-center justify-center">
                  <img src="imagens/Logo.png" alt="Logo Alquimercadores" class="w-full h-full object-contain">
             </div>
+            
             <div class="mb-4">
-                <input type="text" id="player-name-input" placeholder="Insira seu nome" class="w-full p-3 rounded border-2 bg-purple-200 text-purple-900 placeholder-purple-600 border-purple-400 font-bold shadow-inner">
+                <input type="text" id="player-name-input" placeholder="Seu nome de Alquimista" class="w-full p-3 rounded border-2 bg-purple-100 text-purple-900 placeholder-purple-400 border-purple-400 font-bold shadow-inner text-center">
             </div>
-           <button id="start-lobby-btn" class="btn w-full mb-4 bg-purple-600 border-purple-800 hover:bg-purple-500 text-white text-lg">Entrar no Mercado</button>
-            <p id="lobby-status" class="text-center text-red-900 font-bold bg-white/70 rounded h-6 mt-4 shadow"></p>
+
+            <div class="flex flex-col gap-2">
+                <button id="start-lobby-btn" class="btn w-full bg-purple-600 border-purple-800 hover:bg-purple-500 text-white text-lg">Entrar no Mercado</button>
+                <button id="open-help-btn" class="btn w-full bg-amber-500 border-amber-700 hover:bg-amber-400 text-white py-2">📜 Manual de Ajuda</button>
+            </div>
+            <p id="lobby-status" class="text-center text-red-900 font-bold bg-white/70 rounded h-6 mt-4 shadow hidden"></p>
+        </div>
+    </div>
+
+    <div id="help-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-[100]">
+        <div class="bg-[#f4ebd8] text-[#3d2a1a] border-4 border-[#5c3d20] p-6 rounded-xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl font-sans">
+            <div class="flex justify-between items-center border-b-2 border-[#5c3d20]/30 pb-2 mb-4">
+                <h2 class="text-2xl font-bold uppercase tracking-widest font-serif">Guia do Alquimercador</h2>
+                <button id="close-help-btn" class="text-3xl font-bold hover:text-red-700">&times;</button>
+            </div>
+            
+            <div class="overflow-y-auto pr-2 space-y-6 text-sm md:text-base leading-relaxed">
+                <section>
+                    <h3 class="font-bold text-purple-800 border-l-4 border-purple-800 pl-2 mb-2">1. O Objetivo</h3>
+                    <p>Você é um mercador disputando clientes. O jogo termina quando <strong>6 poções</strong> forem vendidas no total. Quem tiver mais moedas de ouro (💰) ao final vence a partida!</p>
+                </section>
+
+                <section>
+                    <h3 class="font-bold text-purple-800 border-l-4 border-purple-800 pl-2 mb-2">2. Fase de Coleta (Caldeirão)</h3>
+                    <p>No seu turno, clique no <strong>Caldeirão</strong> para puxar ingredientes. 
+                    <br>⚠️ <strong>Cuidado:</strong> Se puxar 2 ingredientes da mesma cor (ou 3 se tiver o Estabilizador), o caldeirão EXPLODE e você perde tudo o que puxou naquele turno!</p>
+                </section>
+
+                <section>
+                    <h3 class="font-bold text-purple-800 border-l-4 border-purple-800 pl-2 mb-2">3. Fase de Preparo e Cinto</h3>
+                    <p>Após parar de puxar, você entra no Preparo. Aqui você pode clicar nos ingredientes do balcão para guardá-los na <strong>Prateleira</strong> ou abrir o <strong>Livro de Receitas</strong> para fabricar poções.</p>
+                    <p class="mt-2 bg-amber-100 p-2 rounded border border-amber-300">👜 <strong>Regra do Cinto:</strong> Você pode guardar poções prontas, mas só consegue passar o turno se tiver <strong>3 ou menos</strong> poções no cinto.</p>
+                </section>
+
+                <section>
+                    <h3 class="font-bold text-purple-800 border-l-4 border-purple-800 pl-2 mb-2">4. Fase de Venda e Uso</h3>
+                    <p>Na sua vez de agir, abra o menu lateral de <strong>Efeitos</strong> e clique em uma poção pronta:</p>
+                    <ul class="list-disc ml-5 space-y-1">
+                        <li><strong>Vender:</strong> Escolha um cliente no Mercado que queira aquela poção. Nobres pagam mais bônus!</li>
+                        <li><strong>Usar:</strong> Ative efeitos mágicos para ganhar moedas, sabotar o oponente ou melhorar sua prateleira.</li>
+                    </ul>
+                </section>
+
+                <section class="border-t-2 border-[#5c3d20]/20 pt-4">
+                    <h3 class="text-center font-bold text-lg mb-4 font-serif">TABELA DE PREÇOS BASE</h3>
+                    <div class="grid grid-cols-3 gap-2 text-center font-bold">
+                        <div class="bg-green-100 p-2 rounded border border-green-300">FÁCIL<br>3 💰</div>
+                        <div class="bg-blue-100 p-2 rounded border border-blue-300">MÉDIO<br>5 💰</div>
+                        <div class="bg-red-100 p-2 rounded border border-red-300">DIFÍCIL<br>8 💰</div>
+                    </div>
+                    <p class="text-xs text-center mt-2 text-gray-600">Bônus: Rico (+1💰) | Nobre (+3💰) | Sal Negro (+5💰)</p>
+                </section>
+            </div>
+            
+            <button id="close-help-bottom-btn" class="btn bg-[#5c3d20] border-[#3d2a1a] text-white w-full mt-4">Entendido!</button>
         </div>
     </div>
     
