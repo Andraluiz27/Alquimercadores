@@ -59,8 +59,8 @@
             "Carvão de Ébano": { cor: "preto", img: "imagens/Carvão.png" }
         };
         
-        const POTION_PRICES = { "Fácil": 3, "Médio": 5, "Difícil": 8 };
-        const CLIENT_BONUS = { "Comum": 0, "Rico": 1, "Nobre": 3 };
+        const POTION_PRICES = { "Fácil": 3, "Médio": 5, "Difícil": 7 };
+        const CLIENT_BONUS = { "Comum": 0, "Rico": 1, "Nobre": 2 };
         const CLIENT_TYPES = ["Comum", "Rico", "Nobre"];
 
         // ==========================================================
@@ -714,10 +714,10 @@
                 const basePrice = client.price;
                 decisionTitleEl.textContent = "Usar Sal Negro?";
                 decisionOptionsEl.innerHTML = `
-                    <p class="mb-4">Você tem Sal Negro na prateleira! Deseja usá-lo para vender a poção <strong>${potion.nome}</strong> por um bônus de +5 moedas?</p>
-                    <p class="mb-4 text-lg">Venda Padrão: ${basePrice} 💰<br>Venda com Sal Negro: <span class="text-green-400 font-bold">${basePrice + 5} 💰</span></p>
+                    <p class="mb-4">Você tem Sal Negro na prateleira! Deseja usá-lo para vender a poção <strong>${potion.nome}</strong> por um bônus de +3 moedas?</p>
+                    <p class="mb-4 text-lg">Venda Padrão: ${basePrice} 💰<br>Venda com Sal Negro: <span class="text-green-400 font-bold">${basePrice + 3} 💰</span></p>
                     <div class="grid grid-cols-2 gap-4">
-                        <button class="btn btn-green w-full" data-action="yes">Sim, usar (+5)</button>
+                        <button class="btn btn-green w-full" data-action="yes">Sim, usar (+3)</button>
                         <button class="btn btn-red w-full" data-action="no">Não, vender normal</button>
                     </div>
                 `;
@@ -848,6 +848,68 @@
                         handleCorrosionDiscard(index);
                     };
                 });
+                decisionModal.classList.remove('hidden');
+            }
+
+            function triggerDescarteOportunoDecision(playerId) {
+                const playerState = localGameState.players[playerId];
+                decisionTitleEl.textContent = "Descarte Oportuno";
+                
+                // Se a prateleira esvaziar durante o processo, fecha o modal automaticamente
+                if (playerState.shelf.length === 0) {
+                    decisionModal.classList.add('hidden');
+                    updateFirestoreState(localGameState).then(() => { showActionModal(); });
+                    return;
+                }
+            
+                let optionsHTML = `<p class="mb-4 text-center">Clique nos ingredientes da <b>PRATELEIRA</b> para descartar e ganhar 1 💰 por cada.</p>`;
+                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2 max-h-64 overflow-y-auto">`;
+                
+                playerState.shelf.forEach((ingredientName, index) => {
+                    const imgData = INGREDIENT_DATA[ingredientName];
+                    ingredientsGridHTML += `
+                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-red-600/40 transition-all border border-transparent hover:border-red-500" data-index="${index}">
+                            <img src="${imgData.img}" alt="${ingredientName}" class="w-14 h-14 rounded-full border-2 border-black shadow-lg">
+                            <span class="font-bold text-[10px] mt-1 uppercase text-gray-300">${ingredientName}</span>
+                        </button>
+                    `;
+                });
+                
+                ingredientsGridHTML += `</div>`;
+                optionsHTML += ingredientsGridHTML;
+                optionsHTML += `<button class="btn btn-green w-full mt-6 py-3 font-bold uppercase tracking-wider" id="finish-discard-btn">Finalizar e Sair</button>`;
+                
+                decisionOptionsEl.innerHTML = optionsHTML;
+            
+                // Lógica dos cliques
+                decisionOptionsEl.querySelectorAll('button[data-index]').forEach(button => {
+                    button.onclick = () => {
+                        const idx = parseInt(button.dataset.index);
+                        
+                        // 1. Remove da prateleira
+                        const discardedItem = playerState.shelf.splice(idx, 1)[0];
+                        
+                        // 2. Devolve ao caldeirão
+                        localGameState.cauldron.push(discardedItem);
+                        
+                        // 3. Dá a moeda
+                        playerState.coins += 1;
+                        
+                        logMessage(`${playerState.name} descartou ${discardedItem} e ganhou 1 Moeda.`);
+                        
+                        // 4. Atualiza o modal para mostrar a prateleira atualizada
+                        triggerDescarteOportunoDecision(playerId);
+                    };
+                });
+            
+                // Botão de finalizar
+                document.getElementById('finish-discard-btn').onclick = () => {
+                    decisionModal.classList.add('hidden');
+                    updateFirestoreState(localGameState).then(() => {
+                        showActionModal(); // Volta para o menu de ações
+                    });
+                };
+            
                 decisionModal.classList.remove('hidden');
             }
 
@@ -1238,7 +1300,7 @@
                     const salNegroIndex = playerState.shelf.indexOf("Sal Negro");
                     if (salNegroIndex > -1) {
                         playerState.shelf.splice(salNegroIndex, 1); 
-                        finalPrice += 5;
+                        finalPrice += 3;
                         logMessage(`${playerState.name} usou Sal Negro para um bônus de +5 moedas!`);
                     }
                 }
@@ -1700,7 +1762,15 @@
                         }
                         break;
                     case "Descarte Oportuno":
-                        playerState.activePotions["Descarte Oportuno"] = true; showMessage("Efeito ativado! No seu próximo turno, ao parar de puxar, você poderá descartar quantos ingredientes quiser por 1 Moeda cada."); break;
+                        if (playerState.shelf.length === 0) {
+                            showMessage("Sua prateleira está vazia! Não há nada para descartar.");
+                            // Devolve a poção para o cinto para não gastar à toa
+                            playerState.potionsReady.unshift("Descarte Oportuno"); 
+                        } else {
+                            // Abre a interface de escolha
+                            triggerDescarteOportunoDecision(localPlayerId);
+                        }
+                        break;
                 }
             }
     
