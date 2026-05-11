@@ -28,7 +28,7 @@
             "Caldeirão Expansivo": { nome: "Caldeirão Expansivo", tipo: "Médio", efeito: "Permanente", descricao: "Sua Prateleira de Armazenamento é aprimorada em +1 espaço.", ingredientes: { "Pena de Fênix": 1, "Carvão de Ébano": 1 }, corExtra: { "verde": 1 } },
             "Eco Alquímico": { nome: "Eco Alquímico", tipo: "Difícil", efeito: "Ação", descricao: "Escolha um efeito de poção Permanente ativo do seu oponente. Você copia o efeito dessa poção até o final da sua próxima fase de Ação.", ingredientes: { "Rosa Púrpura": 1, "Cogumelo de Sangue": 1 }, corExtra: { "azul": 2 } },
             "Resiliência do Farsante": { nome: "Resiliência do Farsante", tipo: "Médio", efeito: "Permanente", descricao: "Se seu caldeirão explodir, você pode guardar 1 dos ingredientes na sua prateleira, se houver espaço.", ingredientes: { "Unha de Bruxa": 1, "Suor de Sereia": 1 }, corExtra: { "preto": 1 } },
-            "Ingrediente Contaminado": { nome: "Ingrediente Contaminado", tipo: "Fácil", efeito: "Ação", descricao: "Dê 1 ingrediente da sua prateleira para seu oponente (se houver espaço na prateleira dele).", ingredientes: { "Musgo Venenoso": 1 }, corExtra: { "preto": 1 } },
+            "Ingrediente Contaminado": { nome: "Ingrediente Contaminado", tipo: "Médio", efeito: "Ação", descricao: "O oponente perde 1 Moeda para cada ingrediente que ele possuir guardado na prateleira no momento.", ingredientes: { "Musgo Venenoso": 1, "Rosa Púrpura": 1 }, corExtra: { "preto": 1 } },
             "Contrato de Exclusividade": { nome: "Contrato de Exclusividade", tipo: "Médio", efeito: "Ação", descricao: "Reserve um cliente do mercado para você. Ele não pode ser atendido pelo oponente.", ingredientes: { "Chifre de Unicórnio": 1, "Suor de Sereia": 1, "Beterraba Brava": 1 } },
             "Estabilizador Cromático": { nome: "Estabilizador Cromático", tipo: "Difícil", efeito: "Permanente", descricao: "Seu caldeirão só explode na TERCEIRA ficha da mesma cor. (A regra do Sal Negro permanece a mesma).", ingredientes: { "Rosa Púrpura": 1, "Cera de Ogro": 2, "Cogumelo de Sangue": 2 }, corExtra: { "preto": 1 } },
             "Pedra Filosofal": { nome: "Pedra Filosofal", tipo: "Difícil", efeito: "Ação", descricao: "Ganhe 7 Moedas imediatamente.", ingredientes: { "Pena de Fênix": 1, "Chifre de Unicórnio": 1, "Rosa Púrpura": 1 }, corExtra: { "azul": 1, "verde": 1 } },
@@ -1680,10 +1680,25 @@
                     case "Fervor do Ousado": playerState.activePotions["Fervor do Ousado"] = true; break;
                     case "Soro da Clarividência": triggerClairvoyanceDecision(playerId); break;
                     case "Ingrediente Contaminado":
-                        if (opponentState.activePotions["Barreira de Bolhas"]) { opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Ingrediente Contaminado"); break; }
-                        if (playerState.shelf.length === 0) { showMessage("Você não tem ingredientes na sua prateleira para dar!"); break; }
-                        if (opponentState.shelf.length >= opponentState.shelfLimit) { showMessage(`A prateleira de ${opponentState.name} está cheia!`); break; }
-                        triggerContaminatedDecision(playerId); break;
+                        if (opponentState.activePotions["Barreira de Bolhas"]) { 
+                            opponentState.activePotions["Barreira de Bolhas"] = false; 
+                            showBarrierBlockMessage("Ingrediente Contaminado"); 
+                            break; 
+                        }
+                        
+                        // Conta quantos ingredientes o oponente tem na prateleira
+                        const quantidadeIngredientes = opponentState.shelf.length;
+                        
+                        if (quantidadeIngredientes > 0) {
+                            // Calcula quanto ele vai perder (não pode ficar com moedas negativas)
+                            const moedasPerdidas = Math.min(opponentState.coins, quantidadeIngredientes);
+                            opponentState.coins -= moedasPerdidas;
+                            
+                            logMessage(`${playerState.name} usou Ingrediente Contaminado! ${opponentState.name} tinha ${quantidadeIngredientes} itens na prateleira e perdeu ${moedasPerdidas} moedas.`);
+                        } else {
+                            logMessage(`${playerState.name} usou Ingrediente Contaminado, mas a prateleira de ${opponentState.name} estava vazia.`);
+                        }
+                        break;
                     case "Descarte Oportuno":
                         playerState.activePotions["Descarte Oportuno"] = true; showMessage("Efeito ativado! No seu próximo turno, ao parar de puxar, você poderá descartar quantos ingredientes quiser por 1 Moeda cada."); break;
                 }
