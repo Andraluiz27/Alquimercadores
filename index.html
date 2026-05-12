@@ -472,7 +472,7 @@
                     }
                 }
                 playerState.copiedEffect = { name: potionToCopy, status: 'PENDING_ACTIVATION' };
-                broadcastAction(🗣️ ${playerState.name} usou Eco Alquímico e copiou os poderes de "${potionToCopy}" por um turno!);
+                broadcastAction(`🗣️ ${playerState.name} usou Eco Alquímico e copiou os poderes de "${potionToCopy}" por um turno!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -536,7 +536,7 @@
                 }
 
                 opponentState.disabledEffect = { name: potionToDisable, originalValue: originalValue, status: 'PENDING_REACTIVATION' };
-                broadcastAction(⚙️ ${playerState.name} jogou Ferrugem Alquímica e desativou a melhoria "${potionToDisable}" de ${opponentState.name} por um turno!);
+                broadcastAction(`⚙️ ${playerState.name} jogou Ferrugem Alquímica e desativou a melhoria "${potionToDisable}" de ${opponentState.name} por um turno!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -688,7 +688,7 @@
                 const playerState = localGameState.players[playerId];
                 // Salva a cor escolhida diretamente na poção ativa
                 playerState.activePotions["Mestre Especialista"] = chosenColor; 
-                broadcastAction(🎓 ${playerState.name} tornou-se Mestre Especialista! Suas vendas com a cor ${chosenColor.toUpperCase()} valem +2 Moedas!);
+                broadcastAction(`🎓 ${playerState.name} tornou-se Mestre Especialista! Suas vendas com a cor ${chosenColor.toUpperCase()} valem +2 Moedas!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -705,7 +705,7 @@
                 }
                 const stolenIngredient = opponentState.shelf.splice(ingredientIndex, 1)[0];
                 playerState.shelf.push(stolenIngredient);
-                broadcastAction(🤚 ${playerState.name} usou Mão do Mago e roubou furtivamente ${stolenIngredient} de ${opponentState.name}!);
+                broadcastAction(`🤚 ${playerState.name} usou Mão do Mago e roubou furtivamente ${stolenIngredient} de ${opponentState.name}!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -819,7 +819,7 @@
                 if (ingredientIndex > -1) {
                     const takenIngredient = cauldron.splice(ingredientIndex, 1)[0];
                     playerState.shelf.push(takenIngredient);
-                    broadcastAction(👁️ ${playerState.name} usou Soro da Clarividência, espiou o fundo do caldeirão e roubou a peça: ${takenIngredient}!);
+                    broadcastAction(`👁️ ${playerState.name} usou Soro da Clarividência, espiou o fundo do caldeirão e roubou a peça: ${takenIngredient}!`);
                 } else {
                     logMessage(`Tentativa de pegar ${ingredientName} falhou, ingrediente não encontrado no caldeirão.`);
                 }
@@ -936,7 +936,7 @@
                 localGameState.clients[clientIndex] = generateClient(originalClientType, currentMarketPotions);
                 const newPotion = localGameState.clients[clientIndex].wants;
 
-                broadcastAction(📜 ${localGameState.players[playerId].name} usou o Elixir do Mercador, expulsou um cliente e revelou um novo contrato!);
+                broadcastAction(`📜 ${localGameState.players[playerId].name} usou o Elixir do Mercador, expulsou um cliente e revelou um novo contrato!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -1040,7 +1040,7 @@
                 if (index < 0 || index >= playerState.shelf.length) return;
                 const discardedIngredient = playerState.shelf.splice(index, 1)[0];
                 localGameState.cauldron.push(discardedIngredient);
-                broadcastAction(🌫️ O Pó da Corrosão forçou ${playerState.name} a descartar ${discardedIngredient}.);
+                broadcastAction(`🌫️ O Pó da Corrosão forçou ${playerState.name} a descartar ${discardedIngredient}.`);
 
                 localGameState.pendingAction = null; 
                 decisionModal.classList.add('hidden');
@@ -1957,24 +1957,24 @@
                     case "Barreira de Bolhas": 
                         playerState.activePotions["Barreira de Bolhas"] = true; 
                         playerState.barrierEvent = Date.now(); // <--- O SINAL AQUI
-                        broadcastAction(🛡️ ${playerState.name} usou Barreira de Bolhas e ficará imune ao próximo ataque!); 
+                        broadcastAction(`🛡️ ${playerState.name} usou Barreira de Bolhas e ficará imune ao próximo ataque!`); 
                         break;
                     case "Unguento de Musgo": 
                         playerState.activePotions["Unguento de Musgo"] = true; break;
                     case "Pasta Prismática": 
-                        playerState.activePotions["Pasta Prismática"] = true; broadcastAction(🌈 ${playerState.name} usou Pasta Prismática e agora pode substituir ingredientes nas receitas!); break;
+                        playerState.activePotions["Pasta Prismática"] = true; broadcastAction(`🌈 ${playerState.name} usou Pasta Prismática e agora pode substituir ingredientes nas receitas!`); break;
                     case "Infusão de Foco":
-                        if (playerState.shelfLimit < 6) { playerState.shelfLimit++; playerState.activePotions["Infusão de Foco"] = (playerState.activePotions["Infusão de Foco"] || 0) + 1; broadcastAction(🧠 ${playerState.name} usou Infusão de Foco e expandiu sua prateleira para ${playerState.shelfLimit} espaços!); } 
+                        if (playerState.shelfLimit < 6) { playerState.shelfLimit++; playerState.activePotions["Infusão de Foco"] = (playerState.activePotions["Infusão de Foco"] || 0) + 1; broadcastAction(`🧠 ${playerState.name} usou Infusão de Foco e expandiu sua prateleira para ${playerState.shelfLimit} espaços!`); } 
                         else { showMessage("Sua prateleira já atingiu a capacidade máxima (6 espaços)!"); }
                         break;
-                    case "Tônico Dourado": playerState.coins += 2; broadcastAction(🪙 ${playerState.name} bebeu o Tônico Dourado e ganhou 2 Moedas instantaneamente!); break;
+                    case "Tônico Dourado": playerState.coins += 2; broadcastAction(`🪙 ${playerState.name} bebeu o Tônico Dourado e ganhou 2 Moedas instantaneamente!`); break;
                     case "Elixir do Mercador": triggerElixirDecision(playerId); break;
                     case "Pó da Corrosão":
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Pó da Corrosão"); break;
                         }
                         if (opponentState.shelf.length === 0) { logMessage(`Pó da Corrosão falhou, a prateleira de ${opponentState.name} já estava vazia.`); break; }
-                        localGameState.pendingAction = { type: "Pó da Corrosão", target: opponentId }; broadcastAction(🧪 ${playerState.name} usou Pó da Corrosão! Aguardando o oponente destruir um ingrediente.); break;
+                        localGameState.pendingAction = { type: "Pó da Corrosão", target: opponentId }; broadcastAction(`🧪 ${playerState.name} usou Pó da Corrosão! Aguardando o oponente destruir um ingrediente.`); break;
                     case "Amuleto do Colecionador": playerState.activePotions["Amuleto do Colecionador"] = true; break;
                     case "Mestre Especialista":
                         triggerMestreEspecialistaDecision(playerId); 
@@ -1991,7 +1991,7 @@
                             break; 
                         }
                         playerState.activePotions["Parasita Mortífero"] = true; 
-                        broadcastAction(🦠 ${playerState.name} usou Parasita Mortífero! Ele roubará metade dos lucros da sua próxima venda.);
+                        broadcastAction(`🦠 ${playerState.name} usou Parasita Mortífero! Ele roubará metade dos lucros da sua próxima venda.`);
                         break;
                     case "Eco Alquímico": { 
                         if (opponentState.activePotions["Barreira de Bolhas"]) break;
@@ -2013,7 +2013,7 @@
                             playerState.shelfLimit++; 
                             playerState.activePotions["Caldeirão Expansivo"] = (playerState.activePotions["Caldeirão Expansivo"] || 0) + 1; 
                             
-                            broadcastAction(🔮 ${playerState.name} usou Caldeirão Expansivo: Prateleira aumentada para ${playerState.shelfLimit} espaços e puxou ${extraIng} do caldeirão!);
+                            broadcastAction(`🔮 ${playerState.name} usou Caldeirão Expansivo: Prateleira aumentada para ${playerState.shelfLimit} espaços e puxou ${extraIng} do caldeirão!`);
                     
                             // 2. Efeito Extra: Puxa um ingrediente imediatamente para a prateleira (se houver espaço)
                             if (localGameState.cauldron.length > 0 && playerState.shelf.length < playerState.shelfLimit) {
@@ -2032,10 +2032,10 @@
                         break;
                     case "Resiliência do Farsante": playerState.activePotions["Resiliência do Farsante"] = true; break;
                     case "Estabilizador Cromático": playerState.activePotions["Estabilizador Cromático"] = true; break;
-                    case "Pedra Filosofal": playerState.coins += 7; broadcastAction(💎 ${playerState.name} concluiu a Pedra Filosofal e ganhou 7 Moedas!); break;
+                    case "Pedra Filosofal": playerState.coins += 7; broadcastAction(`💎 ${playerState.name} concluiu a Pedra Filosofal e ganhou 7 Moedas!`); break;
                     case "Poção da Usurpação":
                         if (opponentState.activePotions["Barreira de Bolhas"]) { opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Poção da Usurpação"); break; }
-                        const coinsToSteal = Math.min(opponentState.coins, 5); opponentState.coins -= coinsToSteal; playerState.coins += coinsToSteal; broadcastAction(🦹 ${playerState.name} usou Poção da Usurpação e roubou ${coinsToSteal} moedas de ${opponentState.name}!);
+                        const coinsToSteal = Math.min(opponentState.coins, 5); opponentState.coins -= coinsToSteal; playerState.coins += coinsToSteal; broadcastAction(`🦹 ${playerState.name} usou Poção da Usurpação e roubou ${coinsToSteal} moedas de ${opponentState.name}!`);
                     case "Solvente Universal":
                         if (opponentState.activePotions["Barreira de Bolhas"]) { 
                             opponentState.activePotions["Barreira de Bolhas"] = false; 
