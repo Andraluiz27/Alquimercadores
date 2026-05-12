@@ -1206,30 +1206,6 @@
                 }
             }
             
-            function startNewRound() {
-                logMessage("Uma nova rodada começa!");
-                
-                // Coleta o que já está no mercado para o novo cliente não repetir
-                let currentMarketPotions = localGameState.clients
-                    .filter(c => c && !c.served)
-                    .map(c => c.wants);
-
-                localGameState.clients.forEach((client, index) => {
-                    if (client.served) { 
-                        const newClient = generateClient(CLIENT_TYPES[index], currentMarketPotions);
-                        localGameState.clients[index] = newClient;
-                        // Adiciona a nova poção à lista de bloqueio para o próximo cliente (caso 2 tenham sido vendidos)
-                        currentMarketPotions.push(newClient.wants); 
-                    }
-                });
-                
-                const nextStarter = localGameState.roundStarter === 'player1' ? 'player2' : 'player1';
-                localGameState.roundStarter = nextStarter;
-                logMessage(`${localGameState.players[nextStarter].name} começa esta rodada.`);
-                selectedPotion = null; 
-                startProductionPhase(nextStarter);
-            }
-            
             function endGame() {
                 localGameState.phase = 'GAME_OVER';
                 localGameState.status = 'finished';
