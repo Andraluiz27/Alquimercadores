@@ -2328,9 +2328,8 @@
                     initialState.players.player2.name = localPlayerName;
                     initialState.players.player2.uid = localUserId;
                     initialState.status = 'active';
-                    initialState.phase = `PRODUCTION_${initialState.currentPlayer.toUpperCase()}`;
-                    const startingPlayerName = initialState.players[initialState.currentPlayer].name;
-                    initialState.log.unshift(`${localPlayerName} aceitou o convite! ${startingPlayerName} começa a partida!`);
+                    initialState.phase = 'SIMULTANEOUS_PHASE';
+                    initialState.log.unshift(`${localPlayerName} aceitou o convite! A produção simultânea começou!`);
     
                     await setDoc(doc(db, gamesCollectionPath, gameId), initialState);
                     const batch = writeBatch(db);
