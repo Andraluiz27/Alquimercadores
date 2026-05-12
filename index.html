@@ -205,18 +205,7 @@
                 return cauldron;
             }
 
-            function proceedToPostProduction() {
-                const playerState = localGameState.players[localPlayerId];
-                playerState.fervorBonusThisTurn = false; 
-                if ((playerState.activePotions["Fervor do Ousado"] || playerState.copiedEffect?.name === "Fervor do Ousado") && localGameState.currentPull.length >= 4) {
-                    playerState.fervorBonusThisTurn = true;
-                    logMessage(`Fervor do Ousado ativado! As vendas de ${playerState.name} serão dobradas neste turno!`);
-                    showMessage("Fervor do Ousado Ativado! Suas vendas valerão o dobro!");
-                }
-                localGameState.phase = `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
-                logMessage(`${localGameState.players[localPlayerId].name} parou de puxar.`);
-                updateFirestoreState(localGameState);
-            }
+            
 
             function triggerStopPullingDiscardDecision(playerId) {
                 const playerState = localGameState.players[playerId];
@@ -225,10 +214,10 @@
                 let optionsHTML = `<p class="mb-4">Clique nos ingredientes do balcão que deseja descartar (1 💰 por cada). Depois clique em Concluir.</p>`;
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2 max-h-64 overflow-y-auto">`;
                 
-                if (localGameState.currentPull.length === 0) {
+                if (localGameState.players[localPlayerId].currentPull.length === 0) {
                     ingredientsGridHTML += `<p class="text-gray-400 italic">Balcão vazio.</p>`;
                 } else {
-                    localGameState.currentPull.forEach((ingredientName, index) => {
+                    localGameState.players[localPlayerId].currentPull.forEach((ingredientName, index) => {
                         const imgData = INGREDIENT_DATA[ingredientName];
                         ingredientsGridHTML += `
                             <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-index="${index}">
@@ -264,9 +253,9 @@
                     updateFirestoreState(localGameState).then(() => {
                         proceedToPostProduction(); 
                     });
-                } else if (ingredientIndex > -1 && ingredientIndex < localGameState.currentPull.length) {
+                } else if (ingredientIndex > -1 && ingredientIndex < localGameState.players[localPlayerId].currentPull.length) {
                     // Descarta um ingrediente e ganha a moeda
-                    const discardedIngredient = localGameState.currentPull.splice(ingredientIndex, 1)[0];
+                    const discardedIngredient = localGameState.players[localPlayerId].currentPull.splice(ingredientIndex, 1)[0];
                     localGameState.cauldron.push(discardedIngredient);
                     playerState.coins += 1;
                     logMessage(`${playerState.name} descartou ${discardedIngredient} e ganhou 1 Moeda!`);
@@ -278,7 +267,7 @@
 
             function triggerPrismaticSubstitutionDecision(potionName, lastMissing) {
                 const potion = ARCANO_POTIONUM[potionName];
-                const pull = localGameState.currentPull;
+                const pull = localGameState.players[localPlayerId].currentPull;
                 let spareIngredients = [...pull];
 
                 // Remove os fixos que já vão ser usados
@@ -340,7 +329,7 @@
 
             function handlePrismaticSubstitution(potionName, substituteIngredient, lastMissing) {
                 const potion = ARCANO_POTIONUM[potionName];
-                const pull = localGameState.currentPull;
+                const pull = localGameState.players[localPlayerId].currentPull;
                 const playerState = localGameState.players[localPlayerId];
                 let usedIngredients = [];
 
@@ -601,7 +590,7 @@
                 decisionTitleEl.textContent = "Descarte Oportuno";
                 let optionsHTML = `<p class="mb-4">Escolha um ingrediente do seu balcão para descartar e ganhar 1 Moeda:</p>`;
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
-                localGameState.currentPull.forEach((ingredientName, index) => {
+                localGameState.players[localPlayerId].currentPull.forEach((ingredientName, index) => {
                     const imgData = INGREDIENT_DATA[ingredientName];
                     ingredientsGridHTML += `
                         <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-index="${index}">
@@ -625,11 +614,11 @@
 
             function handleDiscardOpportunitySelection(playerId, ingredientIndex) {
                 const playerState = localGameState.players[playerId];
-                if (ingredientIndex < 0 || ingredientIndex >= localGameState.currentPull.length) {
+                if (ingredientIndex < 0 || ingredientIndex >= localGameState.players[localPlayerId].currentPull.length) {
                     decisionModal.classList.add('hidden');
                     return;
                 }
-                const discardedIngredient = localGameState.currentPull.splice(ingredientIndex, 1)[0];
+                const discardedIngredient = localGameState.players[localPlayerId].currentPull.splice(ingredientIndex, 1)[0];
                 localGameState.cauldron.push(discardedIngredient);
                 playerState.coins += 1;
                 logMessage(`${playerState.name} usou Descarte Oportuno, descartou ${discardedIngredient} e ganhou 1 Moeda!`);
@@ -955,7 +944,7 @@
 
                 let creatablePotions = [];
                 if (recipeBookMode === 'create') {
-                    creatablePotions = findCreatablePotions(localGameState.currentPull || [], localPlayerId);
+                    creatablePotions = findCreatablePotions(localGameState.players[localPlayerId].currentPull || [], localPlayerId);
                 }
 
                 const startIndex = recipeCurrentPage * recipesPerPage;
@@ -1059,22 +1048,20 @@
     
             function createInitialGameState(player1Name, player1UID) {
                 const startingPlayer = Math.random() < 0.5 ? 'player1' : 'player2';
-                
-                // Gera os clientes garantindo que não se repitam no início do jogo
                 const client1 = generateClient('Comum', []);
                 const client2 = generateClient('Rico', [client1.wants]);
                 const client3 = generateClient('Nobre', [client1.wants, client2.wants]);
-
+        
                 return {
-                    gameId: gameId, status: 'waiting', phase: 'PREPARATION',
-                    currentPlayer: startingPlayer, roundStarter: startingPlayer, 
+                    gameId: gameId, status: 'waiting', phase: 'SIMULTANEOUS_PHASE', // Fase global alterada
+                    currentPlayer: null, roundStarter: startingPlayer, 
                     players: {
-                        player1: { uid: player1UID, name: player1Name, coins: 0, shelf: [], shelfLimit: 3, potionsReady: [], activePotions: {}, fervorBonusThisTurn: false },
-                        player2: { uid: null, name: 'Aguardando...', coins: 0, shelf: [], shelfLimit: 3, potionsReady: [], activePotions: {}, fervorBonusThisTurn: false }
+                        player1: { uid: player1UID, name: player1Name, coins: 0, shelf: [], shelfLimit: 3, potionsReady: [], activePotions: {}, fervorBonusThisTurn: false, currentPull: [], personalPhase: 'PRODUCTION', explosionEvent: null, unguentoSavedColorThisTurn: null },
+                        player2: { uid: null, name: 'Aguardando...', coins: 0, shelf: [], shelfLimit: 3, potionsReady: [], activePotions: {}, fervorBonusThisTurn: false, currentPull: [], personalPhase: 'PRODUCTION', explosionEvent: null, unguentoSavedColorThisTurn: null }
                     },
                     cauldron: generateCauldron(),
                     clients: [ client1, client2, client3 ],
-                    clientsServed: 0, currentPull: [], log: ["Jogo criado. Aguardando oponente..."], chat: []
+                    clientsServed: 0, log: ["Jogo criado. Aguardando oponente..."], chat: []
                 };
             }
             
@@ -1099,67 +1086,7 @@
             // ==========================================================
             // FUNÇÕES DE TRANSIÇÃO DE FASE
             // ==========================================================
-            function startProductionPhase(playerId) {
-                const playerState = localGameState.players[playerId];
-
-                if (playerState.disabledEffect) {
-                    const effect = playerState.disabledEffect;
-                    if (effect.status === 'READY_TO_CLEAR') {
-                        playerState.activePotions[effect.name] = effect.originalValue;
-                        if (effect.name === "Infusão de Foco" || effect.name === "Caldeirão Expansivo") {
-                            playerState.shelfLimit += effect.originalValue;
-                            logMessage(`A prateleira de ${playerState.name} voltou a ter ${playerState.shelfLimit} espaços!`);
-                        }
-                        logMessage(`O efeito da Ferrugem Alquímica passou e a poção "${effect.name}" de ${playerState.name} foi reativada!`);
-                        delete playerState.disabledEffect;
-                    } 
-                    else if (effect.status === 'PENDING_REACTIVATION') {
-                        playerState.disabledEffect.status = 'READY_TO_CLEAR';
-                        logMessage(`A poção "${effect.name}" de ${playerState.name} continua desativada neste turno devido à Ferrugem Alquímica.`);
-                    }
-                }
-
-                const curse = playerState.activePotions["Maldição do Caldeirão Trincado"];
-                if (curse) {
-                    if (curse.status === 'ACTIVE_THIS_TURN') {
-                        delete playerState.activePotions["Maldição do Caldeirão Trincado"];
-                        logMessage(`A Maldição do Caldeirão Trincado em ${playerState.name} se dissipou.`);
-                    } 
-                    else if (curse.status === 'PENDING_ACTIVATION') {
-                        curse.status = 'ACTIVE_THIS_TURN';
-                        const curseMessage = `O caldeirão de ${playerState.name} está amaldiçoado! Cuidado com ingredientes da cor ${curse.color.toUpperCase()}!`;
-                        logMessage(curseMessage);
-                        if (playerId === localPlayerId) {
-                            showMessage(`Seu caldeirão foi amaldiçoado! Cuidado com ingredientes da cor ${curse.color.toUpperCase()}!`);
-                        }
-                    }
-                }
-
-                const barrierStatus = playerState.activePotions["Barreira de Bolhas"];
-                if (barrierStatus === "active") {
-                    playerState.activePotions["Barreira de Bolhas"] = false;
-                    logMessage(`A Barreira de Bolhas de ${playerState.name} se dissipou com o tempo.`);
-                } else if (barrierStatus === "new") {
-                    playerState.activePotions["Barreira de Bolhas"] = "active";
-                }
-
-                if (playerState.copiedEffect && playerState.copiedEffect.status === 'PENDING_ACTIVATION') {
-                    playerState.copiedEffect.status = 'ACTIVE_THIS_TURN';
-                    logMessage(`O Eco Alquímico de ${playerState.name} para ${playerState.copiedEffect.name} está agora ATIVO para este turno!`);
-                    if (playerState.copiedEffect.name === "Infusão de Foco" || playerState.copiedEffect.name === "Caldeirão Expansivo") {
-                        playerState.shelfLimit++;
-                        logMessage(`${playerState.name} copiou ${playerState.copiedEffect.name} e sua prateleira foi expandida temporariamente!`);
-                    }
-                }
-                
-                localGameState.phase = `PRODUCTION_${playerId.toUpperCase()}`;
-                localGameState.currentPlayer = playerId;
-                localGameState.currentPull = [];
-                localGameState.unguentoSavedColorThisTurn = null; 
-                logMessage(`${localGameState.players[playerId].name}, sua vez de coletar ingredientes!`);
-                updateFirestoreState(localGameState);
-            }
-
+            
             function startActionPhase(playerId) {
                 localGameState.phase = `ACTION_${playerId.toUpperCase()}`;
                 localGameState.currentPlayer = playerId;
@@ -1167,19 +1094,82 @@
                 updateFirestoreState(localGameState);
             }
             
-            function endProductionPhase() {
-                const playerWhoFinished = localGameState.currentPlayer;
-                const starterOfThisRound = localGameState.roundStarter;
-
-                localGameState.cauldron.push(...localGameState.currentPull);
-                localGameState.currentPull = [];
-                
-                if (playerWhoFinished === starterOfThisRound) {
-                    const secondPlayer = starterOfThisRound === 'player1' ? 'player2' : 'player1';
-                    startProductionPhase(secondPlayer);
+            function startSimultaneousPhase() {
+                const p1 = localGameState.players.player1;
+                const p2 = localGameState.players.player2;
+        
+                // Aplica os efeitos de início de turno para AMBOS os jogadores simultaneamente
+                [p1, p2].forEach(playerState => {
+                    playerState.currentPull = [];
+                    playerState.personalPhase = 'PRODUCTION';
+                    playerState.explosionEvent = null;
+                    playerState.unguentoSavedColorThisTurn = null;
+                    playerState.fervorBonusThisTurn = false;
+        
+                    // Resolve Ferrugem
+                    if (playerState.disabledEffect) {
+                        const effect = playerState.disabledEffect;
+                        if (effect.status === 'READY_TO_CLEAR') {
+                            playerState.activePotions[effect.name] = effect.originalValue;
+                            if (effect.name === "Infusão de Foco" || effect.name === "Caldeirão Expansivo") playerState.shelfLimit += effect.originalValue;
+                            delete playerState.disabledEffect;
+                        } else if (effect.status === 'PENDING_REACTIVATION') {
+                            playerState.disabledEffect.status = 'READY_TO_CLEAR';
+                        }
+                    }
+                    // Resolve Maldição
+                    const curse = playerState.activePotions["Maldição do Caldeirão Trincado"];
+                    if (curse) {
+                        if (curse.status === 'ACTIVE_THIS_TURN') delete playerState.activePotions["Maldição do Caldeirão Trincado"];
+                        else if (curse.status === 'PENDING_ACTIVATION') curse.status = 'ACTIVE_THIS_TURN';
+                    }
+                    // Resolve Barreira
+                    const barrierStatus = playerState.activePotions["Barreira de Bolhas"];
+                    if (barrierStatus === "active") playerState.activePotions["Barreira de Bolhas"] = false;
+                    else if (barrierStatus === "new") playerState.activePotions["Barreira de Bolhas"] = "active";
+                    // Resolve Eco Alquímico
+                    if (playerState.copiedEffect && playerState.copiedEffect.status === 'PENDING_ACTIVATION') {
+                        playerState.copiedEffect.status = 'ACTIVE_THIS_TURN';
+                        if (playerState.copiedEffect.name === "Infusão de Foco" || playerState.copiedEffect.name === "Caldeirão Expansivo") playerState.shelfLimit++;
+                    }
+                });
+        
+                localGameState.phase = 'SIMULTANEOUS_PHASE';
+                localGameState.currentPlayer = null; 
+                logMessage("A Fase de Produção Simultânea começou! Podem puxar os ingredientes.");
+                updateFirestoreState(localGameState);
+            }
+        
+            function checkAndTransitionToAction() {
+                const p1 = localGameState.players.player1;
+                const p2 = localGameState.players.player2;
+        
+                // Se os dois jogadores já finalizaram a produção e o pós-produção
+                if (p1.personalPhase === 'WAITING_ACTION' && p2.personalPhase === 'WAITING_ACTION') {
+                    startActionPhase(localGameState.roundStarter);
                 } else {
-                    startActionPhase(starterOfThisRound);
+                    updateFirestoreState(localGameState);
                 }
+            }
+            
+            function startNewRound() {
+                logMessage("Uma nova rodada começa!");
+                let currentMarketPotions = localGameState.clients.filter(c => c && !c.served).map(c => c.wants);
+        
+                localGameState.clients.forEach((client, index) => {
+                    if (client.served) { 
+                        const newClient = generateClient(CLIENT_TYPES[index], currentMarketPotions);
+                        localGameState.clients[index] = newClient;
+                        currentMarketPotions.push(newClient.wants); 
+                    }
+                });
+                
+                const nextStarter = localGameState.roundStarter === 'player1' ? 'player2' : 'player1';
+                localGameState.roundStarter = nextStarter;
+                logMessage(`${localGameState.players[nextStarter].name} começa a Fase de Ação desta rodada.`);
+                selectedPotion = null; 
+                
+                startSimultaneousPhase(); // Inicia a puxada simultânea
             }
     
             function endActionPhase() {
@@ -1335,16 +1325,17 @@
                 updateFirestoreState(localGameState).then(() => { showActionModal(); });
             }
             
-            async function handleCauldronClick() {
+    async function handleCauldronClick() {
                 if (isProcessingClick) return; 
                 isProcessingClick = true; 
             
-                if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) {
+                const playerState = localGameState.players[localPlayerId];
+                
+                // Nova verificação: Garante que estamos na fase global simultânea e que o jogador ainda está puxando
+                if (localGameState.phase !== 'SIMULTANEOUS_PHASE' || playerState.personalPhase !== 'PRODUCTION') {
                     isProcessingClick = false; 
                     return;
                 }
-                
-                const playerState = localGameState.players[localPlayerId];
                 
                 if (localGameState.cauldron.length === 0) {
                     showMessage("O Caldeirão está vazio!");
@@ -1354,7 +1345,9 @@
                 
                 const randomIndex = Math.floor(Math.random() * localGameState.cauldron.length);
                 const pulledIngredient = localGameState.cauldron.splice(randomIndex, 1)[0];
-                localGameState.currentPull.push(pulledIngredient);
+                
+                // MUDANÇA AQUI: O ingrediente vai pro balcão INDIVIDUAL do jogador
+                playerState.currentPull.push(pulledIngredient);
                 logMessage(`${playerState.name} puxou: ${pulledIngredient}`);
                 
                 await updateFirestoreState(localGameState);
@@ -1366,29 +1359,10 @@
                     logMessage(`BOOM! A Maldição do Caldeirão Trincado foi ativada pelo ingrediente ${pulledIngredient}!`);
                     delete playerState.activePotions["Maldição do Caldeirão Trincado"];
                     
-                    setTimeout(() => {
-                        if (playerState.activePotions["Resiliência do Farsante"] || playerState.copiedEffect?.name === "Resiliência do Farsante") {
-                            handleExplosionWithResilience();
-                        } else {
-                            handleExplosion();
-                        }
-                    }, 1000);
+                    setTimeout(() => triggerExplosionFlow(), 1000);
                 } 
-                else if (await checkExplosion(localGameState.currentPull, playerState, pulledIngredient)) {
-                    setTimeout(() => {
-                        if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) {
-                            isProcessingClick = false;
-                            updateUI(); 
-                            return;
-                        }
-                        if (playerState.activePotions["Resiliência do Farsante"] || playerState.copiedEffect?.name === "Resiliência do Farsante") {
-                            logMessage("BOOM! Mas a Resiliência do Farsante salvou um ingrediente!");
-                            handleExplosionWithResilience();
-                        } else {
-                            logMessage("BOOM! O caldeirão explodiu!");
-                            handleExplosion();
-                        }
-                    }, 1000);
+                else if (await checkExplosion(playerState.currentPull, playerState, pulledIngredient)) {
+                    setTimeout(() => triggerExplosionFlow(), 1000);
                 } 
                 else {
                     isProcessingClick = false;
@@ -1412,7 +1386,8 @@
                 const colorCount = currentPull.filter(ing => INGREDIENT_DATA[ing]?.cor === newIngredientColor).length;
 
                 if (colorCount >= colorLimit) {
-                    if (localGameState.unguentoSavedColorThisTurn) return true;
+                    // MUDANÇA AQUI: Usa o unguento salvo INDIVIDUAL do jogador
+                    if (playerState.unguentoSavedColorThisTurn) return true;
                     if (playerState.activePotions["Unguento de Musgo"]) {
                         await consumeUnguentoDeMusgo(localPlayerId, newIngredientColor);
                         return false;
@@ -1421,15 +1396,42 @@
                 }
                 return false;
             }
+
+            // FUNÇÃO NOVA: Redireciona para o tipo certo de explosão (Normal ou Resiliência)
+            function triggerExplosionFlow() {
+                const playerState = localGameState.players[localPlayerId];
+                if (localGameState.phase !== 'SIMULTANEOUS_PHASE' || playerState.personalPhase !== 'PRODUCTION') {
+                    isProcessingClick = false;
+                    updateUI(); 
+                    return;
+                }
+                if (playerState.activePotions["Resiliência do Farsante"] || playerState.copiedEffect?.name === "Resiliência do Farsante") {
+                    handleExplosionWithResilience();
+                } else {
+                    handleExplosion();
+                }
+            }
     
             function handleExplosion() {
-                if(localGameState.players[localPlayerId]) localGameState.players[localPlayerId].activePotions["Descarte Oportuno"] = false;
-                localGameState.cauldron.push(...localGameState.currentPull);
-                localGameState.currentPull = [];
-                showMessage("EXPLOSÃO! Você perdeu todos os ingredientes deste turno.");
+                const playerState = localGameState.players[localPlayerId];
+                
+                if(playerState) playerState.activePotions["Descarte Oportuno"] = false;
+                
+                // Devolve os itens do balcão individual para o caldeirão
+                localGameState.cauldron.push(...playerState.currentPull);
+                playerState.currentPull = [];
+                
+                playerState.explosionEvent = Date.now(); 
+                playerState.personalPhase = 'WAITING_ACTION'; 
+                
+                // TOCA O SOM PARA VOCÊ MESMO
+                const sfx = document.getElementById('explosion-sfx');
+                if(sfx) { sfx.volume = 0.5; sfx.play().catch(e => console.log('Erro no áudio:', e)); }
+
+                showMessage("EXPLOSÃO! Você perdeu todos os ingredientes deste turno."); // MENSAGEM SÓ PRA VOCÊ
                 isProcessingClick = false; 
                 updateUI(); 
-                endProductionPhase(); 
+                checkAndTransitionToAction();
             }
     
             function handleExplosionWithResilience() {
@@ -1439,7 +1441,8 @@
                 const canSave = playerState.shelf.length < playerState.shelfLimit;
 
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
-                localGameState.currentPull.forEach((ingredientName, index) => {
+                
+                playerState.currentPull.forEach((ingredientName, index) => {
                     const imgData = INGREDIENT_DATA[ingredientName];
                     const disabledAttribute = !canSave ? 'disabled title="Sua prateleira está cheia!"' : '';
                     ingredientsGridHTML += `
@@ -1462,26 +1465,65 @@
                         playerState.activePotions["Descarte Oportuno"] = false;
 
                         if (index === -1) {
-                            localGameState.cauldron.push(...localGameState.currentPull);
+                            localGameState.cauldron.push(...playerState.currentPull);
                         } else {
-                            playerState.shelf.push(localGameState.currentPull.splice(index, 1)[0]);
-                            localGameState.cauldron.push(...localGameState.currentPull);
+                            playerState.shelf.push(playerState.currentPull.splice(index, 1)[0]);
+                            localGameState.cauldron.push(...playerState.currentPull);
                         }
                         
-                        localGameState.currentPull = [];
+                        playerState.currentPull = [];
+                        playerState.explosionEvent = Date.now(); 
+                        playerState.personalPhase = 'WAITING_ACTION'; 
+
+                        // ---> SOM TOCA AQUI PARA QUEM ESTOUROU <---
+                        const sfx = document.getElementById('explosion-sfx');
+                        if(sfx) { sfx.volume = 0.5; sfx.play().catch(e => console.log('Erro no áudio:', e)); }
+                        
                         decisionModal.classList.add('hidden');
                         isProcessingClick = false; 
                         updateUI(); 
-                        endProductionPhase(); 
+                        checkAndTransitionToAction(); 
                     };
                 });
                 decisionModal.classList.remove('hidden');
             }
-            
-            function handleStopPullingClick() {
-                if (localGameState.phase !== `PRODUCTION_${localPlayerId.toUpperCase()}`) return;
+
+            function triggerExplosionFlow() {
                 const playerState = localGameState.players[localPlayerId];
-                if (playerState.activePotions["Descarte Oportuno"] && localGameState.currentPull.length > 0) {
+                if (localGameState.phase !== 'SIMULTANEOUS_PHASE' || playerState.personalPhase !== 'PRODUCTION') {
+                    isProcessingClick = false;
+                    updateUI(); 
+                    return;
+                }
+                if (playerState.activePotions["Resiliência do Farsante"] || playerState.copiedEffect?.name === "Resiliência do Farsante") {
+                    logMessage(`BOOM! Mas a Resiliência do Farsante salvou um ingrediente de ${playerState.name}!`);
+                    handleExplosionWithResilience();
+                } else {
+                    logMessage(`BOOM! O caldeirão de ${playerState.name} explodiu!`);
+                    handleExplosion();
+                }
+            }
+            
+    
+            function proceedToPostProduction() {
+                const playerState = localGameState.players[localPlayerId];
+                playerState.fervorBonusThisTurn = false; 
+                if ((playerState.activePotions["Fervor do Ousado"] || playerState.copiedEffect?.name === "Fervor do Ousado") && playerState.currentPull.length >= 4) {
+                    playerState.fervorBonusThisTurn = true;
+                    logMessage(`Fervor do Ousado ativado! As vendas de ${playerState.name} valerão o dobro!`);
+                    showMessage("Fervor do Ousado Ativado! Suas vendas valerão o dobro!");
+                }
+                playerState.personalPhase = 'POST_PRODUCTION'; // <--- Vai para a mesa organizar
+                logMessage(`${playerState.name} parou de puxar.`);
+                updateFirestoreState(localGameState);
+            }
+
+            function handleStopPullingClick() {
+                if (localGameState.phase !== 'SIMULTANEOUS_PHASE') return;
+                const playerState = localGameState.players[localPlayerId];
+                if (playerState.personalPhase !== 'PRODUCTION') return;
+                
+                if (playerState.activePotions["Descarte Oportuno"] && playerState.currentPull.length > 0) {
                     triggerStopPullingDiscardDecision(localPlayerId);
                 } else {
                     proceedToPostProduction();
@@ -1489,8 +1531,20 @@
             }
     
             function handleFinishProductionClick() {
-                if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) return;
-                endProductionPhase(); 
+                const playerState = localGameState.players[localPlayerId];
+                if (localGameState.phase !== 'SIMULTANEOUS_PHASE' || playerState.personalPhase !== 'POST_PRODUCTION') return;
+                
+                playerState.personalPhase = 'WAITING_ACTION'; // <--- Fica aguardando o oponente
+                
+                // Devolve o que sobrou no balcão pro caldeirão
+                if (playerState.currentPull.length > 0) {
+                    localGameState.cauldron.push(...playerState.currentPull);
+                    playerState.currentPull = [];
+                }
+                
+                logMessage(`${playerState.name} finalizou a produção e está aguardando.`);
+                checkAndTransitionToAction(); // Verifica se o adversário já acabou
+                updateUI();
             }
     
             function handleFinishActionClick() {
@@ -1620,7 +1674,7 @@
             window.handleCreatePotion = function(potionName) {
                 const playerState = localGameState.players[localPlayerId];
                 const potion = ARCANO_POTIONUM[potionName];
-                const pull = [...localGameState.currentPull]; 
+                const pull = [...localGameState.players[localPlayerId].currentPull]; 
                 const hasPrismatic = playerState.activePotions["Pasta Prismática"] || playerState.copiedEffect?.name === "Pasta Prismática";
                 
                 let usedIngredients = [];
@@ -1645,7 +1699,7 @@
                 }
             
                 if (missingCount === 0) {
-                    localGameState.currentPull = pull; 
+                    localGameState.players[localPlayerId].currentPull = pull; 
                     playerState.potionsReady.push(potionName);
                     localGameState.cauldron.push(...usedIngredients);
                     logMessage(`${playerState.name} criou: ${potionName}!`);
@@ -1668,7 +1722,7 @@
                 if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) return;
                 const playerState = localGameState.players[localPlayerId];
                 if (playerState.shelf.length < playerState.shelfLimit) {
-                    const ingredientToStore = localGameState.currentPull.splice(index, 1)[0];
+                    const ingredientToStore = localGameState.players[localPlayerId].currentPull.splice(index, 1)[0];
                     playerState.shelf.push(ingredientToStore);
                     logMessage(`${playerState.name} guardou ${ingredientToStore} na prateleira.`);
                     updateFirestoreState(localGameState);
@@ -1678,7 +1732,7 @@
             function handleShelfIngredientClick(ingredientName, index) {
                 if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) return;
                 const ingredientToReturn = localGameState.players[localPlayerId].shelf.splice(index, 1)[0];
-                localGameState.currentPull.push(ingredientToReturn);
+                localGameState.players[localPlayerId].currentPull.push(ingredientToReturn);
                 updateFirestoreState(localGameState);
             }
             
@@ -1905,8 +1959,23 @@
                 renderActivePotions(player1ActivePotionsEl, p1.activePotions, 'player1');
                 renderActivePotions(player2ActivePotionsEl, p2.activePotions, 'player2');
     
-                const myProdPhase = localGameState.phase === `PRODUCTION_${localPlayerId.toUpperCase()}`;
-                const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
+                const playerState = localGameState.players[localPlayerId];
+                const myProdPhase = localGameState.phase === 'SIMULTANEOUS_PHASE' && playerState.personalPhase === 'PRODUCTION';
+                const myPostProdPhase = localGameState.phase === 'SIMULTANEOUS_PHASE' && playerState.personalPhase === 'POST_PRODUCTION';
+                
+                // Adiciona o status visual debaixo do nome do oponente para você saber se ele já acabou
+                if (localGameState.phase === 'SIMULTANEOUS_PHASE') {
+                    const statusMap = { 'PRODUCTION': '(Puxando...)', 'POST_PRODUCTION': '(No Balcão...)', 'WAITING_ACTION': '(Aguardando...)' };
+                    const oppId = getOpponentId(localPlayerId);
+                    const oppState = localGameState.players[oppId];
+                    const oppStatusText = statusMap[oppState.personalPhase] || '';
+                    
+                    if (localPlayerId === 'player1') {
+                        player2NameDisplay.innerHTML = `${p2.name} <span class="text-xs text-red-300 font-normal ml-2">${oppStatusText}</span>`;
+                    } else {
+                        player1NameDisplay.innerHTML = `${p1.name} <span class="text-xs text-blue-300 font-normal ml-2">${oppStatusText}</span>`;
+                    }
+                }
     
                 const isGamePaused = !!localGameState.pendingAction;
 
@@ -1996,8 +2065,8 @@
             
             function renderCounter() {
                 counterAreaEl.innerHTML = '';
-                if (localGameState.currentPull && localGameState.currentPull.length > 0) {
-                    localGameState.currentPull.forEach((ingredientName, index) => {
+                if (localGameState.players[localPlayerId].currentPull && localGameState.players[localPlayerId].currentPull.length > 0) {
+                    localGameState.players[localPlayerId].currentPull.forEach((ingredientName, index) => {
                         const img = createIngredientImage(ingredientName, `Balcão`);
                         if (localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) {
                             img.classList.add('cursor-pointer', 'hover:border-yellow-300', 'hover:scale-105');
@@ -2487,11 +2556,30 @@
                     if (localPlayerId && oldState.players) { 
                         const oldPlayerState = oldState.players[localPlayerId];
                         const newPlayerState = localGameState.players[localPlayerId];
+                        
+                        // Lógica antiga da maldição (mantida)
                         const oldCurse = oldPlayerState.activePotions?.["Maldição do Caldeirão Trincado"];
                         const newCurse = newPlayerState.activePotions?.["Maldição do Caldeirão Trincado"];
                         if (newCurse && newCurse.status === 'ACTIVE_THIS_TURN' && oldCurse?.status !== 'ACTIVE_THIS_TURN') {
                             showMessage(`Seu caldeirão foi amaldiçoado! Cuidado com ingredientes da cor ${newCurse.color.toUpperCase()}!`);
                         }
+
+                        // --- ETAPA 6: DETECTA A EXPLOSÃO DO OPONENTE ---
+                        const opponentId = getOpponentId(localPlayerId);
+                        const oldOppEvent = oldState.players[opponentId]?.explosionEvent;
+                        const newOppEvent = localGameState.players[opponentId]?.explosionEvent;
+                        
+                        // Se o oponente acabou de explodir:
+                        if (newOppEvent && newOppEvent !== oldOppEvent) {
+                            const sfx = document.getElementById('explosion-sfx');
+                            if(sfx) { 
+                                sfx.volume = 0.5; 
+                                sfx.play().catch(e => console.log('Erro no áudio da explosão:', e)); 
+                            }
+                            // Repare que NÃO tem showMessage aqui, só vai aparecer no log do chat
+                            logMessage(`💥 Você ouviu um estrondo! O caldeirão de ${localGameState.players[opponentId].name} explodiu!`);
+                        }
+                        // ------------------------------------------------
                     }
                     window.localGameState = localGameState;
                     
@@ -2959,5 +3047,8 @@
     <button id="music-toggle-btn" class="fixed top-14 right-4 z-[100] bg-slate-800 border-2 border-yellow-600 text-white rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center shadow-lg hover:scale-110 transition-transform text-lg md:text-xl" title="Ligar/Desligar Música">
         🔇
     </button>
+    <audio id="explosion-sfx">
+        <source src="audio/explosão.mp3" type="audio/mpeg">
+    </audio>
 </body>
 </html>
