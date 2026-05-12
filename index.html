@@ -15,7 +15,7 @@
         // ==========================================================
         const ARCANO_POTIONUM = {
             // FÁCEIS
-            "Barreira de Bolhas": { nome: "Barreira de Bolhas", tipo: "Fácil", efeito: "Ação", descricao: "Até o início do seu próximo turno, você está imune ao efeito de UMA poção de Ação usada por seu oponente. O efeito é consumido após bloquear.", ingredientes: {}, corExtra: { "azul": 2 } },
+            "Barreira de Bolhas": { nome: "Barreira de Bolhas", tipo: "Fácil", efeito: "Ação", descricao: "Você fica imune ao efeito da PRÓXIMA poção de Ação usada por seu oponente. A barreira permanece ativa na sua Aura até bloquear um ataque.", ingredientes: {}, corExtra: { "azul": 2 } },
             "Unguento de Musgo": { nome: "Unguento de Musgo", tipo: "Fácil", efeito: "Momentâneo", descricao: "Na sua próxima Fase da Bolha, ignore a primeira explosão por COR. Não protege contra Sal Negro.", ingredientes: { "Musgo Venenoso": 1 }, corExtra: { "verde": 1 } },
             "Pó da Corrosão": { nome: "Pó da Corrosão", tipo: "Fácil", efeito: "Ação", descricao: "Seu oponente descarta 1 ingrediente da prateleira dele (ele escolhe qual).", ingredientes: {}, corExtra: { "vermelho": 2 } },
             "Elixir do Mercador": { nome: "Elixir do Mercador", tipo: "Fácil", efeito: "Ação", descricao: "Descarte um cliente do mercado e revele um novo. (Funciona mesmo em clientes com Contrato).", ingredientes: { "Unha de Bruxa": 1 }, corExtra: { "amarelo": 2 } },
@@ -1292,10 +1292,6 @@
                         if (curse.status === 'ACTIVE_THIS_TURN') delete playerState.activePotions["Maldição do Caldeirão Trincado"];
                         else if (curse.status === 'PENDING_ACTIVATION') curse.status = 'ACTIVE_THIS_TURN';
                     }
-                    // Resolve Barreira
-                    const barrierStatus = playerState.activePotions["Barreira de Bolhas"];
-                    if (barrierStatus === "active") playerState.activePotions["Barreira de Bolhas"] = false;
-                    else if (barrierStatus === "new") playerState.activePotions["Barreira de Bolhas"] = "active";
                     // Resolve Eco Alquímico
                     if (playerState.copiedEffect && playerState.copiedEffect.status === 'PENDING_ACTIVATION') {
                         playerState.copiedEffect.status = 'ACTIVE_THIS_TURN';
@@ -1910,7 +1906,10 @@
     
                 switch (potionName) {
                     case "Barreira de Bolhas": 
-                        playerState.activePotions["Barreira de Bolhas"] = "new"; logMessage(`${playerState.name} ergueu uma Barreira de Bolhas!`); break;
+                        playerState.activePotions["Barreira de Bolhas"] = true; 
+                        playerState.barrierEvent = Date.now(); // <--- O SINAL AQUI
+                        logMessage(`${playerState.name} ergueu uma Barreira de Bolhas que durará até ser atacado!`); 
+                        break;
                     case "Unguento de Musgo": 
                         playerState.activePotions["Unguento de Musgo"] = true; break;
                     case "Pasta Prismática": 
@@ -1936,7 +1935,15 @@
                         if (opponentState.shelf.length === 0) { logMessage(`Mão do Mago falhou! A prateleira de ${opponentState.name} está vazia.`); break; }
                         if (playerState.shelf.length >= playerState.shelfLimit) { playerState.potionsReady.unshift("Mão do Mago"); break; }
                         triggerMageHandDecision(playerId); break;
-                    case "Parasita Mortífero": playerState.activePotions["Parasita Mortífero"] = true; break;
+                    case "Parasita Mortífero": 
+                        if (opponentState.activePotions["Barreira de Bolhas"]) { 
+                            opponentState.activePotions["Barreira de Bolhas"] = false; 
+                            showBarrierBlockMessage("Parasita Mortífero"); 
+                            break; 
+                        }
+                        playerState.activePotions["Parasita Mortífero"] = true; 
+                        logMessage(`${playerState.name} usou Parasita Mortífero!`);
+                        break;
                     case "Eco Alquímico": { 
                         if (opponentState.activePotions["Barreira de Bolhas"]) break;
                         const copyablePotions = ["Amuleto do Colecionador", "Resiliência do Farsante", "Estabilizador Cromático", "Pasta Prismática", "Fervor do Ousado"];
@@ -2779,6 +2786,13 @@
                             }
                             // Repare que NÃO tem showMessage aqui, só vai aparecer no log do chat
                             logMessage(`💥 Você ouviu um estrondo! O caldeirão de ${localGameState.players[opponentId].name} explodiu!`);
+                        }
+                        // Se o oponente ativou a Barreira de Bolhas:
+                        const oldBarrier = oldState.players[opponentId]?.barrierEvent;
+                        const newBarrier = localGameState.players[opponentId]?.barrierEvent;
+                        
+                        if (newBarrier && newBarrier !== oldBarrier) {
+                            showMessage(`Atenção! ${localGameState.players[opponentId].name} usou Barreira de Bolhas e está protegido!`);
                         }
                         // ------------------------------------------------
                     }
