@@ -1322,15 +1322,15 @@
                 let pulledIngredient = null;
                 let newPullArray = [];
                 
-                // INÍCIO DA TRANSAÇÃO (Fila inteligente do Firebase para evitar cliques fantasmas)
+                // Transação garante que cliques simultâneos não atropelem um ao outro
                 try {
                     await runTransaction(db, async (transaction) => {
                         const gameDoc = await transaction.get(gameDocRef);
-                        if (!gameDoc.exists()) throw "Jogo finalizado ou não existe";
+                        if (!gameDoc.exists()) throw "Jogo não existe";
                         
                         const data = gameDoc.data();
                         const serverCauldron = data.cauldron;
-                        if (serverCauldron.length === 0) throw "Caldeirão vazio no servidor";
+                        if (serverCauldron.length === 0) throw "Caldeirão vazio";
 
                         const randomIndex = Math.floor(Math.random() * serverCauldron.length);
                         pulledIngredient = serverCauldron.splice(randomIndex, 1)[0];
@@ -1338,20 +1338,17 @@
                         newPullArray = data.players[localPlayerId].currentPull || [];
                         newPullArray.push(pulledIngredient);
 
-                        // Atualiza SÓ o caldeirão global e o seu balcão, sem mexer no que o oponente está fazendo
                         transaction.update(gameDocRef, {
                             cauldron: serverCauldron,
                             [`players.${localPlayerId}.currentPull`]: newPullArray
                         });
                     });
                 } catch (error) {
-                    console.log("Erro ao puxar no caldeirão simultâneo:", error);
+                    console.log("Erro no caldeirão simultâneo:", error);
                     isProcessingClick = false;
                     return;
                 }
-                // FIM DA TRANSAÇÃO
 
-                // Atualiza a tela imediatamente para não ter delay visual
                 playerState.currentPull = newPullArray;
                 logMessage(`${playerState.name} puxou: ${pulledIngredient}`);
                 
@@ -1359,9 +1356,8 @@
                 const ingredientColor = INGREDIENT_DATA[pulledIngredient]?.cor;
             
                 if (curseStatus && curseStatus.status === 'ACTIVE_THIS_TURN' && ingredientColor === curseStatus.color) {
-                    logMessage(`BOOM! A Maldição do Caldeirão Trincado foi ativada pelo ingrediente ${pulledIngredient}!`);
+                    logMessage(`BOOM! A Maldição foi ativada pelo ingrediente ${pulledIngredient}!`);
                     delete playerState.activePotions["Maldição do Caldeirão Trincado"];
-                    
                     setTimeout(() => triggerExplosionFlow(), 1000);
                 } 
                 else if (await checkExplosion(playerState.currentPull, playerState, pulledIngredient)) {
@@ -1505,6 +1501,7 @@
             }
 
             function handleStopPullingClick() {
+                if (isProcessingClick) return; // <-- A BLINDAGEM CONTRA A FUGA
                 if (localGameState.phase !== 'SIMULTANEOUS_PHASE') return;
                 const playerState = localGameState.players[localPlayerId];
                 if (playerState.personalPhase !== 'PRODUCTION') return;
@@ -1517,19 +1514,19 @@
             }
     
             function handleFinishProductionClick() {
+                if (isProcessingClick) return; // <-- A BLINDAGEM CONTRA A FUGA
                 const playerState = localGameState.players[localPlayerId];
                 if (localGameState.phase !== 'SIMULTANEOUS_PHASE' || playerState.personalPhase !== 'POST_PRODUCTION') return;
                 
-                playerState.personalPhase = 'WAITING_ACTION'; // <--- Fica aguardando o oponente
+                playerState.personalPhase = 'WAITING_ACTION'; 
                 
-                // Devolve o que sobrou no balcão pro caldeirão
                 if (playerState.currentPull.length > 0) {
                     localGameState.cauldron.push(...playerState.currentPull);
                     playerState.currentPull = [];
                 }
                 
                 logMessage(`${playerState.name} finalizou a produção e está aguardando.`);
-                checkAndTransitionToAction(); // Verifica se o adversário já acabou
+                checkAndTransitionToAction(); 
                 updateUI();
             }
     
@@ -2018,7 +2015,6 @@
 
             function handleIngredientClick(ingredientName, index) {
                 const playerState = localGameState.players[localPlayerId];
-                // Nova verificação de fase
                 if (localGameState.phase !== 'SIMULTANEOUS_PHASE' || playerState.personalPhase !== 'POST_PRODUCTION') return;
                 
                 if (playerState.shelf.length < playerState.shelfLimit) {
@@ -2031,7 +2027,6 @@
             
             function handleShelfIngredientClick(ingredientName, index) {
                 const playerState = localGameState.players[localPlayerId];
-                // Nova verificação de fase
                 if (localGameState.phase !== 'SIMULTANEOUS_PHASE' || playerState.personalPhase !== 'POST_PRODUCTION') return;
                 
                 const ingredientToReturn = playerState.shelf.splice(index, 1)[0];
@@ -2048,7 +2043,7 @@
                     const img = createIngredientImage(ingredientName, `Prateleira de ${ownerId}`);
                     
                     const playerState = localGameState.players[localPlayerId];
-                    const isMyPostProduction = localGameState.phase === 'SIMULTANEOUS_PHASE' && playerState.personalPhase === 'POST_PRODUCTION';
+                    const isMyPostProduction = localGameState.phase === 'SIMULTANEOUS_PHASE' && playerState?.personalPhase === 'POST_PRODUCTION';
 
                     if (isMyPostProduction && localPlayerId === ownerId) {
                         img.classList.add('cursor-pointer', 'hover:border-yellow-400', 'hover:scale-105');
@@ -2061,7 +2056,8 @@
             function renderCounter() {
                 counterAreaEl.innerHTML = '';
                 const playerState = localGameState.players[localPlayerId];
-                const currentPull = playerState.currentPull || []; // Lê do balcão individual
+                if (!playerState) return;
+                const currentPull = playerState.currentPull || []; 
 
                 if (currentPull.length > 0) {
                     currentPull.forEach((ingredientName, index) => {
@@ -2079,7 +2075,6 @@
                     counterAreaEl.innerHTML = '<span class="text-gray-500 text-sm italic">Balcão Vazio</span>';
                 }
             }
-
     
             function renderReadyPotions() {
                 const p1ListEl = document.getElementById('player1-ready-potions-list');
