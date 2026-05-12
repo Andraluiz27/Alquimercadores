@@ -943,7 +943,7 @@
                 // Se a prateleira esvaziar durante o processo, fecha o modal automaticamente
                 if (playerState.shelf.length === 0) {
                     decisionModal.classList.add('hidden');
-                    updateFirestoreState(localGameState).then(() => { showActionModal(); });
+                    updateFirestoreState(localGameState)
                     return;
                 }
             
@@ -990,9 +990,7 @@
                 // Botão de finalizar
                 document.getElementById('finish-discard-btn').onclick = () => {
                     decisionModal.classList.add('hidden');
-                    updateFirestoreState(localGameState).then(() => {
-                        showActionModal(); // Volta para o menu de ações
-                    });
+                    updateFirestoreState(localGameState); 
                 };
             
                 decisionModal.classList.remove('hidden');
@@ -1495,7 +1493,7 @@
                 localGameState.clientsServed++;
                 selectedPotion = null; 
                 actionModal.classList.add('hidden'); 
-                updateFirestoreState(localGameState).then(() => { showActionModal(); });
+                updateFirestoreState(localGameState);
             }
             
             async function handleCauldronClick() {
@@ -1791,11 +1789,11 @@
 
                 const potionsWithOwnUpdate = [
                     "Eco Alquímico", "Ferrugem Alquímica", "Mão do Mago", "Contrato de Exclusividade",
-                    "Elixir do Mercador", "Soro da Clarividência", "Ingrediente Contaminado", "Maldição do Caldeirão Trincado"
+                    "Elixir do Mercador", "Soro da Clarividência", "Ingrediente Contaminado", "Maldição do Caldeirão Trincado", "Mestre Especialista"
                 ];
 
                 if (potionsWithOwnUpdate.includes(potionName)) return; 
-                updateFirestoreState(localGameState).then(() => { setTimeout(showActionModal, 100); });
+                updateFirestoreState(localGameState);
             }
             
             function handleBookClick(mode = 'view') {
@@ -2002,15 +2000,16 @@
                             break; 
                         }
                         
-                        // Conta quantos ingredientes o oponente tem na prateleira
                         const quantidadeIngredientes = opponentState.shelf.length;
                         
                         if (quantidadeIngredientes > 0) {
-                            // Calcula quanto ele vai perder (não pode ficar com moedas negativas)
                             const moedasPerdidas = Math.min(opponentState.coins, quantidadeIngredientes);
                             opponentState.coins -= moedasPerdidas;
                             
-                            logMessage(`${playerState.name} usou Ingrediente Contaminado! ${opponentState.name} tinha ${quantidadeIngredientes} itens na prateleira e perdeu ${moedasPerdidas} moedas.`);
+                            // ---> ESTE É O SINAL QUE VAI PARA O OPONENTE:
+                            opponentState.contaminatedEvent = { time: Date.now(), lost: moedasPerdidas };
+                            
+                            logMessage(`${playerState.name} usou Ingrediente Contaminado! ${opponentState.name} perdeu ${moedasPerdidas} moedas.`);
                         } else {
                             logMessage(`${playerState.name} usou Ingrediente Contaminado, mas a prateleira de ${opponentState.name} estava vazia.`);
                         }
@@ -2793,6 +2792,13 @@
                         
                         if (newBarrier && newBarrier !== oldBarrier) {
                             showMessage(`Atenção! ${localGameState.players[opponentId].name} usou Barreira de Bolhas e está protegido!`);
+                        }
+                        // Se você foi alvo do Ingrediente Contaminado:
+                        const oldContaminated = oldPlayerState?.contaminatedEvent;
+                        const newContaminated = newPlayerState?.contaminatedEvent;
+                        
+                        if (newContaminated && newContaminated.time !== oldContaminated?.time) {
+                            showMessage(`⚠️ O oponente usou Ingrediente Contaminado! Você tinha itens na prateleira e perdeu ${newContaminated.lost} moedas!`);
                         }
                         // ------------------------------------------------
                     }
