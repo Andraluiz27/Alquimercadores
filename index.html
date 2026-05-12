@@ -16,33 +16,34 @@
         const ARCANO_POTIONUM = {
             // FÁCEIS
             "Barreira de Bolhas": { nome: "Barreira de Bolhas", tipo: "Fácil", efeito: "Ação", descricao: "Até o início do seu próximo turno, você está imune ao efeito de UMA poção de Ação usada por seu oponente. O efeito é consumido após bloquear.", ingredientes: {}, corExtra: { "azul": 2 } },
-            "Unguento de Musgo": { nome: "Unguento de Musgo", tipo: "Fácil", efeito: "Momentâneo", descricao: "Na sua próxima Fase da Bolha, ignore a primeira explosão por COR. Não protege contra Sal Negro.", ingredientes: { "Musgo Venenoso": 2 }, corExtra: { "verde": 1 } },
+            "Unguento de Musgo": { nome: "Unguento de Musgo", tipo: "Fácil", efeito: "Momentâneo", descricao: "Na sua próxima Fase da Bolha, ignore a primeira explosão por COR. Não protege contra Sal Negro.", ingredientes: { "Musgo Venenoso": 1 }, corExtra: { "verde": 1 } },
             "Pó da Corrosão": { nome: "Pó da Corrosão", tipo: "Fácil", efeito: "Ação", descricao: "Seu oponente descarta 1 ingrediente da prateleira dele (ele escolhe qual).", ingredientes: {}, corExtra: { "vermelho": 2 } },
-            "Elixir do Mercador": { nome: "Elixir do Mercador", tipo: "Fácil", efeito: "Ação", descricao: "Descarte um cliente do mercado e revele um novo. (Funciona mesmo em clientes com Contrato).", ingredientes: { "Unha de Bruxa": 1, "Asa de Fada": 1 }, corExtra: { "amarelo": 1 } },
+            "Elixir do Mercador": { nome: "Elixir do Mercador", tipo: "Fácil", efeito: "Ação", descricao: "Descarte um cliente do mercado e revele um novo. (Funciona mesmo em clientes com Contrato).", ingredientes: { "Unha de Bruxa": 1 }, corExtra: { "amarelo": 2 } },
             "Tônico Dourado": { nome: "Tônico Dourado", tipo: "Fácil", efeito: "Ação", descricao: "Ganhe 2 Moedas imediatamente.", ingredientes: {}, corExtra: { "amarelo": 2 } },
             "Soro da Clarividência": { nome: "Soro da Clarividência", tipo: "Fácil", efeito: "Ação", descricao: "Pegue qualquer ingrediente que precisar diretamente do caldeirão e guarde na sua prateleira.", ingredientes: {}, corExtra: { "amarelo": 1, "azul": 1 } },
-            "Descarte Oportuno": { nome: "Descarte Oportuno", tipo: "Fácil", efeito: "Ação", descricao: "Escolha quantos ingredientes quiser da sua PRATELEIRA e descarte-os de volta no caldeirão para ganhar 1 Moeda por cada ingrediente descartado.", ingredientes: { "Unha de Bruxa": 1, "Carvão de Ébano": 1 } },
-            "Ingrediente Contaminado": { nome: "Ingrediente Contaminado", tipo: "Fácil", efeito: "Ação", descricao: "O oponente perde 1 Moeda para cada ingrediente que ele possuir guardado na prateleira no momento.", ingredientes: { "Musgo Venenoso": 1 }, corExtra: { "preto": 1 } },
+            "Descarte Oportuno": { nome: "Descarte Oportuno", tipo: "Fácil", efeito: "Ação", descricao: "Escolha quantos ingredientes quiser da sua PRATELEIRA e descarte-os de volta no caldeirão para ganhar 1 Moeda por cada ingrediente descartado.", ingredientes: { "Unha de Bruxa": 1 }, corExtra: { "verde": 1 } },
+            "Ingrediente Contaminado": { nome: "Ingrediente Contaminado", tipo: "Fácil", efeito: "Ação", descricao: "O oponente perde 1 Moeda para cada ingrediente que ele possuir guardado na prateleira no momento.", ingredientes: {}, corExtra: { "preto": 3 } },
         
             // MÉDIAS (Com benefícios extras de armazenamento)
-            "Infusão de Foco": { nome: "Infusão de Foco", tipo: "Médio", efeito: "Permanente", descricao: "Sua Prateleira é aprimorada em +1 espaço.", ingredientes: { "Asa de Fada": 1, "Carvão de Ébano": 1 }, corExtra: { "amarelo": 2 } },
-            "Caldeirão Expansivo": { nome: "Caldeirão Expansivo", tipo: "Médio", efeito: "Permanente", descricao: "Sua Prateleira é aprimorada em +1 espaço e você puxa 1 ingrediente aleatório do caldeirão.", ingredientes: { "Pena de Fênix": 1, "Rosa Púrpura": 1 }, corExtra: { "verde": 1 } },
-            "Amuleto do Colecionador": { nome: "Amuleto do Colecionador", tipo: "Médio", efeito: "Permanente", descricao: "Você ganha +1 Moeda adicional sempre que vende uma poção.", ingredientes: { "Chifre de Unicórnio": 1, "Perna de Sapo": 1, "Suor de Sereia": 1 }, corExtra: { "preto": 1 } },
-            "Mão do Mago": { nome: "Mão do Mago", tipo: "Médio", efeito: "Ação", descricao: "Roube 1 ingrediente da prateleira do seu oponente.", ingredientes: { "Cera de Ogro": 1, "Sangue de Quimera": 1 }, corExtra: { "azul": 1, "vermelho": 1 } },
-            "Parasita Mortífero": { nome: "Parasita Mortífero", tipo: "Médio", efeito: "Ação", descricao: "Na próxima venda do seu oponente, você ganha metade das moedas (arredondando para cima). Não pode ser bloqueado.", ingredientes: { "Belladonna": 2, "Sangue de Quimera": 1 }, corExtra: { "verde": 1 } },
-            "Resiliência do Farsante": { nome: "Resiliência do Farsante", tipo: "Médio", efeito: "Permanente", descricao: "Se seu caldeirão explodir, você pode guardar 1 dos ingredientes na sua prateleira, se houver espaço.", ingredientes: { "Unha de Bruxa": 1, "Suor de Sereia": 1, "Cera de Ogro": 1 }, corExtra: { "preto": 1 } },
-            "Ferrugem Alquímica": { nome: "Ferrugem Alquímica", tipo: "Médio", efeito: "Ação", descricao: "Desativa um aprimoramento Permanente do seu oponente por uma rodada.", ingredientes: { "Musgo Venenoso": 1, "Carvão de Ébano": 1, "Beterraba Brava": 1 }, corExtra: { "vermelho": 1 } },
-            "Contrato de Exclusividade": { nome: "Contrato de Exclusividade", tipo: "Médio", efeito: "Ação", descricao: "Reserve um cliente do mercado para você. Ele não pode ser atendido pelo oponente.", ingredientes: { "Chifre de Unicórnio": 1, "Suor de Sereia": 1, "Beterraba Brava": 1 } },
-        
+            "Infusão de Foco": { nome: "Infusão de Foco", tipo: "Médio", efeito: "Permanente", descricao: "Sua Prateleira é aprimorada em +1 espaço.", ingredientes: { "Asa de Fada": 1 }, corExtra: { "amarelo": 2 } },
+            "Caldeirão Expansivo": { nome: "Caldeirão Expansivo", tipo: "Médio", efeito: "Permanente", descricao: "Sua Prateleira é aprimorada em +1 espaço e você puxa 1 ingrediente aleatório do caldeirão.", ingredientes: { "Pena de Fênix": 1 }, corExtra: { "verde": 1, "preto": 1 } },
+            "Amuleto do Colecionador": { nome: "Amuleto do Colecionador", tipo: "Médio", efeito: "Permanente", descricao: "Você ganha +1 Moeda adicional sempre que vende uma poção.", ingredientes: { "Suor de Sereia": 1 }, corExtra: { "preto": 1, "amarelo": 1 } },
+            "Mão do Mago": { nome: "Mão do Mago", tipo: "Médio", efeito: "Ação", descricao: "Roube 1 ingrediente da prateleira do seu oponente.", ingredientes: { }, corExtra: { "azul": 1, "vermelho": 1, "amarelo": 1 } },
+            "Parasita Mortífero": { nome: "Parasita Mortífero", tipo: "Médio", efeito: "Ação", descricao: "Na próxima venda do seu oponente, você ganha metade das moedas (arredondando para cima). Não pode ser bloqueado.", ingredientes: { "Belladonna": 1, "Sangue de Quimera": 1 }, corExtra: { "verde": 2 } },
+            "Resiliência do Farsante": { nome: "Resiliência do Farsante", tipo: "Médio", efeito: "Permanente", descricao: "Se seu caldeirão explodir, você pode guardar 1 dos ingredientes na sua prateleira, se houver espaço.", ingredientes: { "Unha de Bruxa": 1, "Cera de Ogro": 1 }, corExtra: { "preto": 1 } },
+            "Ferrugem Alquímica": { nome: "Ferrugem Alquímica", tipo: "Médio", efeito: "Ação", descricao: "Desativa um aprimoramento Permanente do seu oponente por uma rodada.", ingredientes: { "Carvão de Ébano": 1, "Beterraba Brava": 1 }, corExtra: { "vermelho": 1 } },
+            "Contrato de Exclusividade": { nome: "Contrato de Exclusividade", tipo: "Médio", efeito: "Ação", descricao: "Reserve um cliente do mercado para você. Ele não pode ser atendido pelo oponente.", ingredientes: { "Perna de Sapo": 1, "Suor de Sereia": 1 }, corExtra: { "azul": 1 } },
+            "Mestre Especialista": { nome: "Mestre Especialista", tipo: "Médio", efeito: "Permanente", descricao: "Escolha uma cor. A partir de agora, toda poção que você vender que possuir essa cor na receita, garante um bônus de +2 Moedas.", ingredientes: { }, corExtra: { "vermelho": 1, "amarelo": 1, "azul": 1, "verde": 1 } },
+            
             // DIFÍCEIS (Exigem planejamento e estoque)
             "Eco Alquímico": { nome: "Eco Alquímico", tipo: "Difícil", efeito: "Ação", descricao: "Escolha um efeito de poção Permanente ativo do seu oponente. Você copia o efeito dessa poção até o final da sua próxima fase de Ação.", ingredientes: { "Rosa Púrpura": 1, "Cogumelo de Sangue": 2 }, corExtra: { "azul": 2 } },
-            "Estabilizador Cromático": { nome: "Estabilizador Cromático", tipo: "Difícil", efeito: "Permanente", descricao: "Seu caldeirão só explode na TERCEIRA ficha da mesma cor. (A regra do Sal Negro permanece a mesma).", ingredientes: { "Rosa Púrpura": 1, "Cera de Ogro": 2, "Cogumelo de Sangue": 2 }, corExtra: { "preto": 1 } },
-            "Pedra Filosofal": { nome: "Pedra Filosofal", tipo: "Difícil", efeito: "Ação", descricao: "Ganhe 7 Moedas imediatamente.", ingredientes: { "Pena de Fênix": 2, "Chifre de Unicórnio": 1, "Rosa Púrpura": 1, "Suor de Sereia": 1 } },
-            "Poção da Usurpação": { nome: "Poção da Usurpação", tipo: "Difícil", efeito: "Ação", descricao: "Seu oponente te paga 5 Moedas (ou tudo o que ele tiver, se for menos que 5).", ingredientes: { "Sangue de Quimera": 1, "Pena de Fênix": 1, "Chifre de Unicórnio": 1, "Cera de Ogro": 1 }, corExtra: { "preto": 1 } },
-            "Solvente Universal": { nome: "Solvente Universal", tipo: "Difícil", efeito: "Ação", descricao: "Seu oponente descarta TODOS os ingredientes da prateleira dele.", ingredientes: { "Sangue de Quimera": 1, "Pena de Fênix": 1, "Belladonna": 1, "Unha de Bruxa": 1 }, corExtra: { "azul": 2 } },
-            "Maldição do Caldeirão Trincado": { nome: "Maldição do Caldeirão Trincado", tipo: "Difícil", efeito: "Ação", descricao: "No próximo turno do seu oponente, a Fase de puxar ingredientes dele termina se ele puxar qualquer ingrediente da cor que você escolher.", ingredientes: { "Rosa Púrpura": 1, "Musgo Venenoso": 2, "Belladonna": 2 } },
-            "Pasta Prismática": { nome: "Pasta Prismática", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, você pode usar qualquer ingrediente no lugar de somente UM outro ingrediente em suas receitas.", ingredientes: { "Sangue de Quimera": 1, "Pena de Fênix": 2, "Chifre de Unicórnio": 2, "Olhos de Jiboia": 1 } },
-            "Fervor do Ousado": { nome: "Fervor do Ousado", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, se você puxar 4 ou mais ingredientes sem estourar, suas vendas são dobradas naquele turno.", ingredientes: { "Sangue de Quimera": 1, "Perna de Sapo": 2, "Cogumelo de Sangue": 2 }, corExtra: { "preto": 1 } }
+            "Estabilizador Cromático": { nome: "Estabilizador Cromático", tipo: "Difícil", efeito: "Permanente", descricao: "Seu caldeirão só explode na TERCEIRA ficha da mesma cor. (A regra do Sal Negro permanece a mesma).", ingredientes: { "Rosa Púrpura": 1, "Cera de Ogro": 1, "Cogumelo de Sangue": 1 }, corExtra: { "preto": 2 } },
+            "Pedra Filosofal": { nome: "Pedra Filosofal", tipo: "Difícil", efeito: "Ação", descricao: "Ganhe 7 Moedas imediatamente.", ingredientes: { "Pena de Fênix": 2, "Rosa Púrpura": 1 }, corExtra: { "amarelo": 2 } },
+            "Poção da Usurpação": { nome: "Poção da Usurpação", tipo: "Difícil", efeito: "Ação", descricao: "Seu oponente te paga 5 Moedas (ou tudo o que ele tiver, se for menos que 5).", ingredientes: { "Sangue de Quimera": 1, "Pena de Fênix": 1 }, corExtra: { "preto": 1, "amarelo": 1 } },
+            "Solvente Universal": { nome: "Solvente Universal", tipo: "Difícil", efeito: "Ação", descricao: "Seu oponente descarta TODOS os ingredientes da prateleira dele.", ingredientes: { "Perna de Sapo": 1, "Belladonna": 1, "Unha de Bruxa": 1 }, corExtra: { "azul": 2 } },
+            "Maldição do Caldeirão Trincado": { nome: "Maldição do Caldeirão Trincado", tipo: "Difícil", efeito: "Ação", descricao: "No próximo turno do seu oponente, a Fase de puxar ingredientes dele termina se ele puxar qualquer ingrediente da cor que você escolher.", ingredientes: { "Musgo Venenoso": 1, "Olhos de Jiboia": 1 }, corExtra: { "verde": 1 } },
+            "Pasta Prismática": { nome: "Pasta Prismática", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, você pode usar qualquer ingrediente no lugar de somente UM outro ingrediente em suas receitas.", ingredientes: { "Cogumelo de Sangue": 1, "Olhos de Jiboia": 1 }, corExtra: { "preto": 2, "vermelho": 2  } },
+            "Fervor do Ousado": { nome: "Fervor do Ousado", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, se você puxar 4 ou mais ingredientes sem estourar, suas vendas são dobradas naquele turno.", ingredientes: { "Sangue de Quimera": 1, "Perna de Sapo": 1, "Cogumelo de Sangue": 1 }, corExtra: { "preto": 1, "amarelo": 2} }
         };
 
         const INGREDIENT_DATA = {
@@ -197,7 +198,7 @@
             function generateCauldron() {
                 const cauldron = [];
                 for (const ingredient in INGREDIENT_DATA) {
-                    const count = 7; 
+                    const count = 5; 
                     for (let i = 0; i < count; i++) {
                         cauldron.push(ingredient);
                     }
@@ -425,6 +426,14 @@
 
             function handleEchoSelection(playerId, potionToCopy) {
                 const playerState = localGameState.players[playerId];
+
+                // SE FOR O MESTRE ESPECIALISTA, ABRE A ESCOLHA DE COR!
+                if (potionToCopy === "Mestre Especialista") {
+                    decisionModal.classList.add('hidden');
+                    triggerMestreEspecialistaEchoDecision(playerId);
+                    return;
+                }
+
                 if (playerState.copiedEffect) {
                     if (playerState.copiedEffect.name === "Infusão de Foco" || playerState.copiedEffect.name === "Caldeirão Expansivo") {
                         playerState.shelfLimit--;
@@ -432,6 +441,51 @@
                 }
                 playerState.copiedEffect = { name: potionToCopy, status: 'PENDING_ACTIVATION' };
                 logMessage(`${playerState.name} usou Eco Alquímico e vai copiar o efeito de "${potionToCopy}" no seu próximo turno!`);
+                decisionModal.classList.add('hidden');
+                updateFirestoreState(localGameState);
+            }
+
+            function triggerMestreEspecialistaEchoDecision(playerId) {
+                decisionTitleEl.textContent = "Eco Alquímico: Especialista";
+                let optionsHTML = `<p class="mb-4">Você está copiando "Mestre Especialista". Escolha UMA NOVA COR para ser a sua especialidade temporária neste turno!</p>`;
+                
+                const colors = {
+                    "vermelho": "bg-red-500 hover:bg-red-400 border-red-700",
+                    "verde": "bg-green-500 hover:bg-green-400 border-green-700",
+                    "azul": "bg-blue-500 hover:bg-blue-400 border-blue-700",
+                    "amarelo": "bg-yellow-500 hover:bg-yellow-400 border-yellow-700",
+                    "preto": "bg-slate-900 hover:bg-slate-800 border-black"
+                };
+
+                optionsHTML += `<div class="grid grid-cols-2 gap-4">`;
+                for (const color in colors) {
+                    optionsHTML += `<button class="btn text-white ${colors[color]}" data-color="${color}">${color.charAt(0).toUpperCase() + color.slice(1)}</button>`;
+                }
+                optionsHTML += `</div>`;
+                decisionOptionsEl.innerHTML = optionsHTML;
+
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const chosenColor = button.dataset.color;
+                        handleMestreEspecialistaEchoSelection(playerId, chosenColor);
+                    };
+                });
+                decisionModal.classList.remove('hidden');
+            }
+
+            function handleMestreEspecialistaEchoSelection(playerId, chosenColor) {
+                const playerState = localGameState.players[playerId];
+
+                if (playerState.copiedEffect) {
+                    if (playerState.copiedEffect.name === "Infusão de Foco" || playerState.copiedEffect.name === "Caldeirão Expansivo") {
+                        playerState.shelfLimit--;
+                    }
+                }
+
+                // Salva a cópia com a cor personalizada!
+                playerState.copiedEffect = { name: "Mestre Especialista", status: 'PENDING_ACTIVATION', color: chosenColor };
+                
+                logMessage(`${playerState.name} usou Eco Alquímico e escolheu a cor ${chosenColor.toUpperCase()} para sua especialidade temporária!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -564,6 +618,43 @@
                 const message = `${playerState.name} usou a Maldição do Caldeirão Trincado e escolheu a cor: ${chosenColor.toUpperCase()}!`;
                 logMessage(message);
                 showMessage(message); 
+                decisionModal.classList.add('hidden');
+                updateFirestoreState(localGameState);
+            }
+
+            function triggerMestreEspecialistaDecision(playerId) {
+                decisionTitleEl.textContent = "Mestre Especialista";
+                let optionsHTML = `<p class="mb-4">Escolha a cor da sua especialidade. Toda poção vendida que usar essa cor na receita dará +2 Moedas!</p>`;
+                
+                const colors = {
+                    "vermelho": "bg-red-500 hover:bg-red-400 border-red-700",
+                    "verde": "bg-green-500 hover:bg-green-400 border-green-700",
+                    "azul": "bg-blue-500 hover:bg-blue-400 border-blue-700",
+                    "amarelo": "bg-yellow-500 hover:bg-yellow-400 border-yellow-700",
+                    "preto": "bg-slate-900 hover:bg-slate-800 border-black"
+                };
+
+                optionsHTML += `<div class="grid grid-cols-2 gap-4">`;
+                for (const color in colors) {
+                    optionsHTML += `<button class="btn text-white ${colors[color]}" data-color="${color}">${color.charAt(0).toUpperCase() + color.slice(1)}</button>`;
+                }
+                optionsHTML += `</div>`;
+                decisionOptionsEl.innerHTML = optionsHTML;
+
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const chosenColor = button.dataset.color;
+                        handleMestreEspecialistaSelection(playerId, chosenColor);
+                    };
+                });
+                decisionModal.classList.remove('hidden');
+            }
+
+            function handleMestreEspecialistaSelection(playerId, chosenColor) {
+                const playerState = localGameState.players[playerId];
+                // Salva a cor escolhida diretamente na poção ativa
+                playerState.activePotions["Mestre Especialista"] = chosenColor; 
+                logMessage(`${playerState.name} tornou-se Mestre Especialista na cor ${chosenColor.toUpperCase()}!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -1131,11 +1222,11 @@
                 const client3 = generateClient('Nobre', [client1.wants, client2.wants]);
         
                 return {
-                    gameId: gameId, status: 'waiting', phase: 'SIMULTANEOUS_PHASE', // Fase global alterada
+                    gameId: gameId, status: 'waiting', phase: 'SIMULTANEOUS_PHASE', 
                     currentPlayer: null, roundStarter: startingPlayer, 
                     players: {
-                        player1: { uid: player1UID, name: player1Name, coins: 0, shelf: [], shelfLimit: 3, potionsReady: [], activePotions: {}, fervorBonusThisTurn: false, currentPull: [], personalPhase: 'PRODUCTION', explosionEvent: null, unguentoSavedColorThisTurn: null },
-                        player2: { uid: null, name: 'Aguardando...', coins: 0, shelf: [], shelfLimit: 3, potionsReady: [], activePotions: {}, fervorBonusThisTurn: false, currentPull: [], personalPhase: 'PRODUCTION', explosionEvent: null, unguentoSavedColorThisTurn: null }
+                        player1: { uid: player1UID, name: player1Name, coins: 0, shelf: [], shelfLimit: 4, potionsReady: [], activePotions: {}, fervorBonusThisTurn: false, currentPull: [], personalPhase: 'PRODUCTION', explosionEvent: null, unguentoSavedColorThisTurn: null },
+                        player2: { uid: null, name: 'Aguardando...', coins: 0, shelf: [], shelfLimit: 4, potionsReady: [], activePotions: {}, fervorBonusThisTurn: false, currentPull: [], personalPhase: 'PRODUCTION', explosionEvent: null, unguentoSavedColorThisTurn: null }
                     },
                     cauldron: generateCauldron(),
                     clients: [ client1, client2, client3 ],
@@ -1365,6 +1456,32 @@
                     finalPrice *= 2;
                     logMessage(`Bônus do Fervor do Ousado dobrou o preço para ${finalPrice} moedas!`);
                 }
+
+                // --- BÔNUS DO MESTRE ESPECIALISTA ---
+                const mestreColor = playerState.activePotions["Mestre Especialista"] || (playerState.copiedEffect?.name === "Mestre Especialista" ? playerState.copiedEffect.color : null);
+                
+                if (mestreColor) {
+                    const potionData = ARCANO_POTIONUM[potionName];
+                    let temACor = false;
+                    
+                    // Checa se algum ingrediente fixo da receita é dessa cor
+                    for (const ing of Object.keys(potionData.ingredientes)) {
+                        if (INGREDIENT_DATA[ing] && INGREDIENT_DATA[ing].cor === mestreColor) {
+                            temACor = true; break;
+                        }
+                    }
+                    // Checa se a receita pede essa cor como extra
+                    if (!temACor && potionData.corExtra && potionData.corExtra[mestreColor]) {
+                        temACor = true;
+                    }
+                    
+                    // Se a receita tem a cor, aplica o bônus!
+                    if (temACor) {
+                        finalPrice += 2;
+                        logMessage(`Mestre Especialista concedeu +2 moedas pela cor ${mestreColor}!`);
+                    }
+                }
+                // ------------------------------------
             
                 const opponentState = localGameState.players[getOpponentId()];
                 if (opponentState.activePotions["Parasita Mortífero"]) {
@@ -1789,7 +1906,7 @@
                 const playerState = localGameState.players[playerId];
                 const opponentId = getOpponentId(playerId);
                 const opponentState = localGameState.players[opponentId];
-                const permanentPotions = ["Infusão de Foco", "Amuleto do Colecionador", "Caldeirão Expansivo", "Resiliência do Farsante", "Estabilizador Cromático", "Pasta Prismática", "Fervor do Ousado"];
+                const permanentPotions = ["Infusão de Foco", "Amuleto do Colecionador", "Caldeirão Expansivo", "Resiliência do Farsante", "Estabilizador Cromático", "Pasta Prismática", "Fervor do Ousado", "Mestre Especialista"];
     
                 switch (potionName) {
                     case "Barreira de Bolhas": 
@@ -1811,6 +1928,9 @@
                         if (opponentState.shelf.length === 0) { logMessage(`Pó da Corrosão falhou, a prateleira de ${opponentState.name} já estava vazia.`); break; }
                         localGameState.pendingAction = { type: "Pó da Corrosão", target: opponentId }; logMessage(`${playerState.name} usou Pó da Corrosão! Aguardando ${opponentState.name} descartar um ingrediente.`); break;
                     case "Amuleto do Colecionador": playerState.activePotions["Amuleto do Colecionador"] = true; break;
+                    case "Mestre Especialista":
+                        triggerMestreEspecialistaDecision(playerId); 
+                        break;
                     case "Mão do Mago":
                         if (opponentState.activePotions["Barreira de Bolhas"]) { opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Mão do Mago"); break; }
                         if (opponentState.shelf.length === 0) { logMessage(`Mão do Mago falhou! A prateleira de ${opponentState.name} está vazia.`); break; }
