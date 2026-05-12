@@ -646,10 +646,12 @@
                 const playerState = localGameState.players[playerId];
                 const opponentId = getOpponentId(playerId);
                 const opponentState = localGameState.players[opponentId];
+                
                 opponentState.activePotions["Maldição do Caldeirão Trincado"] = { status: 'PENDING_ACTIVATION', color: chosenColor };
-                const message = `${playerState.name} usou a Maldição do Caldeirão Trincado e escolheu a cor: ${chosenColor.toUpperCase()}!`;
-                broadcastAction(☠️ ${playerState.name} lançou a Maldição do Caldeirão Trincado! Se o oponente puxar a cor ${chosenColor.toUpperCase()}, tudo explode!);
-                showMessage(message); 
+                
+                // Agora avisa os dois jogadores com o Toast flutuante sem travar a tela!
+                broadcastAction(`☠️ ${playerState.name} lançou a Maldição do Caldeirão Trincado! O caldeirão oponente explodirá se puxar a cor ${chosenColor.toUpperCase()}!`);
+                
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -1599,11 +1601,14 @@
                 const curseStatus = playerState.activePotions["Maldição do Caldeirão Trincado"];
                 const ingredientColor = INGREDIENT_DATA[pulledIngredient]?.cor;
             
+            
                 if (curseStatus && curseStatus.status === 'ACTIVE_THIS_TURN' && ingredientColor === curseStatus.color) {
-                    logMessage(`BOOM! A Maldição foi ativada pelo ingrediente ${pulledIngredient}!`);
+                    // Agora todo mundo vê o motivo da explosão!
+                    broadcastAction(`💥 BOOM! A Maldição foi ativada! ${playerState.name} puxou a cor proibida (${curseStatus.color.toUpperCase()})!`);
+                    
                     delete playerState.activePotions["Maldição do Caldeirão Trincado"];
                     setTimeout(() => triggerExplosionFlow(), 1000);
-                } 
+                }
                 else if (await checkExplosion(playerState.currentPull, playerState, pulledIngredient)) {
                     setTimeout(() => triggerExplosionFlow(), 1000);
                 } 
@@ -2822,12 +2827,6 @@
                         const oldPlayerState = oldState.players[localPlayerId];
                         const newPlayerState = localGameState.players[localPlayerId];
                         
-                        // Lógica antiga da maldição (mantida)
-                        const oldCurse = oldPlayerState.activePotions?.["Maldição do Caldeirão Trincado"];
-                        const newCurse = newPlayerState.activePotions?.["Maldição do Caldeirão Trincado"];
-                        if (newCurse && newCurse.status === 'ACTIVE_THIS_TURN' && oldCurse?.status !== 'ACTIVE_THIS_TURN') {
-                            showMessage(`Seu caldeirão foi amaldiçoado! Cuidado com ingredientes da cor ${newCurse.color.toUpperCase()}!`);
-                        }
 
                         // --- ETAPA 6: DETECTA A EXPLOSÃO DO OPONENTE ---
                         const opponentId = getOpponentId(localPlayerId);
