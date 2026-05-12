@@ -1301,13 +1301,12 @@
                 updateFirestoreState(localGameState).then(() => { showActionModal(); });
             }
             
-    async function handleCauldronClick() {
+            async function handleCauldronClick() {
                 if (isProcessingClick) return; 
                 isProcessingClick = true; 
             
                 const playerState = localGameState.players[localPlayerId];
                 
-                // Nova verificação: Garante que estamos na fase global simultânea e que o jogador ainda está puxando
                 if (localGameState.phase !== 'SIMULTANEOUS_PHASE' || playerState.personalPhase !== 'PRODUCTION') {
                     isProcessingClick = false; 
                     return;
@@ -1319,14 +1318,42 @@
                     return;
                 }
                 
-                const randomIndex = Math.floor(Math.random() * localGameState.cauldron.length);
-                const pulledIngredient = localGameState.cauldron.splice(randomIndex, 1)[0];
+                const gameDocRef = doc(db, gamesCollectionPath, gameId);
+                let pulledIngredient = null;
+                let newPullArray = [];
                 
-                // MUDANÇA AQUI: O ingrediente vai pro balcão INDIVIDUAL do jogador
-                playerState.currentPull.push(pulledIngredient);
+                // INÍCIO DA TRANSAÇÃO (Fila inteligente do Firebase para evitar cliques fantasmas)
+                try {
+                    await runTransaction(db, async (transaction) => {
+                        const gameDoc = await transaction.get(gameDocRef);
+                        if (!gameDoc.exists()) throw "Jogo finalizado ou não existe";
+                        
+                        const data = gameDoc.data();
+                        const serverCauldron = data.cauldron;
+                        if (serverCauldron.length === 0) throw "Caldeirão vazio no servidor";
+
+                        const randomIndex = Math.floor(Math.random() * serverCauldron.length);
+                        pulledIngredient = serverCauldron.splice(randomIndex, 1)[0];
+                        
+                        newPullArray = data.players[localPlayerId].currentPull || [];
+                        newPullArray.push(pulledIngredient);
+
+                        // Atualiza SÓ o caldeirão global e o seu balcão, sem mexer no que o oponente está fazendo
+                        transaction.update(gameDocRef, {
+                            cauldron: serverCauldron,
+                            [`players.${localPlayerId}.currentPull`]: newPullArray
+                        });
+                    });
+                } catch (error) {
+                    console.log("Erro ao puxar no caldeirão simultâneo:", error);
+                    isProcessingClick = false;
+                    return;
+                }
+                // FIM DA TRANSAÇÃO
+
+                // Atualiza a tela imediatamente para não ter delay visual
+                playerState.currentPull = newPullArray;
                 logMessage(`${playerState.name} puxou: ${pulledIngredient}`);
-                
-                await updateFirestoreState(localGameState);
                 
                 const curseStatus = playerState.activePotions["Maldição do Caldeirão Trincado"];
                 const ingredientColor = INGREDIENT_DATA[pulledIngredient]?.cor;
@@ -1676,24 +1703,6 @@
                 } 
                 else { showMessage("Você não tem os ingredientes necessários."); }
             };
-    
-            function handleIngredientClick(ingredientName, index) {
-                if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) return;
-                const playerState = localGameState.players[localPlayerId];
-                if (playerState.shelf.length < playerState.shelfLimit) {
-                    const ingredientToStore = localGameState.players[localPlayerId].currentPull.splice(index, 1)[0];
-                    playerState.shelf.push(ingredientToStore);
-                    logMessage(`${playerState.name} guardou ${ingredientToStore} na prateleira.`);
-                    updateFirestoreState(localGameState);
-                } else { showMessage("Sua prateleira está cheia!"); }
-            }
-            
-            function handleShelfIngredientClick(ingredientName, index) {
-                if (localGameState.phase !== `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) return;
-                const ingredientToReturn = localGameState.players[localPlayerId].shelf.splice(index, 1)[0];
-                localGameState.players[localPlayerId].currentPull.push(ingredientToReturn);
-                updateFirestoreState(localGameState);
-            }
             
             function executePotionEffect(potionName, playerId) {
                 const playerState = localGameState.players[playerId];
@@ -2006,7 +2015,30 @@
                 modal.classList.remove('hidden');
                 setTimeout(() => { modal.classList.add('hidden'); }, 2500); 
             }
+
+            function handleIngredientClick(ingredientName, index) {
+                const playerState = localGameState.players[localPlayerId];
+                // Nova verificação de fase
+                if (localGameState.phase !== 'SIMULTANEOUS_PHASE' || playerState.personalPhase !== 'POST_PRODUCTION') return;
+                
+                if (playerState.shelf.length < playerState.shelfLimit) {
+                    const ingredientToStore = playerState.currentPull.splice(index, 1)[0];
+                    playerState.shelf.push(ingredientToStore);
+                    logMessage(`${playerState.name} guardou ${ingredientToStore} na prateleira.`);
+                    updateFirestoreState(localGameState);
+                } else { showMessage("Sua prateleira está cheia!"); }
+            }
             
+            function handleShelfIngredientClick(ingredientName, index) {
+                const playerState = localGameState.players[localPlayerId];
+                // Nova verificação de fase
+                if (localGameState.phase !== 'SIMULTANEOUS_PHASE' || playerState.personalPhase !== 'POST_PRODUCTION') return;
+                
+                const ingredientToReturn = playerState.shelf.splice(index, 1)[0];
+                playerState.currentPull.push(ingredientToReturn);
+                updateFirestoreState(localGameState);
+            }
+
             function renderShelf(shelfEl, shelfItems, ownerId) {
                 shelfEl.innerHTML = '';
                 if(shelfItems.length === 0) {
@@ -2014,7 +2046,11 @@
                 }
                 shelfItems.forEach((ingredientName, index) => {
                     const img = createIngredientImage(ingredientName, `Prateleira de ${ownerId}`);
-                    if (localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}` && localPlayerId === ownerId) {
+                    
+                    const playerState = localGameState.players[localPlayerId];
+                    const isMyPostProduction = localGameState.phase === 'SIMULTANEOUS_PHASE' && playerState.personalPhase === 'POST_PRODUCTION';
+
+                    if (isMyPostProduction && localPlayerId === ownerId) {
                         img.classList.add('cursor-pointer', 'hover:border-yellow-400', 'hover:scale-105');
                         img.onclick = () => handleShelfIngredientClick(ingredientName, index);
                     }
@@ -2024,10 +2060,16 @@
             
             function renderCounter() {
                 counterAreaEl.innerHTML = '';
-                if (localGameState.players[localPlayerId].currentPull && localGameState.players[localPlayerId].currentPull.length > 0) {
-                    localGameState.players[localPlayerId].currentPull.forEach((ingredientName, index) => {
+                const playerState = localGameState.players[localPlayerId];
+                const currentPull = playerState.currentPull || []; // Lê do balcão individual
+
+                if (currentPull.length > 0) {
+                    currentPull.forEach((ingredientName, index) => {
                         const img = createIngredientImage(ingredientName, `Balcão`);
-                        if (localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`) {
+                        
+                        const isMyPostProduction = localGameState.phase === 'SIMULTANEOUS_PHASE' && playerState.personalPhase === 'POST_PRODUCTION';
+
+                        if (isMyPostProduction) {
                             img.classList.add('cursor-pointer', 'hover:border-yellow-300', 'hover:scale-105');
                             img.onclick = () => handleIngredientClick(ingredientName, index);
                         }
@@ -2037,6 +2079,7 @@
                     counterAreaEl.innerHTML = '<span class="text-gray-500 text-sm italic">Balcão Vazio</span>';
                 }
             }
+
     
             function renderReadyPotions() {
                 const p1ListEl = document.getElementById('player1-ready-potions-list');
