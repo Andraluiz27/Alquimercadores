@@ -954,99 +954,172 @@
                 const endIndex = startIndex + recipesPerPage;
                 const pagePotions = allPotionNames.slice(startIndex, endIndex);
 
-                const renderRecipeHTML = (potionName) => {
-                    if (!potionName) return '';
+            const renderRecipeHTML = (potionName) => {
+                if (!potionName) return '';
+            
+                const potion = ARCANO_POTIONUM[potionName];
+                let starsHTML = '';
+                if (localGameState.clients) {
+                    localGameState.clients.forEach(c => {
+                        if (c && !c.served && c.wants === potionName) {
+                            if (c.type === "Comum") starsHTML += '<span class="star-comum" title="Cliente Comum deseja!">⭐</span>';
+                            if (c.type === "Rico") starsHTML += '<span class="star-rico" title="Cliente Rico deseja!">⭐</span>';
+                            if (c.type === "Nobre") starsHTML += '<span class="star-nobre" title="Cliente Nobre deseja!">⭐</span>';
+                        }
+                    });
+                }
+            
+                // --- NOVA LÓGICA DE DETECÇÃO DE INGREDIENTES NO BALCÃO ---
+                let tempBalcao = [];
+                if (recipeBookMode === 'create') {
+                    const pState = localGameState.players[localPlayerId];
+                    tempBalcao = [...(pState.currentPull || [])];
+                }
+            
+                let ingredientsHTML = '<div class="flex flex-wrap gap-2 mt-2 mb-2">';
                 
-                    const potion = ARCANO_POTIONUM[potionName];
-                    let starsHTML = '';
-                    if (localGameState.clients) {
-                        localGameState.clients.forEach(c => {
-                            if (c && !c.served && c.wants === potionName) {
-                                if (c.type === "Comum") starsHTML += '<span class="star-comum" title="Cliente Comum deseja!">⭐</span>';
-                                if (c.type === "Rico") starsHTML += '<span class="star-rico" title="Cliente Rico deseja!">⭐</span>';
-                                if (c.type === "Nobre") starsHTML += '<span class="star-nobre" title="Cliente Nobre deseja!">⭐</span>';
+                // 1. Imagens dos Ingredientes Fixos
+                for (const [name, count] of Object.entries(potion.ingredientes)) {
+                    const imgData = INGREDIENT_DATA[name];
+                    let hasCount = 0;
+            
+                    if (recipeBookMode === 'create') {
+                        for(let i=0; i<count; i++){
+                            const idx = tempBalcao.indexOf(name);
+                            if(idx > -1) {
+                                hasCount++;
+                                tempBalcao.splice(idx, 1);
                             }
-                        });
+                        }
                     }
-                
-                    // --- NOVA LÓGICA VISUAL DOS INGREDIENTES ---
-                    let ingredientsHTML = '<div class="flex flex-wrap gap-2 mt-2 mb-2">';
+            
+                    // Define o visual baseado na quantidade (0/x, 1/x, etc)
+                    let filterClass = '';
+                    let borderClass = 'border-gray-600';
+                    let textBadge = `x${count}`;
+                    let badgeBg = 'bg-black';
+            
+                    if (recipeBookMode === 'create') {
+                        textBadge = `${hasCount}/${count}`;
+                        if (hasCount >= count) {
+                            borderClass = 'border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]';
+                            badgeBg = 'bg-green-700';
+                        } else if (hasCount > 0) {
+                            borderClass = 'border-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)]';
+                            badgeBg = 'bg-yellow-600';
+                        } else {
+                            filterClass = 'grayscale opacity-40';
+                            borderClass = 'border-red-500/50';
+                            badgeBg = 'bg-red-800';
+                        }
+                    }
+            
+                    ingredientsHTML += `
+                        <div class="relative flex items-center justify-center ${filterClass} transition-all duration-300" title="${name}">
+                            <img src="${imgData.img}" alt="${name}" class="w-8 h-8 rounded-full border-2 ${borderClass} object-cover">
+                            <span class="absolute -bottom-1 -right-1 ${badgeBg} text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-gray-500">${textBadge}</span>
+                        </div>
+                    `;
+                }
+            
+                // 2. Círculos coloridos para Ingredientes Extras (Coringas de Cor)
+                if (potion.corExtra) {
+                    const colorMap = {
+                        "vermelho": "bg-red-500",
+                        "verde": "bg-green-500",
+                        "azul": "bg-blue-500",
+                        "amarelo": "bg-yellow-400 text-black"
+                    };
                     
-                    // 1. Imagens dos Ingredientes Fixos
-                    for (const [name, count] of Object.entries(potion.ingredientes)) {
-                        const imgData = INGREDIENT_DATA[name];
+                    for (const [cor, count] of Object.entries(potion.corExtra)) {
+                        let hasCount = 0;
+                        if (recipeBookMode === 'create') {
+                            for(let i=0; i<count; i++){
+                                const idxCor = tempBalcao.findIndex(ing => INGREDIENT_DATA[ing] && INGREDIENT_DATA[ing].cor === cor);
+                                if(idxCor > -1) {
+                                    hasCount++;
+                                    tempBalcao.splice(idxCor, 1);
+                                }
+                            }
+                        }
+            
+                        let filterClass = '';
+                        let borderClass = 'border-2 border-gray-400';
+                        let textBadge = `x${count}`;
+                        let badgeBg = 'bg-black';
+                        
+                        if (recipeBookMode === 'create') {
+                            textBadge = `${hasCount}/${count}`;
+                            if (hasCount >= count) {
+                                borderClass = 'border-2 border-green-400 shadow-[0_0_8px_rgba(34,197,94,0.8)]'; 
+                                badgeBg = 'bg-green-700';
+                            } else if (hasCount > 0) {
+                                borderClass = 'border-2 border-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.8)]';
+                                badgeBg = 'bg-yellow-600';
+                            } else {
+                                filterClass = 'grayscale opacity-40'; 
+                                borderClass = 'border-2 border-red-500/50';
+                                badgeBg = 'bg-red-800';
+                            }
+                        }
+            
+                        const colorClass = colorMap[cor] || "bg-gray-500 text-white";
+                        const isBlackText = colorMap[cor] && colorMap[cor].includes('text-black');
+                        const questionMark = isBlackText ? '?' : '<span class="text-white">?</span>';
+            
                         ingredientsHTML += `
-                            <div class="relative flex items-center justify-center" title="${name}">
-                                <img src="${imgData.img}" alt="${name}" class="w-8 h-8 rounded-full border border-gray-600 shadow-sm object-cover">
-                                <span class="absolute -bottom-1 -right-1 bg-black text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-gray-500">x${count}</span>
+                            <div class="relative flex items-center justify-center ${filterClass} transition-all duration-300" title="Qualquer ingrediente da cor ${cor.toUpperCase()}">
+                                <div class="w-8 h-8 rounded-full ${borderClass} shadow-sm flex items-center justify-center text-xs font-bold ${colorClass}">${questionMark}</div>
+                                <span class="absolute -bottom-1 -right-1 ${badgeBg} text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-gray-500">${textBadge}</span>
                             </div>
                         `;
                     }
-
-                    // 2. Círculos coloridos para Ingredientes Extras (Coringas de Cor)
-                    if (potion.corExtra) {
-                        const colorMap = {
-                            "vermelho": "bg-red-500 border-red-700 text-white",
-                            "verde": "bg-green-500 border-green-700 text-white",
-                            "azul": "bg-blue-500 border-blue-700 text-white",
-                            "amarelo": "bg-yellow-400 border-yellow-600 text-black"
-                        };
-                        
-                        for (const [cor, count] of Object.entries(potion.corExtra)) {
-                            const colorClass = colorMap[cor] || "bg-gray-500";
-                            ingredientsHTML += `
-                                <div class="relative flex items-center justify-center" title="Qualquer ingrediente da cor ${cor.toUpperCase()}">
-                                    <div class="w-8 h-8 rounded-full border-2 shadow-sm flex items-center justify-center text-xs font-bold ${colorClass}">?</div>
-                                    <span class="absolute -bottom-1 -right-1 bg-black text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-gray-500">x${count}</span>
-                                </div>
-                            `;
-                        }
-                    }
-                    ingredientsHTML += '</div>';
-                    // --- FIM DA NOVA LÓGICA ---
-
-                    const isCreatable = recipeBookMode === 'create' && creatablePotions.includes(potionName);
-                    
-                    let creatableMarker = '';
-                    let className = 'receita-item p-3 border-b border-[#5c3d20]/20 text-[#3d2a1a] transition-all';
-                    let dataAttribute = ''; 
+                }
+                ingredientsHTML += '</div>';
+                // --- FIM DA NOVA LÓGICA ---
+            
+                const isCreatable = recipeBookMode === 'create' && creatablePotions.includes(potionName);
                 
-                    if (isCreatable) {
-                        className += ' bg-yellow-100 rounded-lg cursor-pointer hover:bg-yellow-200 border-2 border-yellow-500 shadow-md';
-                        creatableMarker = '<span class="block mt-2 text-center bg-green-600 text-white font-bold py-1.5 rounded shadow active:scale-95">Fabricar! (Clique)</span>';
-                        dataAttribute = `data-potion-name="${potionName}"`;
-                    }
-                
-                    return `
-                        <div class="${className}" ${dataAttribute}>
-                            <h4 class="text-base font-bold text-[#5c3d20] flex items-center justify-between">
-                                <span>${potion.nome} <span class="text-xs text-gray-500">[${potion.tipo}]</span></span>
-                                <span>${starsHTML}</span>
-                            </h4>
-                            ${ingredientsHTML}
-                            <p class="text-xs mt-1 italic text-gray-700"><strong>Efeito:</strong> ${potion.descricao}</p>
-                            ${creatableMarker}
-                        </div>
-                    `;
-                };
-                
-                for(let i=0; i<pagePotions.length; i++) {
-                    if (i < 2) { paginaEsquerdaEl.innerHTML += renderRecipeHTML(pagePotions[i]); } 
-                    else { paginaDireitaEl.innerHTML += renderRecipeHTML(pagePotions[i]); }
+                let creatableMarker = '';
+                let className = 'receita-item p-3 border-b border-[#5c3d20]/20 text-[#3d2a1a] transition-all';
+                let dataAttribute = ''; 
+            
+                if (isCreatable) {
+                    className += ' bg-yellow-100 rounded-lg cursor-pointer hover:bg-yellow-200 border-2 border-yellow-500 shadow-md';
+                    creatableMarker = '<span class="block mt-2 text-center bg-green-600 text-white font-bold py-1.5 rounded shadow active:scale-95">Fabricar! (Clique)</span>';
+                    dataAttribute = `data-potion-name="${potionName}"`;
                 }
             
-                if (recipeBookMode === 'create') {
-                    const creatableElements = recipeModal.querySelectorAll('[data-potion-name]');
-                    creatableElements.forEach(element => {
-                        element.addEventListener('click', () => {
-                            const potionNameToCreate = element.dataset.potionName;
-                            if (potionNameToCreate) { window.handleCreatePotion(potionNameToCreate); }
-                        });
+                return `
+                    <div class="${className}" ${dataAttribute}>
+                        <h4 class="text-base font-bold text-[#5c3d20] flex items-center justify-between">
+                            <span>${potion.nome} <span class="text-xs text-gray-500">[${potion.tipo}]</span></span>
+                            <span>${starsHTML}</span>
+                        </h4>
+                        ${ingredientsHTML}
+                        <p class="text-xs mt-1 italic text-gray-700"><strong>Efeito:</strong> ${potion.descricao}</p>
+                        ${creatableMarker}
+                    </div>
+                `;
+            };
+            
+            for(let i=0; i<pagePotions.length; i++) {
+                if (i < 2) { paginaEsquerdaEl.innerHTML += renderRecipeHTML(pagePotions[i]); } 
+                else { paginaDireitaEl.innerHTML += renderRecipeHTML(pagePotions[i]); }
+            }
+            
+            if (recipeBookMode === 'create') {
+                const creatableElements = recipeModal.querySelectorAll('[data-potion-name]');
+                creatableElements.forEach(element => {
+                    element.addEventListener('click', () => {
+                        const potionNameToCreate = element.dataset.potionName;
+                        if (potionNameToCreate) { window.handleCreatePotion(potionNameToCreate); }
                     });
-                }
-
-                document.getElementById('prev-page-btn').disabled = recipeCurrentPage === 0;
-                document.getElementById('next-page-btn').disabled = endIndex >= allPotionNames.length;
+                });
+            }
+            
+            document.getElementById('prev-page-btn').disabled = recipeCurrentPage === 0;
+            document.getElementById('next-page-btn').disabled = endIndex >= allPotionNames.length;
             }
     
             function createInitialGameState(player1Name, player1UID) {
