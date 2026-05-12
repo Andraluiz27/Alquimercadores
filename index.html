@@ -1348,6 +1348,7 @@
                 } catch (error) {
                     console.log("Erro no caldeirão simultâneo:", error);
                     isProcessingClick = false;
+                    updateUI(); // <--- ESSA LINHA É A GARANTIA DE QUE O BOTÃO VOLTA SE A INTERNET FALHAR!
                     return;
                 }
 
