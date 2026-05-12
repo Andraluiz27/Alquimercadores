@@ -238,6 +238,9 @@
             function broadcastAction(message) {
                 logMessage(message);
                 localGameState.globalAnnouncement = { text: message, time: Date.now() };
+                
+                // EXIBE IMEDIATAMENTE NA TELA DE QUEM FEZ A AÇÃO:
+                showToast(message, 6000, 'info');
             }
 
             function triggerStopPullingDiscardDecision(playerId) {
@@ -1297,13 +1300,17 @@
                 localGameState.phase = `ACTION_${playerId.toUpperCase()}`;
                 localGameState.currentPlayer = playerId;
                 
-                const isMe = localPlayerId === playerId;
                 const playerName = localGameState.players[playerId].name;
-                const msgTexto = isMe ? "🪄 SUA VEZ DE AGIR!\nVenda poções aos clientes ou use efeitos mágicos." : `⏳ FASE DE AÇÃO!\nAguarde, é a vez de ${playerName}...`;
+                
+                // MENSAGEM ÚNICA PARA OS DOIS JOGADORES
+                const msgTexto = `🪄 FASE DE AÇÃO!\nÉ a vez de ${playerName} usar ou vender poções!`;
             
                 // Dispara o alerta global de turno
                 localGameState.turnAnnouncement = { msg: msgTexto, time: Date.now() };
                 logMessage(`${playerName}, sua vez de usar e vender poções!`);
+                
+                // EXIBE IMEDIATAMENTE NA TELA DE QUEM MUDOU A FASE:
+                showToast(msgTexto, 6000, 'turn');
                 
                 updateFirestoreState(localGameState);
             }
@@ -2859,17 +2866,18 @@
                         }
 
                         // --- ETAPA DE LEITURA DOS AVISOS GLOBAIS (TOASTS) ---
-                        const oldTurnMsg = oldState.turnAnnouncement;
-                        const newTurnMsg = localGameState.turnAnnouncement;
-                        if (newTurnMsg && newTurnMsg.time !== oldTurnMsg?.time) {
-                            showToast(newTurnMsg.msg, 6000, 'turn');
-                        }
-                        
-                        const oldGlobal = oldState.globalAnnouncement;
-                        const newGlobal = localGameState.globalAnnouncement;
-                        if (newGlobal && newGlobal.time !== oldGlobal?.time) {
-                            showToast(newGlobal.text, 6000, 'info');
-                        }
+                        // --- ETAPA DE LEITURA DOS AVISOS GLOBAIS (TOASTS) ---
+                    const oldTurnMsg = oldState.turnAnnouncement;
+                    const newTurnMsg = localGameState.turnAnnouncement;
+                    if (newTurnMsg && newTurnMsg.time !== oldTurnMsg?.time) {
+                        showToast(newTurnMsg.msg, 6000, 'turn');
+                    }
+                    
+                    const oldGlobal = oldState.globalAnnouncement;
+                    const newGlobal = localGameState.globalAnnouncement;
+                    if (newGlobal && newGlobal.time !== oldGlobal?.time) {
+                        showToast(newGlobal.text, 6000, 'info');
+                    }
                                                 // ------------------------------------------------
                     }
                     window.localGameState = localGameState;
