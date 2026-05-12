@@ -1704,14 +1704,9 @@
                     updateFirestoreState(localGameState);
                 }
                 else if (missingCount === 1 && hasPrismatic) {
-                    if (lastMissing.type === 'fixo') { 
-                        triggerPrismaticSubstitutionDecision(potionName, lastMissing); 
-                    } 
-                    else {
-                        showMessage(`Você precisa de mais um ingrediente da cor ${lastMissing.value.toUpperCase()}. Escolha um substituto no balcão.`);
-                        triggerPrismaticSubstitutionDecision(potionName, lastMissing);
-                    }
-                } 
+                    // Chama a tela de decisão direto. Ela mesma já avisa o que está faltando!
+                    triggerPrismaticSubstitutionDecision(potionName, lastMissing); 
+                }
                 else { showMessage("Você não tem os ingredientes necessários."); }
             };
             
