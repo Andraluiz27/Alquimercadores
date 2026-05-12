@@ -944,8 +944,9 @@
 
                 let creatablePotions = [];
                 if (recipeBookMode === 'create') {
-                    const pState = localGameState.players[localPlayerId];
-                    const meuBalcao = pState.currentPull || [];
+                    const playerState = localGameState.players[localPlayerId];
+                    // Garante que estamos lendo o balcão individual correto
+                    const meuBalcao = playerState.currentPull || []; 
                     creatablePotions = findCreatablePotions(meuBalcao, localPlayerId);
                 }
 
@@ -1687,15 +1688,11 @@
                 }
             
                 if (missingCount === 0) {
-                    // 1. Atualiza o balcão individual do jogador com o que sobrou (a variável pull)
+                    // ATUALIZAÇÃO CRÍTICA: Salva no balcão INDIVIDUAL do jogador
                     localGameState.players[localPlayerId].currentPull = pull; 
                     
-                    // 2. Adiciona a poção ao cinto
                     playerState.potionsReady.push(potionName);
-                    
-                    // 3. Devolve os ingredientes usados para o caldeirão comum
                     localGameState.cauldron.push(...usedIngredients);
-                    
                     logMessage(`${playerState.name} criou: ${potionName}!`);
                     recipeModal.classList.add('hidden');
                     updateFirestoreState(localGameState);
