@@ -1254,9 +1254,15 @@
             }
 
             function handleMesaBookClick() {
-                const myPostProdPhase = localGameState.phase === `POST_PRODUCTION_${localPlayerId.toUpperCase()}`;
-                if (myPostProdPhase) { handleBookClick('create'); } 
-                else { handleBookClick('view'); }
+                const playerState = localGameState.players[localPlayerId];
+                // Agora ele verifica se a fase global é simultânea E se a SUA fase é o Pós-Produção
+                const myPostProdPhase = localGameState.phase === 'SIMULTANEOUS_PHASE' && playerState.personalPhase === 'POST_PRODUCTION';
+                
+                if (myPostProdPhase) { 
+                    handleBookClick('create'); 
+                } else { 
+                    handleBookClick('view'); 
+                }
             }
 
             function executeSale(clientIndex, useSalNegro = false) {
