@@ -944,7 +944,9 @@
 
                 let creatablePotions = [];
                 if (recipeBookMode === 'create') {
-                    creatablePotions = findCreatablePotions(localGameState.players[localPlayerId].currentPull || [], localPlayerId);
+                    const pState = localGameState.players[localPlayerId];
+                    const meuBalcao = pState.currentPull || [];
+                    creatablePotions = findCreatablePotions(meuBalcao, localPlayerId);
                 }
 
                 const startIndex = recipeCurrentPage * recipesPerPage;
@@ -1685,13 +1687,19 @@
                 }
             
                 if (missingCount === 0) {
+                    // 1. Atualiza o balcão individual do jogador com o que sobrou (a variável pull)
                     localGameState.players[localPlayerId].currentPull = pull; 
+                    
+                    // 2. Adiciona a poção ao cinto
                     playerState.potionsReady.push(potionName);
+                    
+                    // 3. Devolve os ingredientes usados para o caldeirão comum
                     localGameState.cauldron.push(...usedIngredients);
+                    
                     logMessage(`${playerState.name} criou: ${potionName}!`);
                     recipeModal.classList.add('hidden');
                     updateFirestoreState(localGameState);
-                } 
+                }
                 else if (missingCount === 1 && hasPrismatic) {
                     if (lastMissing.type === 'fixo') { 
                         triggerPrismaticSubstitutionDecision(potionName, lastMissing); 
