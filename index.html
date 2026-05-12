@@ -1304,11 +1304,13 @@
             async function handleCauldronClick() {
                 if (isProcessingClick) return; 
                 isProcessingClick = true; 
-            
+                updateUI();
+                
                 const playerState = localGameState.players[localPlayerId];
                 
                 if (localGameState.phase !== 'SIMULTANEOUS_PHASE' || playerState.personalPhase !== 'PRODUCTION') {
-                    isProcessingClick = false; 
+                    isProcessingClick = false;
+                    updateUI();
                     return;
                 }
                 
@@ -1949,8 +1951,9 @@
                 if(cauldronBtn.disabled) cauldronBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 else cauldronBtn.classList.remove('opacity-50', 'cursor-not-allowed');
 
-                stopPullingBtn.classList.toggle('hidden', !myProdPhase || isGamePaused);
-                finishProductionBtn.classList.toggle('hidden', !myPostProdPhase || isGamePaused);
+                // Esconde os botões instantaneamente durante o processamento do clique
+                stopPullingBtn.classList.toggle('hidden', !myProdPhase || isGamePaused || isProcessingClick);
+                finishProductionBtn.classList.toggle('hidden', !myPostProdPhase || isGamePaused || isProcessingClick);
                 finishActionBtn.classList.toggle('hidden', !myActionPhase || isGamePaused);
                 
                 // --- ATUALIZAÇÃO DO BOTÃO LIVRO DE RECEITAS NO HEADER ---
