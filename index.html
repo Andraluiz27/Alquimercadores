@@ -1463,24 +1463,7 @@
                 });
                 decisionModal.classList.remove('hidden');
             }
-
-            function triggerExplosionFlow() {
-                const playerState = localGameState.players[localPlayerId];
-                if (localGameState.phase !== 'SIMULTANEOUS_PHASE' || playerState.personalPhase !== 'PRODUCTION') {
-                    isProcessingClick = false;
-                    updateUI(); 
-                    return;
-                }
-                if (playerState.activePotions["Resiliência do Farsante"] || playerState.copiedEffect?.name === "Resiliência do Farsante") {
-                    logMessage(`BOOM! Mas a Resiliência do Farsante salvou um ingrediente de ${playerState.name}!`);
-                    handleExplosionWithResilience();
-                } else {
-                    logMessage(`BOOM! O caldeirão de ${playerState.name} explodiu!`);
-                    handleExplosion();
-                }
-            }
             
-    
             function proceedToPostProduction() {
                 const playerState = localGameState.players[localPlayerId];
                 playerState.fervorBonusThisTurn = false; 
