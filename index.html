@@ -969,14 +969,14 @@
                     });
                 }
             
-                // --- NOVA LÓGICA DE DETECÇÃO DE INGREDIENTES NO BALCÃO ---
+                // --- LÓGICA DE DETECÇÃO DE INGREDIENTES NO BALCÃO ---
                 let tempBalcao = [];
                 if (recipeBookMode === 'create') {
                     const pState = localGameState.players[localPlayerId];
                     tempBalcao = [...(pState.currentPull || [])];
                 }
             
-                let ingredientsHTML = '<div class="flex flex-wrap gap-2 mt-2 mb-2">';
+                let ingredientsHTML = '<div class="flex flex-wrap gap-3 mt-2 mb-2">';
                 
                 // 1. Imagens dos Ingredientes Fixos
                 for (const [name, count] of Object.entries(potion.ingredientes)) {
@@ -993,7 +993,6 @@
                         }
                     }
             
-                    // Define o visual baseado na quantidade (0/x, 1/x, etc)
                     let filterClass = '';
                     let borderClass = 'border-gray-600';
                     let textBadge = `x${count}`;
@@ -1008,16 +1007,18 @@
                             borderClass = 'border-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)]';
                             badgeBg = 'bg-yellow-600';
                         } else {
-                            filterClass = 'grayscale opacity-40';
+                            // AQUI ESTÁ A MUDANÇA DA COR E TRANSPARÊNCIA:
+                            filterClass = 'opacity-60 saturate-50'; 
                             borderClass = 'border-red-500/50';
                             badgeBg = 'bg-red-800';
                         }
                     }
             
+                    // TAMANHO AUMENTADO PARA w-10 h-10
                     ingredientsHTML += `
                         <div class="relative flex items-center justify-center ${filterClass} transition-all duration-300" title="${name}">
-                            <img src="${imgData.img}" alt="${name}" class="w-8 h-8 rounded-full border-2 ${borderClass} object-cover">
-                            <span class="absolute -bottom-1 -right-1 ${badgeBg} text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-gray-500">${textBadge}</span>
+                            <img src="${imgData.img}" alt="${name}" class="w-10 h-10 rounded-full border-2 ${borderClass} object-cover">
+                            <span class="absolute -bottom-1 -right-1 ${badgeBg} text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-gray-500">${textBadge}</span>
                         </div>
                     `;
                 }
@@ -1057,7 +1058,8 @@
                                 borderClass = 'border-2 border-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.8)]';
                                 badgeBg = 'bg-yellow-600';
                             } else {
-                                filterClass = 'grayscale opacity-40'; 
+                                // AQUI ESTÁ A MUDANÇA DA COR E TRANSPARÊNCIA:
+                                filterClass = 'opacity-60 saturate-50'; 
                                 borderClass = 'border-2 border-red-500/50';
                                 badgeBg = 'bg-red-800';
                             }
@@ -1067,16 +1069,16 @@
                         const isBlackText = colorMap[cor] && colorMap[cor].includes('text-black');
                         const questionMark = isBlackText ? '?' : '<span class="text-white">?</span>';
             
+                        // TAMANHO AUMENTADO PARA w-10 h-10
                         ingredientsHTML += `
                             <div class="relative flex items-center justify-center ${filterClass} transition-all duration-300" title="Qualquer ingrediente da cor ${cor.toUpperCase()}">
-                                <div class="w-8 h-8 rounded-full ${borderClass} shadow-sm flex items-center justify-center text-xs font-bold ${colorClass}">${questionMark}</div>
-                                <span class="absolute -bottom-1 -right-1 ${badgeBg} text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-gray-500">${textBadge}</span>
+                                <div class="w-10 h-10 rounded-full ${borderClass} shadow-sm flex items-center justify-center text-sm font-bold ${colorClass}">${questionMark}</div>
+                                <span class="absolute -bottom-1 -right-1 ${badgeBg} text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-gray-500">${textBadge}</span>
                             </div>
                         `;
                     }
                 }
                 ingredientsHTML += '</div>';
-                // --- FIM DA NOVA LÓGICA ---
             
                 const isCreatable = recipeBookMode === 'create' && creatablePotions.includes(potionName);
                 
