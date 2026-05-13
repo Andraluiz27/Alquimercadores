@@ -208,7 +208,7 @@
             }
 
             // --- SISTEMA DE NOTIFICAÇÕES (TOASTS E BROADCAST) ---
-            function showToast(message, duration = 6000, type = 'info') {
+            function showToast(message, duration = 5000, type = 'info') {
                 let toastContainer = document.getElementById('toast-container');
                 if (!toastContainer) {
                     toastContainer = document.createElement('div');
@@ -216,6 +216,9 @@
                     toastContainer.className = 'fixed top-16 left-1/2 transform -translate-x-1/2 z-[200] flex flex-col gap-2 w-full max-w-lg px-4 pointer-events-none';
                     document.body.appendChild(toastContainer);
                 }
+                
+                // NOVO: Limpa qualquer Toast antigo que já esteja na tela!
+                toastContainer.innerHTML = '';
                 
                 const toast = document.createElement('div');
                 const borderColor = type === 'turn' ? 'border-purple-500' : 'border-yellow-500';
@@ -875,16 +878,12 @@
             }
 
             function triggerSalNegroDecision(clientIndex) {
-                const client = localGameState.clients[clientIndex];
-                const potion = ARCANO_POTIONUM[client.wants];
-                const basePrice = client.price;
-                decisionTitleEl.textContent = "Usar Sal Negro?";
+                decisionTitleEl.textContent = "Bônus Alquímico";
                 decisionOptionsEl.innerHTML = `
-                    <p class="mb-4">Você tem Sal Negro na prateleira! Deseja usá-lo para vender a poção <strong>${potion.nome}</strong> por um bônus de +3 moedas?</p>
-                    <p class="mb-4 text-lg">Venda Padrão: ${basePrice} 💰<br>Venda com Sal Negro: <span class="text-green-400 font-bold">${basePrice + 3} 💰</span></p>
+                    <p class="mb-6 text-lg text-gray-200">Gostaria de usar um Sal Negro da sua prateleira para ganhar um bônus de 3 moedas nessa venda?</p>
                     <div class="grid grid-cols-2 gap-4">
-                        <button class="btn btn-green w-full" data-action="yes">Sim, usar (+3)</button>
-                        <button class="btn btn-red w-full" data-action="no">Não, vender normal</button>
+                        <button class="btn btn-green w-full py-3 text-lg font-bold tracking-widest" data-action="yes">Sim</button>
+                        <button class="btn btn-red w-full py-3 text-lg font-bold tracking-widest" data-action="no">Não</button>
                     </div>
                 `;
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
@@ -1029,6 +1028,30 @@
                     };
                 });
                 decisionModal.classList.remove('hidden');
+            }
+
+            function showReceiptModal(receipt) {
+                const decisionTitleEl = document.getElementById('decision-title');
+                const decisionOptionsEl = document.getElementById('decision-options');
+                const decisionModal = document.getElementById('decision-modal');
+        
+                decisionTitleEl.textContent = receipt.title;
+        
+                let optionsHTML = `
+                    <p class="mb-2 text-center text-gray-300 font-bold uppercase tracking-widest border-b border-yellow-600/30 pb-2">
+                        Item: <span class="text-white">${receipt.potion}</span><br>
+                        <span class="text-xs text-gray-500 normal-case font-normal">Vendedor: ${receipt.seller}</span>
+                    </p>
+                    ${receipt.html}
+                    <button id="close-receipt-btn" class="btn btn-green w-full py-3 text-lg font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(34,197,94,0.4)]">OK</button>
+                `;
+        
+                decisionOptionsEl.innerHTML = optionsHTML;
+                decisionModal.classList.remove('hidden');
+        
+                document.getElementById('close-receipt-btn').onclick = () => {
+                    decisionModal.classList.add('hidden');
+                };
             }
 
             function triggerDescarteOportunoDecision(playerId) {
@@ -1539,31 +1562,35 @@
                 const potionIndex = playerState.potionsReady.indexOf(potionName);
                 if (potionIndex > -1) { playerState.potionsReady.splice(potionIndex, 1); }
             
-                let finalPrice = basePrice;
-                let receiptParts = [`Base + Cliente: ${basePrice}💰`];
+                let totalGained = basePrice;
+                let receiptLines = [];
             
+                // Formatação do Fervor do Ousado
                 if (playerState.fervorBonusThisTurn) {
-                    finalPrice += basePrice;
-                    receiptParts.push(`Fervor: +${basePrice}💰`);
+                    totalGained += basePrice;
+                    receiptLines.push(`<div class="flex justify-between w-full border-b border-gray-600 border-dotted py-2"><span>Preço da Poção</span><span>${basePrice} 💰 <span class="text-yellow-400 text-xs font-bold ml-1">(x2 Fervor)</span></span></div>`);
+                } else {
+                    receiptLines.push(`<div class="flex justify-between w-full border-b border-gray-600 border-dotted py-2"><span>Preço da Poção</span><span>${basePrice} 💰</span></div>`);
                 }
             
+                // Bônus de Sal Negro
                 if (useSalNegro) {
                     const salNegroIndex = playerState.shelf.indexOf("Sal Negro");
                     if (salNegroIndex > -1) {
                         playerState.shelf.splice(salNegroIndex, 1); 
-                        finalPrice += 3;
-                        receiptParts.push(`Sal Negro: +3💰`);
+                        totalGained += 3;
+                        receiptLines.push(`<div class="flex justify-between w-full border-b border-gray-600 border-dotted py-2"><span class="text-gray-300">Bônus de Sal Negro</span><span class="text-green-400 font-bold">+3 💰</span></div>`);
                     }
                 }
                 
-                // Bônus do Amuleto (Checa lista de cópias)
+                // Bônus do Amuleto
                 const hasAmuletoCopied = playerState.copiedEffects && playerState.copiedEffects.some(e => e.name === "Amuleto do Colecionador" && e.status === 'ACTIVE_THIS_TURN');
                 if (playerState.activePotions["Amuleto do Colecionador"] || hasAmuletoCopied) {
-                    finalPrice += 1;
-                    receiptParts.push(`Amuleto: +1💰`);
+                    totalGained += 1;
+                    receiptLines.push(`<div class="flex justify-between w-full border-b border-gray-600 border-dotted py-2"><span class="text-gray-300">Amuleto do Colecionador</span><span class="text-green-400 font-bold">+1 💰</span></div>`);
                 }
                 
-                // Bônus do Mestre Especialista (Checa lista de cópias)
+                // Bônus do Mestre Especialista
                 const mestreCopied = playerState.copiedEffects?.find(e => e.name === "Mestre Especialista" && e.status === 'ACTIVE_THIS_TURN');
                 const mestreColor = playerState.activePotions["Mestre Especialista"] || (mestreCopied ? mestreCopied.color : null);
                 if (mestreColor) {
@@ -1575,27 +1602,48 @@
                     if (!temACor && potionData.corExtra && potionData.corExtra[mestreColor]) { temACor = true; }
                     
                     if (temACor) {
-                        finalPrice += 2;
-                        receiptParts.push(`Mestre Esp. (${mestreColor}): +2💰`);
+                        totalGained += 2;
+                        receiptLines.push(`<div class="flex justify-between w-full border-b border-gray-600 border-dotted py-2"><span class="text-gray-300">Mestre Especialista (${mestreColor.toUpperCase()})</span><span class="text-green-400 font-bold">+2 💰</span></div>`);
                     }
                 }
             
+                // Cálculo de Roubo
                 let rouboMsg = "";
+                let finalPlayerGains = totalGained;
                 const opponentState = localGameState.players[getOpponentId()];
                 if (opponentState.activePotions["Parasita Mortífero"]) {
-                    const halfPrice = Math.ceil(finalPrice / 2);
-                    playerState.coins += (finalPrice - halfPrice);
+                    const halfPrice = Math.ceil(totalGained / 2);
+                    finalPlayerGains = totalGained - halfPrice;
                     opponentState.coins += halfPrice;
-                    rouboMsg = `\n(⚠️ ${opponentState.name} roubou ${halfPrice}💰 da venda com o Parasita Mortífero!)`;
+                    rouboMsg = `<div class="flex justify-between w-full border-b border-red-500 border-dotted py-2 mt-1"><span class="text-red-400">Roubo (${opponentState.name})</span><span class="text-red-500 font-bold">-${halfPrice} 💰</span></div>`;
                     opponentState.activePotions["Parasita Mortífero"] = false; 
-                } else {
-                    playerState.coins += finalPrice;
                 }
             
-                const receiptString = receiptParts.join(" | ");
-                const finalMsg = `🛒 ${playerState.name} vendeu ${potionName} por ${finalPrice}💰!\n[${receiptString}]${rouboMsg}`;
+                playerState.coins += finalPlayerGains;
+            
+                // Constrói o visual do Recibo!
+                const receiptHTML = `
+                    <div class="text-[13px] md:text-sm font-mono text-left bg-[#1e293b] p-4 rounded border border-gray-500 shadow-inner mb-4 mt-2">
+                        ${receiptLines.join('')}
+                        ${rouboMsg}
+                        <div class="flex justify-between w-full pt-3 mt-2 border-t-2 border-yellow-500 font-bold text-lg md:text-xl items-center">
+                            <span class="text-yellow-500 uppercase tracking-widest">Total:</span>
+                            <span class="text-yellow-300 bg-yellow-900/40 px-3 py-1 rounded shadow">${finalPlayerGains} 💰</span>
+                        </div>
+                    </div>
+                `;
                 
-                broadcastAction(finalMsg);
+                // Envia o recibo para o banco de dados para os DOIS jogadores verem
+                localGameState.receiptEvent = {
+                    title: `Recibo de Venda`,
+                    potion: potionName,
+                    seller: playerState.name,
+                    html: receiptHTML,
+                    time: Date.now()
+                };
+            
+                // Apenas log no chat, sem Toast!
+                logMessage(`🛒 ${playerState.name} vendeu ${potionName} por ${finalPlayerGains}💰!`);
             
                 localGameState.clients[clientIndex].served = true;
                 localGameState.clientsServed++;
@@ -3025,6 +3073,12 @@
                         }
                        
                         // --- ETAPA DE LEITURA DOS AVISOS GLOBAIS (TOASTS) ---
+                    const oldReceipt = oldState.receiptEvent;
+                    const newReceipt = localGameState.receiptEvent;
+                    if (newReceipt && newReceipt.time !== oldReceipt?.time) {
+                        showReceiptModal(newReceipt);
+                    }
+
                     const oldTurnMsg = oldState.turnAnnouncement;
                     const newTurnMsg = localGameState.turnAnnouncement;
                     if (newTurnMsg && newTurnMsg.time !== oldTurnMsg?.time) {
