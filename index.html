@@ -244,6 +244,71 @@
                 showToast(message, 6000, 'info');
             }
 
+            function completeTurnEnd(playerId) {
+                const roundStarter = localGameState.roundStarter;
+                const otherPlayer = roundStarter === 'player1' ? 'player2' : 'player1';
+            
+                // Se 6 clientes foram servidos, verifica se o jogo acaba ou troca o turno
+                if (localGameState.clientsServed >= 6) {
+                    if (playerId === otherPlayer) {
+                        endGame();
+                        return;
+                    } else {
+                        startActionPhase(otherPlayer);
+                        return;
+                    }
+                }
+            
+                // Lógica normal de troca de turno
+                if (playerId === roundStarter) {
+                    startActionPhase(otherPlayer);
+                } else {
+                    startNewRound();
+                }
+            }
+
+            function triggerShelfCleanupDecision(playerId, count) {
+                const playerState = localGameState.players[playerId];
+                decisionTitleEl.textContent = "Ajuste de Prateleira";
+                
+                let optionsHTML = `<p class="mb-4 text-red-400 font-bold italic">Sua prateleira encolheu! Escolha ${count} ingrediente(s) para descartar no caldeirão:</p>`;
+                
+                playerState.shelf.forEach((ing, index) => {
+                    optionsHTML += `
+                        <button class="btn bg-slate-800 hover:bg-red-900 text-white w-full mb-2 flex justify-between items-center px-4" data-index="${index}">
+                            <span>${ing}</span>
+                            <span class="text-xs opacity-50">${INGREDIENT_DATA[ing]?.cor.toUpperCase() || ''}</span>
+                        </button>
+                    `;
+                });
+            
+                decisionOptionsEl.innerHTML = optionsHTML;
+                
+                decisionOptionsEl.querySelectorAll('button').forEach(button => {
+                    button.onclick = () => {
+                        const index = parseInt(button.dataset.index, 10);
+                        handleShelfCleanupSelection(playerId, index, count);
+                    };
+                });
+                
+                decisionModal.classList.remove('hidden');
+            }
+            
+            function handleShelfCleanupSelection(playerId, index, remaining) {
+                const playerState = localGameState.players[playerId];
+                const removedItem = playerState.shelf.splice(index, 1)[0];
+                localGameState.cauldron.push(removedItem);
+                
+                broadcastAction(`⚠️ ${playerState.name} escolheu descartar ${removedItem} após o efeito de expansão passar.`);
+            
+                if (remaining > 1) {
+                    triggerShelfCleanupDecision(playerId, remaining - 1);
+                } else {
+                    decisionModal.classList.add('hidden');
+                    completeTurnEnd(playerId); // <--- Aqui ela chama a Etapa 1
+                }
+            }
+
             function triggerStopPullingDiscardDecision(playerId) {
                 const playerState = localGameState.players[playerId];
                 decisionTitleEl.textContent = "Descarte Oportuno";
@@ -1384,51 +1449,28 @@
                 const playerId = localGameState.currentPlayer;
                 const playerState = localGameState.players[playerId]; 
             
-                // NOVA LÓGICA: Dissipar cópias e derrubar ingredientes
+                // 1. Dissipar efeitos e reduzir o limite
                 if (playerState.copiedEffects && playerState.copiedEffects.length > 0) {
-                    let excessDiscarded = 0;
-                    
-                    // Filtra os efeitos, removendo os que estavam ativos e mantendo os pendentes
                     playerState.copiedEffects = playerState.copiedEffects.filter(effect => {
                         if (effect.status === "ACTIVE_THIS_TURN") {
                             logMessage(`O Eco Alquímico de ${effect.name} se dissipou.`);
                             if (effect.name === "Infusão de Foco" || effect.name === "Caldeirão Expansivo") {
                                 playerState.shelfLimit--;
                             }
-                            return false; // Remove da lista
+                            return false; 
                         }
-                        return true; // Mantém na lista
+                        return true; 
                     });
-            
-                    // CHECAGEM DE PRATELEIRA CHEIA (O excesso cai no caldeirão!)
-                    while (playerState.shelf.length > playerState.shelfLimit) {
-                        const droppedItem = playerState.shelf.pop(); // Tira o último
-                        localGameState.cauldron.push(droppedItem);
-                        excessDiscarded++;
-                    }
-                    
-                    if (excessDiscarded > 0) {
-                        broadcastAction(`⚠️ O efeito passou! A prateleira de ${playerState.name} encolheu e ${excessDiscarded} ingrediente(s) caíram de volta no caldeirão!`);
-                    }
                 }
             
-                const roundStarter = localGameState.roundStarter;
-                const otherPlayer = roundStarter === 'player1' ? 'player2' : 'player1';
-            
-                if (localGameState.clientsServed >= 6) {
-                    if (playerId === otherPlayer) {
-                        endGame();
-                        return;
-                    } else {
-                        startActionPhase(otherPlayer);
-                        return;
-                    }
-                }
-            
-                if (playerId === roundStarter) {
-                    startActionPhase(otherPlayer);
+                // 2. NOVA LOGICA: Checagem de excesso (O momento da escolha)
+                // Se a prateleira for maior que o limite, chamamos o modal de limpeza.
+                if (playerState.shelf.length > playerState.shelfLimit) {
+                    const overflow = playerState.shelf.length - playerState.shelfLimit;
+                    triggerShelfCleanupDecision(playerId, overflow);
                 } else {
-                    startNewRound();
+                    // Se estiver tudo certo, finaliza o turno normalmente usando a nova completeTurnEnd
+                    completeTurnEnd(playerId);
                 }
             }
             
