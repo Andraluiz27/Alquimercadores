@@ -180,6 +180,7 @@
             const actionPotionDescEl = document.getElementById('action-potion-desc');
             const sellBtn = document.getElementById('sell-btn');
             const useBtn = document.getElementById('use-btn');
+            const discardBtn = document.getElementById('discard-btn');
             const messageModal = document.getElementById('message-modal');
             const messageTextEl = document.getElementById('message-text');
             const closeMessageModalBtn = document.getElementById('close-message-modal-btn');
@@ -1804,10 +1805,10 @@
             // MANIPULADORES DE MODAIS E AÇÕES
             // ==========================================================
             function showActionModal(potionIndex = 0) {
-                 if (localGameState.currentPlayer !== localPlayerId || localGameState.phase !== `ACTION_${localPlayerId.toUpperCase()}`) {
-                     actionModal.classList.add('hidden');
-                     return;
-                 }
+                if (localGameState.currentPlayer !== localPlayerId || localGameState.phase !== `ACTION_${localPlayerId.toUpperCase()}`) {
+                    actionModal.classList.add('hidden');
+                    return;
+                }
                 const playerState = localGameState.players[localPlayerId];
                 if (!playerState.potionsReady || playerState.potionsReady.length === 0) {
                     actionModal.classList.add('hidden');
@@ -1817,7 +1818,7 @@
                 // Pega a poção específica que você clicou no cinto
                 const potionName = playerState.potionsReady[potionIndex];
                 if (!potionName) return;
-
+            
                 const potionData = ARCANO_POTIONUM[potionName];
             
                 actionPotionNameEl.textContent = potionData.nome;
@@ -1825,6 +1826,10 @@
             
                 sellBtn.onclick = () => handleSellPotion(potionName);
                 useBtn.onclick = () => handleUsePotion(potionName);
+                
+                // NOVO: Ação do botão de descartar
+                discardBtn.onclick = () => handleDiscardPotion(potionName); 
+                
                 actionModal.classList.remove('hidden');
             }
             
@@ -1853,7 +1858,26 @@
                 if (potionsWithOwnUpdate.includes(potionName)) return; 
                 updateFirestoreState(localGameState);
             }
+
+            function handleDiscardPotion(potionName) {
+                const playerState = localGameState.players[localPlayerId];
+                const potionIndex = playerState.potionsReady.indexOf(potionName);
+                
+                if (potionIndex > -1) { 
+                    playerState.potionsReady.splice(potionIndex, 1); 
+                } else { 
+                    actionModal.classList.add('hidden'); 
+                    showActionModal(); 
+                    return; 
+                }
             
+                // Dispara o aviso para todos usando o sistema de broadcast que ajustamos
+                broadcastAction(`🗑️ ${playerState.name} descartou a poção "${potionName}" do cinto!`);
+                
+                actionModal.classList.add('hidden');
+                updateFirestoreState(localGameState);
+            }
+                
             function handleBookClick(mode = 'view') {
                 recipeBookMode = mode;
                 recipeCurrentPage = 0;
@@ -3306,9 +3330,12 @@
                 <h3 id="action-potion-name" class="text-xl md:text-2xl font-bold mb-3 mt-2 text-[#5c3d20]">...</h3>
                 <p id="action-potion-desc" class="text-sm font-sans italic border-y border-[#5c3d20]/20 py-3 mb-6 min-h-[4rem] flex items-center justify-center">...</p>
                 <div class="flex flex-col gap-3 font-sans">
-                    <button id="sell-btn" class="btn btn-green w-full py-3">Vender no Mercado</button>
-                    <button id="use-btn" class="btn btn-blue w-full py-3">Beber / Lançar Efeito</button>
-                    <button onclick="document.getElementById('action-modal').classList.add('hidden')" class="btn btn-gray w-full mt-2">Guardar por enquanto</button>
+                    <button id="sell-btn" class="btn btn-green w-full py-3">Vender</button>
+                    <button id="use-btn" class="btn btn-blue w-full py-3">Beber</button>
+                    
+                    <button id="discard-btn" class="btn bg-red-800 border-red-950 hover:bg-red-700 text-red-300 w-full py-2 mt-2">Descartar</button>
+                    
+                    <button onclick="document.getElementById('action-modal').classList.add('hidden')" class="btn btn-gray w-full">Guardar por enquanto</button>
                 </div>
             </div>
         </div>
