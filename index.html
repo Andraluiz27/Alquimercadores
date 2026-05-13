@@ -208,7 +208,7 @@
             }
 
             // --- SISTEMA DE NOTIFICAÇÕES (TOASTS E BROADCAST) ---
-            function showToast(message, duration = 5000, type = 'info') {
+            function showToast(message, duration = 4000, type = 'info') {
                 let toastContainer = document.getElementById('toast-container');
                 if (!toastContainer) {
                     toastContainer = document.createElement('div');
@@ -244,7 +244,7 @@
                 localGameState.globalAnnouncement = { text: message, time: Date.now() };
                 
                 // EXIBE IMEDIATAMENTE NA TELA DE QUEM FEZ A AÇÃO:
-                showToast(message, 6000, 'info');
+                showToast(message, 4000, 'info');
             }
 
             function completeTurnEnd(playerId) {
@@ -626,7 +626,7 @@
                 }
 
                 opponentState.disabledEffect = { name: potionToDisable, originalValue: originalValue, status: 'PENDING_REACTIVATION' };
-                broadcastAction(`⚙️ ${playerState.name} jogou Ferrugem Alquímica e desativou a melhoria "${potionToDisable}" de ${opponentState.name} por um turno!`);
+                broadcastAction(`${playerState.name} jogou Ferrugem Alquímica e desativou a melhoria "${potionToDisable}" de ${opponentState.name} por um turno!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -737,7 +737,7 @@
                 const playerState = localGameState.players[playerId];
                 // Salva a cor escolhida diretamente na poção ativa
                 playerState.activePotions["Mestre Especialista"] = chosenColor; 
-                broadcastAction(`🎓 ${playerState.name} tornou-se Mestre Especialista! Suas vendas com a cor ${chosenColor.toUpperCase()} valem +2 Moedas!`);
+                broadcastAction(`${playerState.name} tornou-se Especialista! Suas vendas com a cor ${chosenColor.toUpperCase()} valem +2 Moedas!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -754,7 +754,7 @@
                 }
                 const stolenIngredient = opponentState.shelf.splice(ingredientIndex, 1)[0];
                 playerState.shelf.push(stolenIngredient);
-                broadcastAction(`🤚 ${playerState.name} usou Mão do Mago e roubou furtivamente ${stolenIngredient} de ${opponentState.name}!`);
+                broadcastAction(`${playerState.name} usou Mão do Mago e roubou furtivamente ${stolenIngredient} de ${opponentState.name}!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -869,7 +869,7 @@
                 if (ingredientIndex > -1) {
                     const takenIngredient = cauldron.splice(ingredientIndex, 1)[0];
                     playerState.shelf.push(takenIngredient);
-                    broadcastAction(`👁️ ${playerState.name} usou Soro da Clarividência, espiou o fundo do caldeirão e roubou a peça: ${takenIngredient}!`);
+                    broadcastAction(`${playerState.name} usou Soro da Clarividência, espiou o fundo do caldeirão e roubou a peça: ${takenIngredient}!`);
                 } else {
                     logMessage(`Tentativa de pegar ${ingredientName} falhou, ingrediente não encontrado no caldeirão.`);
                 }
@@ -942,7 +942,7 @@
                 const playerName = localGameState.players[playerId].name;
                 
                 // Dispara a mensagem global com as crases certinhas
-                broadcastAction(`🖋️ ${playerName} usou Contrato de Exclusividade e impediu o oponente de vender para o cliente que busca "${client.wants}"!`);
+                broadcastAction(`${playerName} usou Contrato de Exclusividade e o oponente não pode mais vender para o cliente que busca "${client.wants}"!`);
                 
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
@@ -991,7 +991,7 @@
                 localGameState.clients[clientIndex] = generateClient(originalClientType, currentMarketPotions);
                 const newPotion = localGameState.clients[clientIndex].wants;
 
-                broadcastAction(`📜 ${localGameState.players[playerId].name} usou o Elixir do Mercador, expulsou um cliente e revelou um novo contrato!`);
+                broadcastAction(`${localGameState.players[playerId].name} usou o Elixir do Mercador, expulsou um cliente e revelou um novo contrato!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -1054,18 +1054,29 @@
                 };
             }
 
-            function triggerDescarteOportunoDecision(playerId) {
+            function triggerDescarteOportunoDecision(playerId, discardedCount = 0) {
                 const playerState = localGameState.players[playerId];
                 decisionTitleEl.textContent = "Descarte Oportuno";
                 
+                // Função auxiliar para fechar e avisar (Toast)
+                const finishDiscard = () => {
+                    decisionModal.classList.add('hidden');
+                    if (discardedCount > 0) {
+                        broadcastAction(`♻️ ${playerState.name} ativou o Descarte Oportuno e reciclou ${discardedCount} ingrediente(s) por ${discardedCount} 💰!`);
+                    } else {
+                        // Se não fez nada, devolve a poção ao cinto
+                        playerState.potionsReady.unshift("Descarte Oportuno");
+                    }
+                    updateFirestoreState(localGameState);
+                };
+
                 // Se a prateleira esvaziar durante o processo, fecha o modal automaticamente
                 if (playerState.shelf.length === 0) {
-                    decisionModal.classList.add('hidden');
-                    updateFirestoreState(localGameState)
+                    finishDiscard();
                     return;
                 }
             
-                let optionsHTML = `<p class="mb-4 text-center">Clique nos ingredientes da <b>PRATELEIRA</b> para descartar e ganhar 1 💰 por cada.</p>`;
+                let optionsHTML = `<p class="mb-4 text-center">Clica nos ingredientes da <b>PRATELEIRA</b> para descartar e ganhar 1 💰 por cada.</p>`;
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2 max-h-64 overflow-y-auto">`;
                 
                 playerState.shelf.forEach((ingredientName, index) => {
@@ -1080,11 +1091,15 @@
                 
                 ingredientsGridHTML += `</div>`;
                 optionsHTML += ingredientsGridHTML;
-                optionsHTML += `<button class="btn btn-green w-full mt-6 py-3 font-bold uppercase tracking-wider" id="finish-discard-btn">Finalizar e Sair</button>`;
+                
+                // Muda o botão dependendo se o jogador já descartou algo ou não
+                let btnText = discardedCount > 0 ? `Concluir (+${discardedCount} 💰)` : `Cancelar e Voltar`;
+                let btnClass = discardedCount > 0 ? `btn-green` : `btn-red`;
+                optionsHTML += `<button class="btn ${btnClass} w-full mt-6 py-3 font-bold uppercase tracking-wider" id="finish-discard-btn">${btnText}</button>`;
                 
                 decisionOptionsEl.innerHTML = optionsHTML;
             
-                // Lógica dos cliques
+                // Lógica dos cliques nos ingredientes
                 decisionOptionsEl.querySelectorAll('button[data-index]').forEach(button => {
                     button.onclick = () => {
                         const idx = parseInt(button.dataset.index);
@@ -1098,18 +1113,16 @@
                         // 3. Dá a moeda
                         playerState.coins += 1;
                         
+                        // Log silencioso só no chat
                         logMessage(`${playerState.name} descartou ${discardedItem} e ganhou 1 Moeda.`);
                         
-                        // 4. Atualiza o modal para mostrar a prateleira atualizada
-                        triggerDescarteOportunoDecision(playerId);
+                        // 4. Atualiza o modal para mostrar a prateleira atualizada com o contador novo
+                        triggerDescarteOportunoDecision(playerId, discardedCount + 1);
                     };
                 });
             
-                // Botão de finalizar
-                document.getElementById('finish-discard-btn').onclick = () => {
-                    decisionModal.classList.add('hidden');
-                    updateFirestoreState(localGameState); 
-                };
+                // Botão de finalizar/cancelar
+                document.getElementById('finish-discard-btn').onclick = finishDiscard;
             
                 decisionModal.classList.remove('hidden');
             }
@@ -1579,7 +1592,7 @@
                     if (salNegroIndex > -1) {
                         playerState.shelf.splice(salNegroIndex, 1); 
                         totalGained += 3;
-                        receiptLines.push(`<div class="flex justify-between w-full border-b border-gray-600 border-dotted py-2"><span class="text-gray-300">Bônus de Sal Negro</span><span class="text-green-400 font-bold">+3 💰</span></div>`);
+                        receiptLines.push(`<div class="flex justify-between w-full border-b border-gray-600 border-dotted py-2"><span class="text-gray-300">Bônus de Sal Negro</span><span class="text-green-400 font-bold">+3</span></div>`);
                     }
                 }
                 
@@ -1587,7 +1600,7 @@
                 const hasAmuletoCopied = playerState.copiedEffects && playerState.copiedEffects.some(e => e.name === "Amuleto do Colecionador" && e.status === 'ACTIVE_THIS_TURN');
                 if (playerState.activePotions["Amuleto do Colecionador"] || hasAmuletoCopied) {
                     totalGained += 1;
-                    receiptLines.push(`<div class="flex justify-between w-full border-b border-gray-600 border-dotted py-2"><span class="text-gray-300">Amuleto do Colecionador</span><span class="text-green-400 font-bold">+1 💰</span></div>`);
+                    receiptLines.push(`<div class="flex justify-between w-full border-b border-gray-600 border-dotted py-2"><span class="text-gray-300">Amuleto do Colecionador</span><span class="text-green-400 font-bold">+1</span></div>`);
                 }
                 
                 // Bônus do Mestre Especialista
@@ -1603,7 +1616,7 @@
                     
                     if (temACor) {
                         totalGained += 2;
-                        receiptLines.push(`<div class="flex justify-between w-full border-b border-gray-600 border-dotted py-2"><span class="text-gray-300">Mestre Especialista (${mestreColor.toUpperCase()})</span><span class="text-green-400 font-bold">+2 💰</span></div>`);
+                        receiptLines.push(`<div class="flex justify-between w-full border-b border-gray-600 border-dotted py-2"><span class="text-gray-300">Mestre Especialista (${mestreColor.toUpperCase()})</span><span class="text-green-400 font-bold">+2</span></div>`);
                     }
                 }
             
@@ -1713,7 +1726,7 @@
             
                 if (curseStatus && curseStatus.status === 'ACTIVE_THIS_TURN' && ingredientColor === curseStatus.color) {
                     // Agora todo mundo vê o motivo da explosão!
-                    broadcastAction(`💥 BOOM! A Maldição foi ativada! ${playerState.name} puxou a cor proibida (${curseStatus.color.toUpperCase()})!`);
+                    broadcastAction(`BOOM! A Maldição foi ativada! ${playerState.name} puxou a cor proibida (${curseStatus.color.toUpperCase()})!`);
                     
                     delete playerState.activePotions["Maldição do Caldeirão Trincado"];
                     setTimeout(() => triggerExplosionFlow(), 1000);
@@ -2129,25 +2142,30 @@
                     case "Barreira de Bolhas": 
                         playerState.activePotions["Barreira de Bolhas"] = true; 
                         playerState.barrierEvent = Date.now(); // <--- O SINAL AQUI
-                        broadcastAction(`🛡️ ${playerState.name} usou Barreira de Bolhas e ficará imune ao próximo ataque!`); 
+                        broadcastAction(`${playerState.name} usou Barreira de Bolhas e ficará imune ao próximo ataque!`); 
                         break;
-                    case "Unguento de Musgo": 
-                        playerState.activePotions["Unguento de Musgo"] = true; break;
+                   case "Unguento de Musgo": 
+                        playerState.activePotions["Unguento de Musgo"] = true; 
+                        broadcastAction(`${playerState.name} aplicou o Unguento de Musgo e ignorará a primeira explosão de cor na próxima coleta!`);
+                        break;
                     case "Pasta Prismática": 
-                        playerState.activePotions["Pasta Prismática"] = true; broadcastAction(`🌈 ${playerState.name} usou Pasta Prismática e agora pode substituir ingredientes nas receitas!`); break;
+                        playerState.activePotions["Pasta Prismática"] = true; broadcastAction(`${playerState.name} usou Pasta Prismática e agora pode substituir 1 ingrediente nas receitas!`); break;
                     case "Infusão de Foco":
-                        if (playerState.shelfLimit < 6) { playerState.shelfLimit++; playerState.activePotions["Infusão de Foco"] = (playerState.activePotions["Infusão de Foco"] || 0) + 1; broadcastAction(`🧠 ${playerState.name} usou Infusão de Foco e expandiu sua prateleira para ${playerState.shelfLimit} espaços!`); } 
+                        if (playerState.shelfLimit < 6) { playerState.shelfLimit++; playerState.activePotions["Infusão de Foco"] = (playerState.activePotions["Infusão de Foco"] || 0) + 1; broadcastAction(`${playerState.name} usou Infusão de Foco e expandiu sua prateleira para 1 espaços!`); } 
                         else { showMessage("Sua prateleira já atingiu a capacidade máxima (6 espaços)!"); }
                         break;
-                    case "Tônico Dourado": playerState.coins += 2; broadcastAction(`🪙 ${playerState.name} bebeu o Tônico Dourado e ganhou 2 Moedas instantaneamente!`); break;
+                    case "Tônico Dourado": playerState.coins += 2; broadcastAction(`${playerState.name} bebeu o Tônico Dourado e ganhou 2 Moedas instantaneamente!`); break;
                     case "Elixir do Mercador": triggerElixirDecision(playerId); break;
                     case "Pó da Corrosão":
                         if (opponentState.activePotions["Barreira de Bolhas"]) {
                             opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Pó da Corrosão"); break;
                         }
                         if (opponentState.shelf.length === 0) { logMessage(`Pó da Corrosão falhou, a prateleira de ${opponentState.name} já estava vazia.`); break; }
-                        localGameState.pendingAction = { type: "Pó da Corrosão", target: opponentId }; broadcastAction(`🧪 ${playerState.name} usou Pó da Corrosão! Aguardando o oponente destruir um ingrediente.`); break;
-                    case "Amuleto do Colecionador": playerState.activePotions["Amuleto do Colecionador"] = true; break;
+                        localGameState.pendingAction = { type: "Pó da Corrosão", target: opponentId }; broadcastAction(`${playerState.name} usou Pó da Corrosão! Aguardando o oponente destruir um ingrediente.`); break;
+                    case "Amuleto do Colecionador": 
+                        playerState.activePotions["Amuleto do Colecionador"] = true; 
+                        broadcastAction(`${playerState.name} ativou o Amuleto do Colecionador e ganhará +1 Moeda em todas as vendas!`);
+                        break;
                     case "Mestre Especialista":
                         triggerMestreEspecialistaDecision(playerId); 
                         break;
@@ -2163,7 +2181,7 @@
                             break; 
                         }
                         playerState.activePotions["Parasita Mortífero"] = true; 
-                        broadcastAction(`🦠 ${playerState.name} usou Parasita Mortífero! Ele roubará metade dos lucros da sua próxima venda.`);
+                        broadcastAction(`${playerState.name} usou Parasita Mortífero! Ele roubará metade dos lucros da sua próxima venda.`);
                         break;
                     case "Eco Alquímico": { 
                         // Agora consome a Barreira de Bolhas corretamente se o oponente estiver protegido
@@ -2222,7 +2240,7 @@
                             }
                     
                             // 3. Dispara a mensagem global correta
-                            broadcastAction(`🔮 ${playerState.name} usou Caldeirão Expansivo: Prateleira aumentada para ${playerState.shelfLimit} espaços${pulledMsg}`);
+                            broadcastAction(`${playerState.name} usou Caldeirão Expansivo: Prateleira aumentada para 1 espaço${pulledMsg}`);
                             
                         } else { 
                             showMessage("Sua prateleira já atingiu a capacidade máxima (6 espaços)!"); 
@@ -2230,12 +2248,18 @@
                             playerState.potionsReady.unshift("Caldeirão Expansivo");
                         }
                         break;
-                    case "Resiliência do Farsante": playerState.activePotions["Resiliência do Farsante"] = true; break;
-                    case "Estabilizador Cromático": playerState.activePotions["Estabilizador Cromático"] = true; break;
-                    case "Pedra Filosofal": playerState.coins += 7; broadcastAction(`💎 ${playerState.name} concluiu a Pedra Filosofal e ganhou 7 Moedas!`); break;
+                    case "Resiliência do Farsante": 
+                        playerState.activePotions["Resiliência do Farsante"] = true; 
+                        broadcastAction(`${playerState.name} ativou a Resiliência do Farsante e poderá salvar um ingrediente se o caldeirão explodir!`);
+                        break;
+                    case "Estabilizador Cromático": 
+                        playerState.activePotions["Estabilizador Cromático"] = true; 
+                        broadcastAction(`${playerState.name} ativou o Estabilizador Cromático e seu caldeirão agora suporta até 3 ingredientes da mesma cor!`);
+                        break;
+                    case "Pedra Filosofal": playerState.coins += 7; broadcastAction(`${playerState.name} concluiu a Pedra Filosofal e ganhou 7 Moedas!`); break;
                     case "Poção da Usurpação":
                         if (opponentState.activePotions["Barreira de Bolhas"]) { opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Poção da Usurpação"); break; }
-                        const coinsToSteal = Math.min(opponentState.coins, 5); opponentState.coins -= coinsToSteal; playerState.coins += coinsToSteal; broadcastAction(`🦹 ${playerState.name} usou Poção da Usurpação e roubou ${coinsToSteal} moedas de ${opponentState.name}!`);
+                        const coinsToSteal = Math.min(opponentState.coins, 5); opponentState.coins -= coinsToSteal; playerState.coins += coinsToSteal; broadcastAction(`${playerState.name} usou Poção da Usurpação e roubou ${coinsToSteal} moedas de ${opponentState.name}!`);
                     case "Solvente Universal":
                         if (opponentState.activePotions["Barreira de Bolhas"]) { 
                             opponentState.activePotions["Barreira de Bolhas"] = false; 
@@ -2246,15 +2270,18 @@
                         if (opponentState.shelf.length > 0) { 
                             localGameState.cauldron.push(...opponentState.shelf); 
                             opponentState.shelf = []; 
-                            broadcastAction(`🌪️ ${playerState.name} usou Solvente Universal e varreu TODOS os ingredientes da prateleira de ${opponentState.name}!`);
+                            broadcastAction(`${playerState.name} usou Solvente Universal e varreu TODOS os ingredientes da prateleira de ${opponentState.name}!`);
                         } else {
-                            broadcastAction(`🌪️ ${playerState.name} tentou usar Solvente Universal, mas a prateleira de ${opponentState.name} já estava vazia!`);
+                            broadcastAction(`${playerState.name} tentou usar Solvente Universal, mas a prateleira de ${opponentState.name} já estava vazia!`);
                         }
                         break;
                     case "Maldição do Caldeirão Trincado":
                         if (opponentState.activePotions["Barreira de Bolhas"]) { opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Maldição do Caldeirão Trincado"); break; }
                         triggerCurseColorDecision(playerId); break;
-                    case "Fervor do Ousado": playerState.activePotions["Fervor do Ousado"] = true; break;
+                    case "Fervor do Ousado": 
+                        playerState.activePotions["Fervor do Ousado"] = true; 
+                        broadcastAction(`${playerState.name} ativou o Fervor do Ousado! Suas vendas dobrarão de valor se puxar 5 ou mais ingredientes!`);
+                        break;
                     case "Soro da Clarividência": triggerClairvoyanceDecision(playerId); break;
                     case "Ingrediente Contaminado":
                         if (opponentState.activePotions["Barreira de Bolhas"]) { 
@@ -2273,19 +2300,19 @@
                             opponentState.contaminatedEvent = { time: Date.now(), lost: moedasPerdidas };
                             
                             // Trocamos logMessage por broadcastAction para exibir o Toast de alerta!
-                            broadcastAction(`☣️ ${playerState.name} usou Ingrediente Contaminado! ${opponentState.name} perdeu ${moedasPerdidas} moedas.`);
+                            broadcastAction(`${playerState.name} usou Ingrediente Contaminado! ${opponentState.name} perdeu ${moedasPerdidas} moedas.`);
                         } else {
-                            broadcastAction(`☣️ ${playerState.name} usou Ingrediente Contaminado, mas a prateleira de ${opponentState.name} estava vazia.`);
+                            broadcastAction(`${playerState.name} usou Ingrediente Contaminado, mas a prateleira de ${opponentState.name} estava vazia.`);
                         }
                         break;
                     case "Descarte Oportuno":
                         if (playerState.shelf.length === 0) {
-                            showMessage("Sua prateleira está vazia! Não há nada para descartar.");
-                            // Devolve a poção para o cinto para não gastar à toa
+                            showMessage("A tua prateleira está vazia! Não há nada para descartar.");
                             playerState.potionsReady.unshift("Descarte Oportuno"); 
                         } else {
-                            // Abre a interface de escolha
-                            triggerDescarteOportunoDecision(localPlayerId);
+                            // Não soltamos o Toast aqui! Deixamos a função abrir o modal e decidir.
+                            // Passamos um "0" inicial para começar a contagem de descartes
+                            triggerDescarteOportunoDecision(localPlayerId, 0);
                         }
                         break;
                 }
@@ -3086,13 +3113,13 @@
                     const oldTurnMsg = oldState.turnAnnouncement;
                     const newTurnMsg = localGameState.turnAnnouncement;
                     if (newTurnMsg && newTurnMsg.time !== oldTurnMsg?.time) {
-                        showToast(newTurnMsg.msg, 6000, 'turn');
+                        showToast(newTurnMsg.msg, 4000, 'turn');
                     }
                     
                     const oldGlobal = oldState.globalAnnouncement;
                     const newGlobal = localGameState.globalAnnouncement;
                     if (newGlobal && newGlobal.time !== oldGlobal?.time) {
-                        showToast(newGlobal.text, 6000, 'info');
+                        showToast(newGlobal.text, 4000, 'info');
                     }
                                                 // ------------------------------------------------
                     }
