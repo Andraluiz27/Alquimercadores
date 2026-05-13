@@ -2560,9 +2560,16 @@
                                 const li = document.createElement('li');
                                 li.className = 'flex items-center gap-2 p-2 bg-slate-900 rounded border border-slate-700';
                                 let displayText = potion.nome;
+                                
                                 if ((potionName === "Infusão de Foco" || potionName === "Caldeirão Expansivo") && typeof activePotions[potionName] === 'number') {
                                     const count = activePotions[potionName]; displayText += ` (${count}x)`;
                                 }
+                                
+                                // NOVA LÓGICA: Exibe a cor do Mestre Especialista original!
+                                if (potionName === "Mestre Especialista" && typeof activePotions[potionName] === 'string') {
+                                    displayText += ` ${activePotions[potionName].toUpperCase()}`;
+                                }
+
                                 li.innerHTML = `
                                     <img src="imagens/Poção.png" class="w-8 h-8 object-contain">
                                     <span class="potion-tooltip relative text-xs text-gray-300 flex-1">
@@ -2592,7 +2599,7 @@
                                 let displayText = `${label} ${potion.nome}`;
             
                                 if (copiedEffect.name === "Mestre Especialista" && copiedEffect.color) {
-                                    displayText += ` [${copiedEffect.color.toUpperCase()}]`;
+                                    displayText += ` ${copiedEffect.color.toUpperCase()}`;
                                 }
                                 li.innerHTML = `
                                     <img src="imagens/Poção.png" class="w-8 h-8 grayscale object-contain opacity-80">
