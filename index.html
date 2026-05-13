@@ -1859,7 +1859,7 @@
                 // NOVA REGRA: Limite máximo de 3 poções guardadas
                 if (localGameState.players[localPlayerId].potionsReady.length > 3) {
                     showMessage("Seu cinto está muito pesado! Você só pode passar o turno com no máximo 3 poções guardadas. Use ou venda o excesso.");
-                    showActionModal(0);
+                    // Removemos o showActionModal(0) daqui!
                     return;
                 }
                 
@@ -3016,15 +3016,7 @@
                         if (newBarrier && newBarrier !== oldBarrier) {
                             showMessage(`Atenção! ${localGameState.players[opponentId].name} usou Barreira de Bolhas e está protegido!`);
                         }
-                        // Se você foi alvo do Ingrediente Contaminado:
-                        const oldContaminated = oldPlayerState?.contaminatedEvent;
-                        const newContaminated = newPlayerState?.contaminatedEvent;
-                        
-                        if (newContaminated && newContaminated.time !== oldContaminated?.time) {
-                            showMessage(`⚠️ O oponente usou Ingrediente Contaminado! Você tinha itens na prateleira e perdeu ${newContaminated.lost} moedas!`);
-                        }
-
-                        // --- ETAPA DE LEITURA DOS AVISOS GLOBAIS (TOASTS) ---
+                       
                         // --- ETAPA DE LEITURA DOS AVISOS GLOBAIS (TOASTS) ---
                     const oldTurnMsg = oldState.turnAnnouncement;
                     const newTurnMsg = localGameState.turnAnnouncement;
