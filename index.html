@@ -1940,15 +1940,18 @@
                 executePotionEffect(potionName, localPlayerId);
                 actionModal.classList.add('hidden');
 
+                // AQUI ESTAVA O ERRO! "Ingrediente Contaminado" foi removido desta lista.
                 const potionsWithOwnUpdate = [
                     "Eco Alquímico", "Ferrugem Alquímica", "Mão do Mago", "Contrato de Exclusividade",
-                    "Elixir do Mercador", "Soro da Clarividência", "Ingrediente Contaminado", "Maldição do Caldeirão Trincado", "Mestre Especialista"
+                    "Elixir do Mercador", "Soro da Clarividência", "Maldição do Caldeirão Trincado", "Mestre Especialista"
                 ];
 
                 if (potionsWithOwnUpdate.includes(potionName)) return; 
+                
+                // Agora o jogo salva instantaneamente para poções de efeito direto!
                 updateFirestoreState(localGameState);
             }
-
+            
             function handleDiscardPotion(potionName) {
                 const playerState = localGameState.players[localPlayerId];
                 const potionIndex = playerState.potionsReady.indexOf(potionName);
@@ -2217,12 +2220,13 @@
                             const moedasPerdidas = Math.min(opponentState.coins, quantidadeIngredientes);
                             opponentState.coins -= moedasPerdidas;
                             
-                            // ---> ESTE É O SINAL QUE VAI PARA O OPONENTE:
+                            // Este é o sinal que faz o modal popup aparecer na tela do oponente (agora será instantâneo)
                             opponentState.contaminatedEvent = { time: Date.now(), lost: moedasPerdidas };
                             
-                            logMessage(`${playerState.name} usou Ingrediente Contaminado! ${opponentState.name} perdeu ${moedasPerdidas} moedas.`);
+                            // Trocamos logMessage por broadcastAction para exibir o Toast de alerta!
+                            broadcastAction(`☣️ ${playerState.name} usou Ingrediente Contaminado! ${opponentState.name} perdeu ${moedasPerdidas} moedas.`);
                         } else {
-                            logMessage(`${playerState.name} usou Ingrediente Contaminado, mas a prateleira de ${opponentState.name} estava vazia.`);
+                            broadcastAction(`☣️ ${playerState.name} usou Ingrediente Contaminado, mas a prateleira de ${opponentState.name} estava vazia.`);
                         }
                         break;
                     case "Descarte Oportuno":
