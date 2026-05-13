@@ -464,25 +464,21 @@
 
             function handleEchoSelection(playerId, potionToCopy) {
                 const playerState = localGameState.players[playerId];
-
-                // SE FOR O MESTRE ESPECIALISTA, ABRE A ESCOLHA DE COR!
+            
                 if (potionToCopy === "Mestre Especialista") {
                     decisionModal.classList.add('hidden');
                     triggerMestreEspecialistaEchoDecision(playerId);
                     return;
                 }
-
-                if (playerState.copiedEffect) {
-                    if (playerState.copiedEffect.name === "Infusão de Foco" || playerState.copiedEffect.name === "Caldeirão Expansivo") {
-                        playerState.shelfLimit--;
-                    }
-                }
-                playerState.copiedEffect = { name: potionToCopy, status: 'PENDING_ACTIVATION' };
+            
+                // Agora é uma lista cumulativa!
+                if (!playerState.copiedEffects) playerState.copiedEffects = [];
+                playerState.copiedEffects.push({ name: potionToCopy, status: 'PENDING_ACTIVATION' });
+                
                 broadcastAction(`🗣️ ${playerState.name} usou Eco Alquímico e copiou os poderes de "${potionToCopy}" por um turno!`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
-
             function triggerMestreEspecialistaEchoDecision(playerId) {
                 decisionTitleEl.textContent = "Eco Alquímico: Especialista";
                 let optionsHTML = `<p class="mb-4">Você está copiando "Mestre Especialista". Escolha UMA NOVA COR para ser a sua especialidade temporária neste turno!</p>`;
@@ -513,15 +509,9 @@
 
             function handleMestreEspecialistaEchoSelection(playerId, chosenColor) {
                 const playerState = localGameState.players[playerId];
-
-                if (playerState.copiedEffect) {
-                    if (playerState.copiedEffect.name === "Infusão de Foco" || playerState.copiedEffect.name === "Caldeirão Expansivo") {
-                        playerState.shelfLimit--;
-                    }
-                }
-
-                // Salva a cópia com a cor personalizada!
-                playerState.copiedEffect = { name: "Mestre Especialista", status: 'PENDING_ACTIVATION', color: chosenColor };
+            
+                if (!playerState.copiedEffects) playerState.copiedEffects = [];
+                playerState.copiedEffects.push({ name: "Mestre Especialista", status: 'PENDING_ACTIVATION', color: chosenColor });
                 
                 logMessage(`${playerState.name} usou Eco Alquímico e escolheu a cor ${chosenColor.toUpperCase()} para sua especialidade temporária!`);
                 decisionModal.classList.add('hidden');
@@ -1290,15 +1280,14 @@
             function startSimultaneousPhase() {
                 const p1 = localGameState.players.player1;
                 const p2 = localGameState.players.player2;
-        
-                // Aplica os efeitos de início de turno para AMBOS os jogadores simultaneamente
+            
                 [p1, p2].forEach(playerState => {
                     playerState.currentPull = [];
                     playerState.personalPhase = 'PRODUCTION';
                     playerState.explosionEvent = null;
                     playerState.unguentoSavedColorThisTurn = null;
                     playerState.fervorBonusThisTurn = false;
-        
+            
                     // Resolve Ferrugem
                     if (playerState.disabledEffect) {
                         const effect = playerState.disabledEffect;
@@ -1316,13 +1305,18 @@
                         if (curse.status === 'ACTIVE_THIS_TURN') delete playerState.activePotions["Maldição do Caldeirão Trincado"];
                         else if (curse.status === 'PENDING_ACTIVATION') curse.status = 'ACTIVE_THIS_TURN';
                     }
-                    // Resolve Eco Alquímico
-                    if (playerState.copiedEffect && playerState.copiedEffect.status === 'PENDING_ACTIVATION') {
-                        playerState.copiedEffect.status = 'ACTIVE_THIS_TURN';
-                        if (playerState.copiedEffect.name === "Infusão de Foco" || playerState.copiedEffect.name === "Caldeirão Expansivo") playerState.shelfLimit++;
+                    
+                    // NOVO: Resolve Múltiplos Ecos Alquímicos
+                    if (playerState.copiedEffects) {
+                        playerState.copiedEffects.forEach(effect => {
+                            if (effect.status === 'PENDING_ACTIVATION') {
+                                effect.status = 'ACTIVE_THIS_TURN';
+                                if (effect.name === "Infusão de Foco" || effect.name === "Caldeirão Expansivo") playerState.shelfLimit++;
+                            }
+                        });
                     }
                 });
-        
+            
                 localGameState.phase = 'SIMULTANEOUS_PHASE';
                 localGameState.currentPlayer = null; 
                 logMessage("A Fase de Produção Simultânea começou! Podem puxar os ingredientes.");
@@ -1365,14 +1359,32 @@
                 const playerId = localGameState.currentPlayer;
                 const playerState = localGameState.players[playerId]; 
             
-                if (playerState.copiedEffect) {
-                    if (playerState.copiedEffect.status === "ACTIVE_THIS_TURN") {
-                        logMessage(`O Eco Alquímico de ${playerState.copiedEffect.name} se dissipou.`);
-                        if (playerState.copiedEffect.name === "Infusão de Foco" || playerState.copiedEffect.name === "Caldeirão Expansivo") {
-                            playerState.shelfLimit--;
+                // NOVA LÓGICA: Dissipar cópias e derrubar ingredientes
+                if (playerState.copiedEffects && playerState.copiedEffects.length > 0) {
+                    let excessDiscarded = 0;
+                    
+                    // Filtra os efeitos, removendo os que estavam ativos e mantendo os pendentes
+                    playerState.copiedEffects = playerState.copiedEffects.filter(effect => {
+                        if (effect.status === "ACTIVE_THIS_TURN") {
+                            logMessage(`O Eco Alquímico de ${effect.name} se dissipou.`);
+                            if (effect.name === "Infusão de Foco" || effect.name === "Caldeirão Expansivo") {
+                                playerState.shelfLimit--;
+                            }
+                            return false; // Remove da lista
                         }
-                        delete playerState.copiedEffect;
-                    } 
+                        return true; // Mantém na lista
+                    });
+            
+                    // CHECAGEM DE PRATELEIRA CHEIA (O excesso cai no caldeirão!)
+                    while (playerState.shelf.length > playerState.shelfLimit) {
+                        const droppedItem = playerState.shelf.pop(); // Tira o último
+                        localGameState.cauldron.push(droppedItem);
+                        excessDiscarded++;
+                    }
+                    
+                    if (excessDiscarded > 0) {
+                        broadcastAction(`⚠️ O efeito passou! A prateleira de ${playerState.name} encolheu e ${excessDiscarded} ingrediente(s) caíram de volta no caldeirão!`);
+                    }
                 }
             
                 const roundStarter = localGameState.roundStarter;
@@ -1463,7 +1475,6 @@
                 let finalPrice = basePrice;
                 let receiptParts = [`Base + Cliente: ${basePrice}💰`];
             
-                // FERVOR DO OUSADO: Dobra APENAS o valor base antes dos extras
                 if (playerState.fervorBonusThisTurn) {
                     finalPrice += basePrice;
                     receiptParts.push(`Fervor: +${basePrice}💰`);
@@ -1477,13 +1488,16 @@
                         receiptParts.push(`Sal Negro: +3💰`);
                     }
                 }
-            
-                if (playerState.activePotions["Amuleto do Colecionador"] || playerState.copiedEffect?.name === "Amuleto do Colecionador") {
+                
+                // Leitura da nova lista
+                const hasAmuletoCopied = playerState.copiedEffects && playerState.copiedEffects.some(e => e.name === "Amuleto do Colecionador" && e.status === 'ACTIVE_THIS_TURN');
+                if (playerState.activePotions["Amuleto do Colecionador"] || hasAmuletoCopied) {
                     finalPrice += 1;
                     receiptParts.push(`Amuleto: +1💰`);
                 }
-            
-                const mestreColor = playerState.activePotions["Mestre Especialista"] || (playerState.copiedEffect?.name === "Mestre Especialista" ? playerState.copiedEffect.color : null);
+                
+                const mestreCopied = playerState.copiedEffects?.find(e => e.name === "Mestre Especialista" && e.status === 'ACTIVE_THIS_TURN');
+                const mestreColor = playerState.activePotions["Mestre Especialista"] || (mestreCopied ? mestreCopied.color : null);
                 if (mestreColor) {
                     const potionData = ARCANO_POTIONUM[potionName];
                     let temACor = false;
@@ -1510,11 +1524,10 @@
                     playerState.coins += finalPrice;
                 }
             
-                // Monta o Recibo Final e transmite para os dois
                 const receiptString = receiptParts.join(" | ");
                 const finalMsg = `🛒 ${playerState.name} vendeu ${potionName} por ${finalPrice}💰!\n[${receiptString}]${rouboMsg}`;
                 
-                broadcastAction(finalMsg); // <-- Envia globalmente
+                broadcastAction(finalMsg);
             
                 localGameState.clients[clientIndex].served = true;
                 localGameState.clientsServed++;
@@ -1599,21 +1612,25 @@
             
             async function checkExplosion(currentPull, playerState, newlyPulledIngredient) {
                 if (!newlyPulledIngredient) return false;
-
+            
                 if (newlyPulledIngredient === "Sal Negro") {
                     const salNegroCount = currentPull.filter(i => i === "Sal Negro").length;
                     if (salNegroCount >= 2) return true;
                 }
-
-                const colorLimit = (playerState.activePotions["Estabilizador Cromático"] || playerState.copiedEffect?.name === "Estabilizador Cromático") ? 3 : 2;
+            
+                // NOVA LÓGICA: Checa na lista se o Estabilizador está copiado e ativo
+                const hasEstabilizadorCopied = playerState.copiedEffects && playerState.copiedEffects.some(e => e.name === "Estabilizador Cromático" && e.status === 'ACTIVE_THIS_TURN');
+                
+                // Aplica o limite 3 se tiver o original OU a cópia
+                const colorLimit = (playerState.activePotions["Estabilizador Cromático"] || hasEstabilizadorCopied) ? 3 : 2;
+                
                 const newIngredientColor = INGREDIENT_DATA[newlyPulledIngredient]?.cor;
-
+            
                 if (!newIngredientColor || newIngredientColor === 'coringa') return false;
-
+            
                 const colorCount = currentPull.filter(ing => INGREDIENT_DATA[ing]?.cor === newIngredientColor).length;
-
+            
                 if (colorCount >= colorLimit) {
-                    // MUDANÇA AQUI: Usa o unguento salvo INDIVIDUAL do jogador
                     if (playerState.unguentoSavedColorThisTurn) return true;
                     if (playerState.activePotions["Unguento de Musgo"]) {
                         await consumeUnguentoDeMusgo(localPlayerId, newIngredientColor);
@@ -1627,12 +1644,17 @@
             // FUNÇÃO NOVA: Redireciona para o tipo certo de explosão (Normal ou Resiliência)
             function triggerExplosionFlow() {
                 const playerState = localGameState.players[localPlayerId];
+                
                 if (localGameState.phase !== 'SIMULTANEOUS_PHASE' || playerState.personalPhase !== 'PRODUCTION') {
                     isProcessingClick = false;
                     updateUI(); 
                     return;
                 }
-                if (playerState.activePotions["Resiliência do Farsante"] || playerState.copiedEffect?.name === "Resiliência do Farsante") {
+                
+                // NOVA LÓGICA: Checa na lista se a Resiliência do Farsante está copiada e ativa
+                const hasResilienciaCopied = playerState.copiedEffects && playerState.copiedEffects.some(e => e.name === "Resiliência do Farsante" && e.status === 'ACTIVE_THIS_TURN');
+            
+                if (playerState.activePotions["Resiliência do Farsante"] || hasResilienciaCopied) {
                     handleExplosionWithResilience();
                 } else {
                     handleExplosion();
@@ -1718,11 +1740,16 @@
             function proceedToPostProduction() {
                 const playerState = localGameState.players[localPlayerId];
                 playerState.fervorBonusThisTurn = false; 
-                if ((playerState.activePotions["Fervor do Ousado"] || playerState.copiedEffect?.name === "Fervor do Ousado") && playerState.currentPull.length >= 4) {
+            
+                // NOVA VERIFICAÇÃO: Checa a lista de efeitos copiados para o Fervor
+                const hasFervorCopied = playerState.copiedEffects && playerState.copiedEffects.some(e => e.name === "Fervor do Ousado" && e.status === 'ACTIVE_THIS_TURN');
+            
+                if ((playerState.activePotions["Fervor do Ousado"] || hasFervorCopied) && playerState.currentPull.length >= 4) {
                     playerState.fervorBonusThisTurn = true;
                     logMessage(`Fervor do Ousado ativado! As vendas de ${playerState.name} valerão o dobro!`);
                     showMessage("Fervor do Ousado Ativado! Suas vendas valerão o dobro!");
                 }
+                
                 playerState.personalPhase = 'POST_PRODUCTION'; // <--- Vai para a mesa organizar
                 logMessage(`${playerState.name} parou de puxar.`);
                 updateFirestoreState(localGameState);
@@ -1885,14 +1912,14 @@
                 const creatable = [];
                 const playerState = localGameState.players[playerId];
                 
-                // Verifica se a Pasta Prismática está ativa (na Aura ou copiada)
-                const hasPrismatic = playerState.activePotions["Pasta Prismática"] || playerState.copiedEffect?.name === "Pasta Prismática";
-
+                // ATUALIZADO: Agora verifica dentro da lista copiedEffects
+                const hasPrismatic = playerState.activePotions["Pasta Prismática"] || (playerState.copiedEffects && playerState.copiedEffects.some(e => e.name === "Pasta Prismática" && e.status === 'ACTIVE_THIS_TURN'));
+            
                 for (const potionName in ARCANO_POTIONUM) {
                     const potion = ARCANO_POTIONUM[potionName];
                     let tempPull = [...currentPull]; 
                     let missingCount = 0;
-
+            
                     // 1. Conta quantos ingredientes fixos estão faltando
                     for (const [ingNome, qtd] of Object.entries(potion.ingredientes)) {
                         for (let i = 0; i < qtd; i++) {
@@ -1904,7 +1931,7 @@
                             }
                         }
                     }
-
+            
                     // 2. Conta quantos ingredientes de cor (corExtra) estão faltando
                     if (potion.corExtra) {
                         for (const [corAlvo, qtd] of Object.entries(potion.corExtra)) {
@@ -1918,10 +1945,8 @@
                             }
                         }
                     }
-
+            
                     // CONDIÇÃO MÁGICA:
-                    // Se faltar 0: Pode fazer normal.
-                    // Se faltar 1 E tiver a Pasta: O livro "acende" para você fabricar!
                     if (missingCount === 0 || (missingCount === 1 && hasPrismatic)) {
                         creatable.push(potionName);
                     }
@@ -1933,7 +1958,11 @@
                 const playerState = localGameState.players[localPlayerId];
                 const potion = ARCANO_POTIONUM[potionName];
                 const pull = [...localGameState.players[localPlayerId].currentPull]; 
-                const hasPrismatic = playerState.activePotions["Pasta Prismática"] || playerState.copiedEffect?.name === "Pasta Prismática";
+                
+                // NOVA LÓGICA: Checa na lista se a Pasta Prismática está copiada e ativa
+                const hasPrismaticCopied = playerState.copiedEffects && playerState.copiedEffects.some(e => e.name === "Pasta Prismática" && e.status === 'ACTIVE_THIS_TURN');
+                
+                const hasPrismatic = playerState.activePotions["Pasta Prismática"] || hasPrismaticCopied;
                 
                 let usedIngredients = [];
                 let missingCount = 0;
@@ -1957,9 +1986,7 @@
                 }
             
                 if (missingCount === 0) {
-                    // ATUALIZAÇÃO CRÍTICA: Salva no balcão INDIVIDUAL do jogador
                     localGameState.players[localPlayerId].currentPull = pull; 
-                    
                     playerState.potionsReady.push(potionName);
                     localGameState.cauldron.push(...usedIngredients);
                     logMessage(`${playerState.name} criou: ${potionName}!`);
@@ -1967,7 +1994,6 @@
                     updateFirestoreState(localGameState);
                 }
                 else if (missingCount === 1 && hasPrismatic) {
-                    // Chama a tela de decisão direto. Ela mesma já avisa o que está faltando!
                     triggerPrismaticSubstitutionDecision(potionName, lastMissing); 
                 }
                 else { showMessage("Você não tem os ingredientes necessários."); }
@@ -2478,22 +2504,30 @@
                     }
                 }
                 const playerState = localGameState.players[ownerId];
-                const copiedEffect = playerState.copiedEffect;
-                if (copiedEffect && copiedEffect.status === 'ACTIVE_THIS_TURN') {
-                    const potion = ARCANO_POTIONUM[copiedEffect.name]; 
-                    if (potion) {
-                        const li = document.createElement('li');
-                        li.className = 'flex items-center gap-2 p-2 bg-indigo-900/50 rounded border border-indigo-400'; 
-                        let displayText = `(Copiado) ${potion.nome}`;
-                        li.innerHTML = `
-                            <img src="imagens/Poção.png" class="w-8 h-8 grayscale object-contain opacity-80">
-                            <span class="potion-tooltip relative text-xs text-indigo-200 flex-1">
-                                ${displayText}
-                                <span class="tooltip-text">(Efeito copiado por 1 turno)<br>${potion.descricao}</span>
-                            </span>
-                        `;
-                        listEl.appendChild(li);
-                    }
+                
+                // NOVA LÓGICA DE RENDERIZAR MÚLTIPLOS COPIADOS
+                if (playerState.copiedEffects) {
+                    playerState.copiedEffects.forEach(copiedEffect => {
+                        if (copiedEffect.status === 'ACTIVE_THIS_TURN') {
+                            const potion = ARCANO_POTIONUM[copiedEffect.name]; 
+                            if (potion) {
+                                const li = document.createElement('li');
+                                li.className = 'flex items-center gap-2 p-2 bg-indigo-900/50 rounded border border-indigo-400'; 
+                                let displayText = `(Copiado) ${potion.nome}`;
+                                if (copiedEffect.name === "Mestre Especialista" && copiedEffect.color) {
+                                    displayText += ` [${copiedEffect.color.toUpperCase()}]`;
+                                }
+                                li.innerHTML = `
+                                    <img src="imagens/Poção.png" class="w-8 h-8 grayscale object-contain opacity-80">
+                                    <span class="potion-tooltip relative text-xs text-indigo-200 flex-1">
+                                        ${displayText}
+                                        <span class="tooltip-text">(Efeito copiado por 1 turno)<br>${potion.descricao}</span>
+                                    </span>
+                                `;
+                                listEl.appendChild(li);
+                            }
+                        }
+                    });
                 }
             }
             
