@@ -2025,11 +2025,36 @@
                         broadcastAction(`🦠 ${playerState.name} usou Parasita Mortífero! Ele roubará metade dos lucros da sua próxima venda.`);
                         break;
                     case "Eco Alquímico": { 
-                        if (opponentState.activePotions["Barreira de Bolhas"]) break;
-                        const copyablePotions = ["Amuleto do Colecionador", "Resiliência do Farsante", "Estabilizador Cromático", "Pasta Prismática", "Fervor do Ousado"];
+                        // Agora consome a Barreira de Bolhas corretamente se o oponente estiver protegido
+                        if (opponentState.activePotions["Barreira de Bolhas"]) { 
+                            opponentState.activePotions["Barreira de Bolhas"] = false; 
+                            showBarrierBlockMessage("Eco Alquímico"); 
+                            break; 
+                        }
+                        
+                        // LISTA COMPLETA E ATUALIZADA DE EFEITOS PERMANENTES
+                        const copyablePotions = [
+                            "Infusão de Foco", 
+                            "Caldeirão Expansivo", 
+                            "Amuleto do Colecionador", 
+                            "Resiliência do Farsante", 
+                            "Mestre Especialista", 
+                            "Estabilizador Cromático", 
+                            "Pasta Prismática", 
+                            "Fervor do Ousado"
+                        ];
+                        
                         const opponentActivePermanents = copyablePotions.filter(potion => opponentState.activePotions[potion]);
-                        if (opponentActivePermanents.length === 0) { showMessage(`${opponentState.name} não possui aprimoramentos para copiar!`); break; }
-                        triggerEchoDecision(playerId, opponentActivePermanents); break;
+                        
+                        // Se o oponente não tiver nada, avisa e DEVOLVE a poção para o seu cinto
+                        if (opponentActivePermanents.length === 0) { 
+                            showMessage(`Oponente não possui aprimoramentos para copiar!`); 
+                            playerState.potionsReady.unshift("Eco Alquímico"); // Devolve a poção
+                            break; 
+                        }
+                        
+                        triggerEchoDecision(playerId, opponentActivePermanents); 
+                        break;
                     }
                     case "Ferrugem Alquímica": { 
                         if (opponentState.activePotions["Barreira de Bolhas"]) { opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Ferrugem Alquímica"); break; }
