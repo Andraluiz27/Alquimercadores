@@ -2020,17 +2020,20 @@
                             playerState.shelfLimit++; 
                             playerState.activePotions["Caldeirão Expansivo"] = (playerState.activePotions["Caldeirão Expansivo"] || 0) + 1; 
                             
-                            broadcastAction(`🔮 ${playerState.name} usou Caldeirão Expansivo: Prateleira aumentada para ${playerState.shelfLimit} espaços e puxou ${extraIng} do caldeirão!`);
-                    
-                            // 2. Efeito Extra: Puxa um ingrediente imediatamente para a prateleira (se houver espaço)
+                            // 2. Verifica se pode puxar o item extra e monta a mensagem
+                            let pulledMsg = "";
                             if (localGameState.cauldron.length > 0 && playerState.shelf.length < playerState.shelfLimit) {
                                 const randomIndex = Math.floor(Math.random() * localGameState.cauldron.length);
                                 const extraIng = localGameState.cauldron.splice(randomIndex, 1)[0];
                                 playerState.shelf.push(extraIng);
-                                logMessage(`Efeito extra: ${playerState.name} recebeu ${extraIng} diretamente na prateleira!`);
-                            } else if (playerState.shelf.length >= playerState.shelfLimit) {
-                                logMessage(`O caldeirão tremeu, mas a prateleira de ${playerState.name} está cheia para o ingrediente extra.`);
+                                pulledMsg = ` e recebeu ${extraIng} de brinde!`;
+                            } else {
+                                pulledMsg = `, mas não pôde receber o ingrediente extra (Prateleira cheia ou Caldeirão vazio).`;
                             }
+                    
+                            // 3. Dispara a mensagem global correta
+                            broadcastAction(`🔮 ${playerState.name} usou Caldeirão Expansivo: Prateleira aumentada para ${playerState.shelfLimit} espaços${pulledMsg}`);
+                            
                         } else { 
                             showMessage("Sua prateleira já atingiu a capacidade máxima (6 espaços)!"); 
                             // Devolve a poção se não puder usar o efeito principal
