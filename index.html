@@ -1489,13 +1489,14 @@
                     }
                 }
                 
-                // Leitura da nova lista
+                // Bônus do Amuleto (Checa lista de cópias)
                 const hasAmuletoCopied = playerState.copiedEffects && playerState.copiedEffects.some(e => e.name === "Amuleto do Colecionador" && e.status === 'ACTIVE_THIS_TURN');
                 if (playerState.activePotions["Amuleto do Colecionador"] || hasAmuletoCopied) {
                     finalPrice += 1;
                     receiptParts.push(`Amuleto: +1💰`);
                 }
                 
+                // Bônus do Mestre Especialista (Checa lista de cópias)
                 const mestreCopied = playerState.copiedEffects?.find(e => e.name === "Mestre Especialista" && e.status === 'ACTIVE_THIS_TURN');
                 const mestreColor = playerState.activePotions["Mestre Especialista"] || (mestreCopied ? mestreCopied.color : null);
                 if (mestreColor) {
@@ -2512,11 +2513,15 @@
                             const potion = ARCANO_POTIONUM[copiedEffect.name]; 
                             if (potion) {
                                 const li = document.createElement('li');
+                                // Estilo diferenciado (Indigo) para indicar que é uma cópia
                                 li.className = 'flex items-center gap-2 p-2 bg-indigo-900/50 rounded border border-indigo-400'; 
                                 let displayText = `(Copiado) ${potion.nome}`;
+                                
+                                // Adiciona a indicação visual da cor se for Mestre Especialista
                                 if (copiedEffect.name === "Mestre Especialista" && copiedEffect.color) {
                                     displayText += ` [${copiedEffect.color.toUpperCase()}]`;
                                 }
+            
                                 li.innerHTML = `
                                     <img src="imagens/Poção.png" class="w-8 h-8 grayscale object-contain opacity-80">
                                     <span class="potion-tooltip relative text-xs text-indigo-200 flex-1">
