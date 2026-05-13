@@ -1648,7 +1648,8 @@
                 localGameState.clients[clientIndex].served = true;
                 localGameState.clientsServed++;
                 selectedPotion = null; 
-                actionModal.classList.add('hidden'); 
+                actionModal.classList.add('hidden');
+                showReceiptModal(localGameState.receiptEvent);
                 updateFirestoreState(localGameState);
             }
             
@@ -3076,8 +3077,11 @@
                     const oldReceipt = oldState.receiptEvent;
                     const newReceipt = localGameState.receiptEvent;
                     if (newReceipt && newReceipt.time !== oldReceipt?.time) {
-                        showReceiptModal(newReceipt);
-                    }
+                            // Só abre automaticamente se o vendedor NÃO for você (pois você já abriu ali em cima)
+                            if (newReceipt.seller !== localGameState.players[localPlayerId].name) {
+                                showReceiptModal(newReceipt);
+                            }
+                        }
 
                     const oldTurnMsg = oldState.turnAnnouncement;
                     const newTurnMsg = localGameState.turnAnnouncement;
