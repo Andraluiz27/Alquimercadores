@@ -529,8 +529,10 @@
                     };
                 });
                 decisionModal.classList.remove('hidden');
-            }
 
+                // ADICIONE ESTA LINHA AQUI PARA CORRIGIR:
+                addCancelButtonToDecision("Eco Alquímico");
+            }
             function handleMestreEspecialistaEchoSelection(playerId, chosenColor) {
                 const playerState = localGameState.players[playerId];
             
