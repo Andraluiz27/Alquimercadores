@@ -432,6 +432,7 @@
                     };
                 });
                 decisionModal.classList.remove('hidden');
+                addCancelButtonToDecision("Ferrugem Alquímica");
             }
 
             function triggerEchoDecision(playerId, targetPotions) {
@@ -458,6 +459,7 @@
                     };
                 });
                 decisionModal.classList.remove('hidden');
+                addCancelButtonToDecision("Eco Alquímico");
             }
 
             function handleEchoSelection(playerId, potionToCopy) {
@@ -616,6 +618,7 @@
                     };
                 });
                 decisionModal.classList.remove('hidden');
+                addCancelButtonToDecision("Mão do Mago");
             }
 
             function triggerCurseColorDecision(playerId) {
@@ -644,6 +647,7 @@
                     };
                 });
                 decisionModal.classList.remove('hidden');
+                addCancelButtonToDecision("Maldição do Caldeirão Trincado");
             }
 
             function handleCurseColorSelection(playerId, chosenColor) {
@@ -686,6 +690,7 @@
                     };
                 });
                 decisionModal.classList.remove('hidden');
+                addCancelButtonToDecision("Mestre Especialista");
             }
 
             function handleMestreEspecialistaSelection(playerId, chosenColor) {
@@ -763,12 +768,13 @@
                     updateFirestoreState(localGameState);
                     return;
                 }
+                
                 decisionTitleEl.textContent = "Soro da Clarividência";
                 let optionsHTML = `<p class="mb-4">Você enxerga o conteúdo do caldeirão! Escolha 1 ingrediente para pegar:</p>`;
                 const cauldronCounts = getIngredientCounts(localGameState.cauldron);
                 let availableIngredients = false;
                 let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 max-h-64 overflow-y-auto p-2 bg-black/30 rounded border border-gray-700">`;
-
+            
                 for (const ingredientName in INGREDIENT_DATA) {
                     if (cauldronCounts[ingredientName] > 0) {
                         availableIngredients = true;
@@ -784,30 +790,30 @@
                     }
                 }
                 ingredientsGridHTML += `</div>`;
-
+            
                 if (!availableIngredients) {
                     optionsHTML += `<p class="text-red-500 font-bold mt-4">Não há ingredientes válidos no caldeirão para pegar!</p>`;
                 } else {
                     optionsHTML += ingredientsGridHTML;
                 }
-                
-                optionsHTML += `<button class="btn btn-red w-full mt-4" data-ingredient="cancel">Cancelar</button>`;
+            
+                // Injeta os botões de ingredientes no modal
                 decisionOptionsEl.innerHTML = optionsHTML;
-
+            
+                // Coloca a ação de clique apenas nos botões de ingredientes
                 decisionOptionsEl.querySelectorAll('button').forEach(button => {
                     button.onclick = () => {
                         const ingredient = button.dataset.ingredient;
-                        if (ingredient === "cancel") {
-                            playerState.potionsReady.unshift("Soro da Clarividência");
-                            logMessage(`${playerState.name} decidiu não usar o Soro da Clarividência.`);
-                            decisionModal.classList.add('hidden');
-                            updateFirestoreState(localGameState);
-                        } else if (ingredient) { 
+                        if (ingredient) { 
                             handleClairvoyanceSelection(playerId, ingredient);
                         }
                     };
                 });
+            
                 decisionModal.classList.remove('hidden');
+                
+                // Injeta o Botão de Cancelar limpo e com a lógica pronta!
+                addCancelButtonToDecision("Soro da Clarividência");
             }
             
             function handleClairvoyanceSelection(playerId, ingredientName) {
@@ -883,6 +889,7 @@
                     };
                 });
                 decisionModal.classList.remove('hidden');
+                addCancelButtonToDecision("Contrato de Exclusividade");
             }
 
             function handleContractSelection(playerId, clientIndex) {
@@ -1831,6 +1838,30 @@
                 discardBtn.onclick = () => handleDiscardPotion(potionName); 
                 
                 actionModal.classList.remove('hidden');
+            }
+
+            // --- BOTÃO DE VOLTAR/CANCELAR PARA MODAIS DE DECISÃO ---
+            function addCancelButtonToDecision(potionName) {
+                const decisionOptionsEl = document.getElementById('decision-options');
+                
+                const cancelBtn = document.createElement('button');
+                // Usando o mesmo estilo "limpo" do botão de descartar, mas em tons de cinza
+                cancelBtn.className = "w-full py-2 mt-4 font-bold text-gray-400 hover:text-white hover:bg-gray-700/50 rounded transition-all";
+                cancelBtn.textContent = "Voltar";
+                
+                cancelBtn.onclick = () => {
+                    // Devolve a poção para o início do cinto (já que ela tinha sido retirada ao clicar em "Beber")
+                    localGameState.players[localPlayerId].potionsReady.unshift(potionName);
+                    
+                    // Esconde o modal
+                    document.getElementById('decision-modal').classList.add('hidden');
+                    
+                    // Atualiza o jogo para o cinto voltar ao normal na tela
+                    updateFirestoreState(localGameState);
+                };
+                
+                // Adiciona o botão no final da lista de opções
+                decisionOptionsEl.appendChild(cancelBtn);
             }
             
             function handleSellPotion(potionName) {
