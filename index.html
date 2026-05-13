@@ -547,50 +547,6 @@
                 updateFirestoreState(localGameState);
             }
 
-            function triggerContaminatedDecision(playerId) {
-                const playerState = localGameState.players[playerId];
-                const opponentState = localGameState.players[getOpponentId(playerId)];
-                decisionTitleEl.textContent = "Ingrediente Contaminado";
-                let optionsHTML = `<p class="mb-4">Escolha um ingrediente da sua prateleira para dar para ${opponentState.name}:</p>`;
-                let ingredientsGridHTML = `<div class="flex flex-wrap justify-center gap-4 p-2">`;
-                playerState.shelf.forEach((ingredientName, index) => {
-                    const imgData = INGREDIENT_DATA[ingredientName];
-                    ingredientsGridHTML += `
-                        <button class="flex flex-col items-center p-2 bg-slate-700/50 rounded-lg hover:bg-yellow-600 transition-colors" data-index="${index}">
-                            <img src="${imgData.img}" alt="${ingredientName}" class="w-16 h-16 rounded-full border-2 border-black">
-                            <span class="font-bold text-sm mt-1">${ingredientName}</span>
-                        </button>
-                    `;
-                });
-                ingredientsGridHTML += `</div>`;
-                optionsHTML += ingredientsGridHTML;
-                decisionOptionsEl.innerHTML = optionsHTML;
-
-                decisionOptionsEl.querySelectorAll('button').forEach(button => {
-                    button.onclick = () => {
-                        const index = parseInt(button.dataset.index, 10);
-                        handleContaminatedSelection(playerId, index);
-                    };
-                });
-                decisionModal.classList.remove('hidden');
-            }
-
-            function handleContaminatedSelection(playerId, ingredientIndex) {
-                const playerState = localGameState.players[playerId];
-                const opponentId = getOpponentId(playerId);
-                const opponentState = localGameState.players[opponentId];
-
-                if (opponentState.shelf.length >= opponentState.shelfLimit || ingredientIndex >= playerState.shelf.length) {
-                    showMessage("Não foi possível dar o ingrediente. (Prateleira do oponente ficou cheia ou item inválido).");
-                    decisionModal.classList.add('hidden');
-                    return;
-                }
-                const givenIngredient = playerState.shelf.splice(ingredientIndex, 1)[0];
-                opponentState.shelf.push(givenIngredient);
-                logMessage(`${playerState.name} usou Ingrediente Contaminado e deu ${givenIngredient} para ${opponentState.name}!`);
-                decisionModal.classList.add('hidden');
-                updateFirestoreState(localGameState);
-            }
 
             function triggerMageHandDecision(playerId) {
                 const opponentId = getOpponentId(playerId);
@@ -920,7 +876,14 @@
                         const clientType = client.type;
                         const clientWants = client.wants;
                         const clientPrice = client.price;
-                        optionsHTML += `<button class="btn bg-slate-700 hover:bg-slate-600 text-white w-full mb-2" data-index="${index}">[ Cliente ${clientType} quer 1 ${clientWants} por ${clientPrice} moedas ]</button>`;
+                        
+                        // O novo visual limpo e direto:
+                        optionsHTML += `
+                            <button class="btn bg-slate-700 hover:bg-red-900 text-white w-full mb-2 flex justify-between items-center px-4" data-index="${index}">
+                                <span>${clientType} (${clientWants})</span>
+                                <span class="font-bold text-yellow-400">${clientPrice} 💰</span>
+                            </button>
+                        `;
                     }
                 });
                 decisionOptionsEl.innerHTML = optionsHTML;
@@ -932,6 +895,7 @@
                     };
                 });
                 decisionModal.classList.remove('hidden');
+                addCancelButtonToDecision("Elixir do Mercador");
             }
 
             function handleElixirDiscard(playerId, clientIndex) {
