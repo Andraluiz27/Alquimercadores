@@ -43,7 +43,7 @@
             "Solvente Universal": { nome: "Solvente Universal", tipo: "Difícil", efeito: "Ação", descricao: "Seu oponente descarta TODOS os ingredientes da prateleira dele.", ingredientes: { "Perna de Sapo": 1, "Belladonna": 1, "Unha de Bruxa": 1 }, corExtra: { "azul": 2 } },
             "Maldição do Caldeirão Trincado": { nome: "Maldição do Caldeirão Trincado", tipo: "Difícil", efeito: "Ação", descricao: "No próximo turno do seu oponente, a Fase de puxar ingredientes dele termina se ele puxar qualquer ingrediente da cor que você escolher.", ingredientes: { "Musgo Venenoso": 1, "Olhos de Jiboia": 1 }, corExtra: { "verde": 1 } },
             "Pasta Prismática": { nome: "Pasta Prismática", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, você pode usar qualquer ingrediente no lugar de somente UM outro ingrediente em suas receitas.", ingredientes: { "Cogumelo de Sangue": 1, "Olhos de Jiboia": 1 }, corExtra: { "preto": 2, "vermelho": 2  } },
-            "Fervor do Ousado": { nome: "Fervor do Ousado", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, se você puxar 4 ou mais ingredientes sem estourar, suas vendas são dobradas naquele turno.", ingredientes: { "Sangue de Quimera": 1, "Perna de Sapo": 1, "Cogumelo de Sangue": 1 }, corExtra: { "preto": 1, "amarelo": 2} }
+            "Fervor do Ousado": { nome: "Fervor do Ousado", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, se você puxar 5 ou mais ingredientes sem estourar, suas vendas são dobradas naquele turno.", ingredientes: { "Sangue de Quimera": 1, "Perna de Sapo": 1, "Cogumelo de Sangue": 1 }, corExtra: { "preto": 1, "amarelo": 2} }
         };
 
         const INGREDIENT_DATA = {
@@ -698,7 +698,7 @@
                 opponentState.activePotions["Maldição do Caldeirão Trincado"] = { status: 'PENDING_ACTIVATION', color: chosenColor };
                 
                 // Agora avisa os dois jogadores com o Toast flutuante sem travar a tela!
-                broadcastAction(`☠️ ${playerState.name} lançou a Maldição do Caldeirão Trincado! O caldeirão oponente explodirá se puxar a cor ${chosenColor.toUpperCase()}!`);
+                broadcastAction(`${playerState.name} lançou a Maldição do Caldeirão Trincado! O caldeirão oponente explodirá se puxar a cor ${chosenColor.toUpperCase()}, no próximo turno!`);
                 
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
@@ -903,19 +903,36 @@
 
                 localGameState.clients.forEach((client, index) => {
                     if (client && !client.served) {
+                        const clientType = client.type;
+                        const clientWants = client.wants;
+                        const clientPrice = client.price;
+
                         if (client.contract) {
                             const ownerName = localGameState.players[client.contract].name;
-                            optionsHTML += `<button class="btn btn-gray w-full mb-2" disabled>Cliente ${index + 1} - Já reservado por ${ownerName}</button>`;
+                            // Botão desativado mantendo a mesma estrutura visual
+                            optionsHTML += `
+                                <button class="btn bg-slate-800 text-gray-500 border-gray-700 w-full mb-2 flex justify-between items-center px-4 cursor-not-allowed" disabled>
+                                    <span class="line-through">${clientType} (${clientWants})</span>
+                                    <span class="text-[10px] text-red-400 font-bold uppercase">Reservado: ${ownerName}</span>
+                                </button>
+                            `;
                         } else {
                             canReserve = true;
-                            const clientType = client.type;
-                            const clientWants = client.wants;
-                            const clientPrice = client.price;
-                            optionsHTML += `<button class="btn btn-blue w-full mb-2" data-index="${index}">[ Cliente ${clientType} quer 1 ${clientWants} por ${clientPrice} moedas ]</button>`;
+                            // Botão idêntico ao do Elixir do Mercador
+                            optionsHTML += `
+                                <button class="btn bg-slate-700 hover:bg-slate-600 text-white w-full mb-2 flex justify-between items-center px-4" data-index="${index}">
+                                    <span>${clientType} (${clientWants})</span>
+                                    <span class="font-bold text-yellow-400">${clientPrice} 💰</span>
+                                </button>
+                            `;
                         }
                     }
                 });
-                if (!canReserve) { optionsHTML += `<p class="text-red-500 font-bold mt-4">Não há clientes disponíveis para reservar no momento!</p>`; }
+                
+                if (!canReserve) { 
+                    optionsHTML += `<p class="text-red-500 font-bold mt-4">Não há clientes disponíveis para reservar no momento!</p>`; 
+                }
+                
                 decisionOptionsEl.innerHTML = optionsHTML;
 
                 decisionOptionsEl.querySelectorAll('button[data-index]').forEach(button => {
@@ -924,6 +941,7 @@
                         handleContractSelection(playerId, index);
                     };
                 });
+                
                 decisionModal.classList.remove('hidden');
                 addCancelButtonToDecision("Contrato de Exclusividade");
             }
@@ -1392,14 +1410,14 @@
                 const playerName = localGameState.players[playerId].name;
                 
                 // MENSAGEM ÚNICA PARA OS DOIS JOGADORES
-                const msgTexto = `🪄 FASE DE AÇÃO!\nÉ a vez de ${playerName} usar ou vender poções!`;
+                const msgTexto = `FASE DE AÇÃO!\nÉ a vez de ${playerName}!`;
             
                 // Dispara o alerta global de turno
                 localGameState.turnAnnouncement = { msg: msgTexto, time: Date.now() };
                 logMessage(`${playerName}, sua vez de usar e vender poções!`);
                 
                 // EXIBE IMEDIATAMENTE NA TELA DE QUEM MUDOU A FASE:
-                showToast(msgTexto, 6000, 'turn');
+                showToast(msgTexto, 2500, 'turn');
                 
                 updateFirestoreState(localGameState);
             }
@@ -1628,7 +1646,7 @@
                     const halfPrice = Math.ceil(totalGained / 2);
                     finalPlayerGains = totalGained - halfPrice;
                     opponentState.coins += halfPrice;
-                    rouboMsg = `<div class="flex justify-between w-full border-b border-red-500 border-dotted py-2 mt-1"><span class="text-red-400">Roubo (${opponentState.name})</span><span class="text-red-500 font-bold">-${halfPrice} 💰</span></div>`;
+                    rouboMsg = `<div class="flex justify-between w-full border-b border-red-500 border-dotted py-2 mt-1"><span class="text-red-400">Parasita Mortífero (${opponentState.name})</span><span class="text-red-500 font-bold">-${halfPrice}</span></div>`;
                     opponentState.activePotions["Parasita Mortífero"] = false; 
                 }
             
@@ -1874,7 +1892,7 @@
                 // NOVA VERIFICAÇÃO: Checa a lista de efeitos copiados para o Fervor
                 const hasFervorCopied = playerState.copiedEffects && playerState.copiedEffects.some(e => e.name === "Fervor do Ousado" && e.status === 'ACTIVE_THIS_TURN');
             
-                if ((playerState.activePotions["Fervor do Ousado"] || hasFervorCopied) && playerState.currentPull.length >= 4) {
+                if ((playerState.activePotions["Fervor do Ousado"] || hasFervorCopied) && playerState.currentPull.length >= 5) {
                     playerState.fervorBonusThisTurn = true;
                     logMessage(`Fervor do Ousado ativado! As vendas de ${playerState.name} valerão o dobro!`);
                     showMessage("Fervor do Ousado Ativado! Suas vendas valerão o dobro!");
@@ -2151,7 +2169,7 @@
                     case "Pasta Prismática": 
                         playerState.activePotions["Pasta Prismática"] = true; broadcastAction(`${playerState.name} usou Pasta Prismática e agora pode substituir 1 ingrediente nas receitas!`); break;
                     case "Infusão de Foco":
-                        if (playerState.shelfLimit < 6) { playerState.shelfLimit++; playerState.activePotions["Infusão de Foco"] = (playerState.activePotions["Infusão de Foco"] || 0) + 1; broadcastAction(`${playerState.name} usou Infusão de Foco e expandiu sua prateleira para 1 espaços!`); } 
+                        if (playerState.shelfLimit < 6) { playerState.shelfLimit++; playerState.activePotions["Infusão de Foco"] = (playerState.activePotions["Infusão de Foco"] || 0) + 1; broadcastAction(`${playerState.name} usou Infusão de Foco e expandiu a prateleira em 1 espaço!`); } 
                         else { showMessage("Sua prateleira já atingiu a capacidade máxima (6 espaços)!"); }
                         break;
                     case "Tônico Dourado": playerState.coins += 2; broadcastAction(`${playerState.name} bebeu o Tônico Dourado e ganhou 2 Moedas instantaneamente!`); break;
@@ -2181,7 +2199,7 @@
                             break; 
                         }
                         playerState.activePotions["Parasita Mortífero"] = true; 
-                        broadcastAction(`${playerState.name} usou Parasita Mortífero! Ele roubará metade dos lucros da sua próxima venda.`);
+                        broadcastAction(`${playerState.name} usou Parasita Mortífero! Ele roubará metade dos lucros da próxima venda do oponente.`);
                         break;
                     case "Eco Alquímico": { 
                         // Agora consome a Barreira de Bolhas corretamente se o oponente estiver protegido
@@ -2254,7 +2272,7 @@
                         break;
                     case "Estabilizador Cromático": 
                         playerState.activePotions["Estabilizador Cromático"] = true; 
-                        broadcastAction(`${playerState.name} ativou o Estabilizador Cromático e seu caldeirão agora suporta até 3 ingredientes da mesma cor!`);
+                        broadcastAction(`${playerState.name} ativou o Estabilizador Cromático e agora seu caldeirão só explode no terceiro ingredientes da mesma cor!`);
                         break;
                     case "Pedra Filosofal": playerState.coins += 7; broadcastAction(`${playerState.name} concluiu a Pedra Filosofal e ganhou 7 Moedas!`); break;
                     case "Poção da Usurpação":
@@ -3113,7 +3131,7 @@
                     const oldTurnMsg = oldState.turnAnnouncement;
                     const newTurnMsg = localGameState.turnAnnouncement;
                     if (newTurnMsg && newTurnMsg.time !== oldTurnMsg?.time) {
-                        showToast(newTurnMsg.msg, 4000, 'turn');
+                        showToast(newTurnMsg.msg, 2500, 'turn');
                     }
                     
                     const oldGlobal = oldState.globalAnnouncement;
