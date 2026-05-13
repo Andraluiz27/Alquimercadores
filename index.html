@@ -471,11 +471,35 @@
                     return;
                 }
             
-                // Agora é uma lista cumulativa!
                 if (!playerState.copiedEffects) playerState.copiedEffects = [];
+            
+                // --- LÓGICA DE ATIVAÇÃO IMEDIATA (PONTO 1) ---
+                if (potionToCopy === "Infusão de Foco" || potionToCopy === "Caldeirão Expansivo") {
+                    // Aplica o limite imediatamente para poder receber o ingrediente
+                    playerState.shelfLimit++;
+                    
+                    if (potionToCopy === "Caldeirão Expansivo") {
+                        let extraMsg = "";
+                        if (localGameState.cauldron.length > 0 && playerState.shelf.length < playerState.shelfLimit) {
+                            const randomIndex = Math.floor(Math.random() * localGameState.cauldron.length);
+                            const extraIng = localGameState.cauldron.splice(randomIndex, 1)[0];
+                            playerState.shelf.push(extraIng);
+                            extraMsg = ` e recebeu ${extraIng} imediatamente!`;
+                        } else {
+                            extraMsg = ", mas a prateleira estava cheia ou o caldeirão vazio.";
+                        }
+                        broadcastAction(`🗣️ ${playerState.name} copiou Caldeirão Expansivo${extraMsg}`);
+                    }
+                }
+                // ----------------------------------------------
+            
+                // Salva na lista como Pendente para o processamento de turnos
                 playerState.copiedEffects.push({ name: potionToCopy, status: 'PENDING_ACTIVATION' });
                 
-                broadcastAction(`🗣️ ${playerState.name} usou Eco Alquímico e copiou os poderes de "${potionToCopy}" por um turno!`);
+                if (potionToCopy !== "Caldeirão Expansivo") {
+                    broadcastAction(`🗣️ ${playerState.name} usou Eco Alquímico e copiou "${potionToCopy}" para o próximo turno!`);
+                }
+            
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -1311,7 +1335,6 @@
                         playerState.copiedEffects.forEach(effect => {
                             if (effect.status === 'PENDING_ACTIVATION') {
                                 effect.status = 'ACTIVE_THIS_TURN';
-                                if (effect.name === "Infusão de Foco" || effect.name === "Caldeirão Expansivo") playerState.shelfLimit++;
                             }
                         });
                     }
@@ -2504,29 +2527,30 @@
                         }
                     }
                 }
+            
                 const playerState = localGameState.players[ownerId];
                 
-                // NOVA LÓGICA DE RENDERIZAR MÚLTIPLOS COPIADOS
+                // EXIBIÇÃO IMEDIATA (PONTO 2): Mostra tanto ACTIVE quanto PENDING
                 if (playerState.copiedEffects) {
                     playerState.copiedEffects.forEach(copiedEffect => {
-                        if (copiedEffect.status === 'ACTIVE_THIS_TURN') {
+                        if (copiedEffect.status === 'ACTIVE_THIS_TURN' || copiedEffect.status === 'PENDING_ACTIVATION') {
                             const potion = ARCANO_POTIONUM[copiedEffect.name]; 
                             if (potion) {
                                 const li = document.createElement('li');
-                                // Estilo diferenciado (Indigo) para indicar que é uma cópia
                                 li.className = 'flex items-center gap-2 p-2 bg-indigo-900/50 rounded border border-indigo-400'; 
-                                let displayText = `(Copiado) ${potion.nome}`;
                                 
-                                // Adiciona a indicação visual da cor se for Mestre Especialista
+                                // Texto dinâmico para o jogador saber o estado
+                                let label = copiedEffect.status === 'PENDING_ACTIVATION' ? '(Copiado/Pendente)' : '(Copiado)';
+                                let displayText = `${label} ${potion.nome}`;
+            
                                 if (copiedEffect.name === "Mestre Especialista" && copiedEffect.color) {
                                     displayText += ` [${copiedEffect.color.toUpperCase()}]`;
                                 }
-            
                                 li.innerHTML = `
                                     <img src="imagens/Poção.png" class="w-8 h-8 grayscale object-contain opacity-80">
                                     <span class="potion-tooltip relative text-xs text-indigo-200 flex-1">
                                         ${displayText}
-                                        <span class="tooltip-text">(Efeito copiado por 1 turno)<br>${potion.descricao}</span>
+                                        <span class="tooltip-text">${copiedEffect.status === 'PENDING_ACTIVATION' ? 'Ficará ativo na próxima fase de coleta.' : 'Efeito ativo neste turno.'}<br>${potion.descricao}</span>
                                     </span>
                                 `;
                                 listEl.appendChild(li);
