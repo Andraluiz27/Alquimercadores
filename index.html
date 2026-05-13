@@ -3244,11 +3244,11 @@
                 }
             });
             
-            function cleanupLobbyEntry() {
-                if (!localUserId) return;
-                deleteDoc(doc(db, lobbyCollectionPath, localUserId)).catch(err => { console.log("Falha ao limpar lobby na saída (ignorado):", err); });
-            }
-            window.addEventListener('beforeunload', cleanupLobbyEntry);
+            //function cleanupLobbyEntry() {
+                //if (!localUserId) return;
+                //deleteDoc(doc(db, lobbyCollectionPath, localUserId)).catch(err => { console.log("Falha ao limpar lobby na saída (ignorado):", err); });
+            //}
+            //window.addEventListener('beforeunload', cleanupLobbyEntry);
             
         } catch (e) {
             console.error("Erro CRÍTICO ao inicializar o Firebase:", e); 
