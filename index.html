@@ -15,7 +15,7 @@
         // ==========================================================
         const ARCANO_POTIONUM = {
             // FÁCEIS
-            "Barreira de Bolhas": { nome: "Barreira de Bolhas", tipo: "Fácil", efeito: "Ação", descricao: "Você fica imune ao efeito da PRÓXIMA poção de Ação usada por seu oponente. A barreira permanece ativa na sua Aura até bloquear um ataque.", ingredientes: {}, corExtra: { "azul": 2 } },
+            "Barreira de Bolhas": { nome: "Barreira de Bolhas", tipo: "Fácil", efeito: "Ação", descricao: "Você fica imune ao efeito da PRÓXIMA poção de Ação usada por seu oponente. A barreira permanece ativa até bloquear um ataque.", ingredientes: {}, corExtra: { "azul": 2 } },
             "Unguento de Musgo": { nome: "Unguento de Musgo", tipo: "Fácil", efeito: "Momentâneo", descricao: "Na sua próxima Fase da Bolha, ignore a primeira explosão por COR. Não protege contra Sal Negro.", ingredientes: { "Musgo Venenoso": 1 }, corExtra: { "verde": 1 } },
             "Pó da Corrosão": { nome: "Pó da Corrosão", tipo: "Fácil", efeito: "Ação", descricao: "Seu oponente descarta 1 ingrediente da prateleira dele (ele escolhe qual).", ingredientes: {}, corExtra: { "vermelho": 2 } },
             "Elixir do Mercador": { nome: "Elixir do Mercador", tipo: "Fácil", efeito: "Ação", descricao: "Descarte um cliente do mercado e revele um novo. (Funciona mesmo em clientes com Contrato).", ingredientes: { "Unha de Bruxa": 1 }, corExtra: { "amarelo": 2 } },
@@ -2176,28 +2176,29 @@
                 });
     
                 // Reordena as prateleiras flex via CSS Order: O Jogador local SEMPRE fica em baixo
+                // Reordena as prateleiras: O Jogador local AGORA aparece sempre no TOPO (Order 1)
                 if (localPlayerId === 'player1') {
-                    document.getElementById('player2-shelf-section').style.order = '1';
-                    document.getElementById('player1-shelf-section').style.order = '2';
+                    document.getElementById('player1-shelf-section').style.order = '1';
+                    document.getElementById('player2-shelf-section').style.order = '2';
                     player1NameDisplay.textContent = `Você (${p1.name})`;
                     player2NameDisplay.textContent = p2.name;
                     
-                    // Atualiza textos do painel lateral para o Player 1
+                    // Atualiza textos do painel lateral
                     document.getElementById('player1-ready-potions-title').textContent = `Você (${p1.name}):`;
                     document.getElementById('player2-ready-potions-title').textContent = `${p2.name}:`;
-                    document.getElementById('player1-aura-title').textContent = `Sua Aura:`;
-                    document.getElementById('player2-aura-title').textContent = `Aura de ${p2.name}:`;
+                    document.getElementById('player1-aura-title').textContent = `Seus Efeitos:`;
+                    document.getElementById('player2-aura-title').textContent = `Efeitos de ${p2.name}:`;
                 } else {
-                    document.getElementById('player1-shelf-section').style.order = '1';
-                    document.getElementById('player2-shelf-section').style.order = '2';
+                    document.getElementById('player2-shelf-section').style.order = '1';
+                    document.getElementById('player1-shelf-section').style.order = '2';
                     player1NameDisplay.textContent = p1.name;
                     player2NameDisplay.textContent = `Você (${p2.name})`;
                     
-                    // Atualiza textos do painel lateral para o Player 2
+                    // Atualiza textos do painel lateral
                     document.getElementById('player1-ready-potions-title').textContent = `${p1.name}:`;
                     document.getElementById('player2-ready-potions-title').textContent = `Você (${p2.name}):`;
-                    document.getElementById('player1-aura-title').textContent = `Aura de ${p1.name}:`;
-                    document.getElementById('player2-aura-title').textContent = `Sua Aura:`;
+                    document.getElementById('player1-aura-title').textContent = `Efeitos de ${p1.name}:`;
+                    document.getElementById('player2-aura-title').textContent = `Seus Efeitos:`;
                 }
                 renderShelf(player1ShelfEl, p1.shelf, 'player1');
                 renderShelf(player2ShelfEl, p2.shelf, 'player2');
@@ -3268,13 +3269,13 @@
                 </div>
         
                 <div>
-                    <h4 class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-2">Auras Ativas</h4>
+                    <h4 class="text-xs uppercase tracking-widest text-gray-500 font-bold mb-2">Efeitos Ativos</h4>
                     <div class="mb-3">
-                        <h5 id="player1-aura-title" class="text-xs font-bold text-blue-400 mb-2 uppercase tracking-wide">Sua Aura:</h5>
+                        <h5 id="player1-aura-title" class="text-xs font-bold text-blue-400 mb-2 uppercase tracking-wide">Seus Efeitos:</h5>
                         <ul id="player1-active-potions-list" class="flex flex-col gap-1.5"></ul>
                     </div>
                     <div>
-                        <h5 id="player2-aura-title" class="text-xs font-bold text-red-400 mb-2 uppercase tracking-wide">Aura Oponente:</h5>
+                        <h5 id="player2-aura-title" class="text-xs font-bold text-red-400 mb-2 uppercase tracking-wide">Efeitos do Oponente:</h5>
                         <ul id="player2-active-potions-list" class="flex flex-col gap-1.5"></ul>
                     </div>
                 </div>
