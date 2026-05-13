@@ -43,7 +43,7 @@
             "Solvente Universal": { nome: "Solvente Universal", tipo: "Difícil", efeito: "Ação", descricao: "Seu oponente descarta TODOS os ingredientes da prateleira dele.", ingredientes: { "Perna de Sapo": 1, "Belladonna": 1, "Unha de Bruxa": 1 }, corExtra: { "azul": 2 } },
             "Maldição do Caldeirão Trincado": { nome: "Maldição do Caldeirão Trincado", tipo: "Difícil", efeito: "Ação", descricao: "No próximo turno do seu oponente, a Fase de puxar ingredientes dele termina se ele puxar qualquer ingrediente da cor que você escolher.", ingredientes: { "Musgo Venenoso": 1, "Olhos de Jiboia": 1 }, corExtra: { "verde": 1 } },
             "Pasta Prismática": { nome: "Pasta Prismática", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, você pode usar qualquer ingrediente no lugar de somente UM outro ingrediente em suas receitas.", ingredientes: { "Cogumelo de Sangue": 1, "Olhos de Jiboia": 1 }, corExtra: { "preto": 2, "vermelho": 2  } },
-            "Fervor do Ousado": { nome: "Fervor do Ousado", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, se você puxar 5 ou mais ingredientes sem estourar, suas vendas são dobradas naquele turno.", ingredientes: { "Sangue de Quimera": 1, "Perna de Sapo": 1, "Cogumelo de Sangue": 1 }, corExtra: { "preto": 1, "amarelo": 2} }
+            "Fervor do Ousado": { nome: "Fervor do Ousado", tipo: "Difícil", efeito: "Permanente", descricao: "A partir de agora, se você puxar 5 ou mais ingredientes sem estourar, o preço base da poção vendida será dobrado naquele turno. Os bônus serão somados depois.", ingredientes: { "Sangue de Quimera": 1, "Perna de Sapo": 1, "Cogumelo de Sangue": 1 }, corExtra: { "preto": 1, "amarelo": 2} }
         };
 
         const INGREDIENT_DATA = {
@@ -960,7 +960,7 @@
                 const playerName = localGameState.players[playerId].name;
                 
                 // Dispara a mensagem global com as crases certinhas
-                broadcastAction(`${playerName} usou Contrato de Exclusividade e o oponente não pode mais vender para o cliente que busca "${client.wants}"!`);
+                broadcastAction(`${playerName} usou Contrato de Exclusividade e reservou um Cliente"!`);
                 
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
@@ -1009,7 +1009,7 @@
                 localGameState.clients[clientIndex] = generateClient(originalClientType, currentMarketPotions);
                 const newPotion = localGameState.clients[clientIndex].wants;
 
-                broadcastAction(`${localGameState.players[playerId].name} usou o Elixir do Mercador, expulsou um cliente e revelou um novo contrato!`);
+                broadcastAction(`${localGameState.players[playerId].name} usou o Elixir do Mercador e expulsou um cliente`);
                 decisionModal.classList.add('hidden');
                 updateFirestoreState(localGameState);
             }
@@ -1894,8 +1894,8 @@
             
                 if ((playerState.activePotions["Fervor do Ousado"] || hasFervorCopied) && playerState.currentPull.length >= 5) {
                     playerState.fervorBonusThisTurn = true;
-                    logMessage(`Fervor do Ousado ativado! As vendas de ${playerState.name} valerão o dobro!`);
-                    showMessage("Fervor do Ousado Ativado! Suas vendas valerão o dobro!");
+                    logMessage(`Fervor do Ousado ativado! O valor das poções de ${playerState.name} valerá o dobro!`);
+                    showMessage("Fervor do Ousado Ativado! O valor das poções valerá o dobro!");
                 }
                 
                 playerState.personalPhase = 'POST_PRODUCTION'; // <--- Vai para a mesa organizar
@@ -2272,7 +2272,7 @@
                         break;
                     case "Estabilizador Cromático": 
                         playerState.activePotions["Estabilizador Cromático"] = true; 
-                        broadcastAction(`${playerState.name} ativou o Estabilizador Cromático e agora seu caldeirão só explode no terceiro ingredientes da mesma cor!`);
+                        broadcastAction(`${playerState.name} ativou o Estabilizador Cromático e agora seu caldeirão só explode no terceiro ingrediente da mesma cor!`);
                         break;
                     case "Pedra Filosofal": playerState.coins += 7; broadcastAction(`${playerState.name} concluiu a Pedra Filosofal e ganhou 7 Moedas!`); break;
                     case "Poção da Usurpação":
@@ -2298,7 +2298,7 @@
                         triggerCurseColorDecision(playerId); break;
                     case "Fervor do Ousado": 
                         playerState.activePotions["Fervor do Ousado"] = true; 
-                        broadcastAction(`${playerState.name} ativou o Fervor do Ousado! Suas vendas dobrarão de valor se puxar 5 ou mais ingredientes!`);
+                        broadcastAction(`${playerState.name} ativou o Fervor do Ousado!`);
                         break;
                     case "Soro da Clarividência": triggerClairvoyanceDecision(playerId); break;
                     case "Ingrediente Contaminado":
@@ -3352,9 +3352,9 @@
                     <div class="grid grid-cols-3 gap-2 text-center font-bold">
                         <div class="bg-green-100 p-2 rounded border border-green-300">FÁCIL<br>3 💰</div>
                         <div class="bg-blue-100 p-2 rounded border border-blue-300">MÉDIO<br>5 💰</div>
-                        <div class="bg-red-100 p-2 rounded border border-red-300">DIFÍCIL<br>8 💰</div>
+                        <div class="bg-red-100 p-2 rounded border border-red-300">DIFÍCIL<br>7 💰</div>
                     </div>
-                    <p class="text-xs text-center mt-2 text-gray-600">Bônus: Rico (+1💰) | Nobre (+3💰) | Sal Negro (+5💰)</p>
+                    <p class="text-xs text-center mt-2 text-gray-600">Bônus: Rico (+1💰) | Nobre (+2💰) | Sal Negro (+3💰)</p>
                 </section>
             </div>
             
