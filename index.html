@@ -1858,7 +1858,7 @@
                 
                 // NOVA REGRA: Limite máximo de 3 poções guardadas
                 if (localGameState.players[localPlayerId].potionsReady.length > 3) {
-                    showMessage("Seu cinto está muito pesado! Você só pode passar o turno com no máximo 3 poções guardadas. Use ou venda o excesso.");
+                    showMessage("Você só pode passar o turno com no máximo 3 poções guardadas. Use, venda ou descarte o excesso.");
                     // Removemos o showActionModal(0) daqui!
                     return;
                 }
