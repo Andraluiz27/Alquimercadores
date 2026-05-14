@@ -251,25 +251,31 @@
                 const roundStarter = localGameState.roundStarter;
                 const otherPlayer = roundStarter === 'player1' ? 'player2' : 'player1';
             
-                // Se 6 clientes foram servidos, verifica se o jogo acaba ou troca o turno
-                if (localGameState.clientsServed >= 6) {
-                    if (playerId === otherPlayer) {
-                        endGame();
-                        return;
-                    } else {
-                        startActionPhase(otherPlayer);
-                        return;
-                    }
-                }
-            
-                // Lógica normal de troca de turno
+                // Lógica de troca de turno dentro da mesma rodada
                 if (playerId === roundStarter) {
                     startActionPhase(otherPlayer);
                 } else {
+                    // Ambos já jogaram a fase de ação. A rodada atual acabou.
+                    
+                    // 1. Se esta JÁ ERA a rodada de despedida, o jogo acaba aqui.
+                    if (localGameState.isFinalRound) {
+                        endGame();
+                        return;
+                    }
+                    
+                    // 2. Se não era, verificamos se alguém atingiu as 40 moedas nesta rodada.
+                    const p1Coins = localGameState.players.player1.coins;
+                    const p2Coins = localGameState.players.player2.coins;
+                    
+                    if (p1Coins >= 40 || p2Coins >= 40) {
+                        localGameState.isFinalRound = true;
+                        broadcastAction("ÚLTIMA RODADA \O Mercado vai fechar!");
+                    }
+                    
+                    // Inicia a próxima rodada (que pode ser a normal ou a de despedida)
                     startNewRound();
                 }
             }
-
             function triggerShelfCleanupDecision(playerId, count) {
                 const playerState = localGameState.players[playerId];
                 decisionTitleEl.textContent = "Ajuste de Prateleira";
@@ -1370,7 +1376,7 @@
         
                 return {
                     gameId: gameId, status: 'waiting', phase: 'SIMULTANEOUS_PHASE', 
-                    currentPlayer: null, roundStarter: startingPlayer, 
+                    currentPlayer: null, roundStarter: startingPlayer, isFinalRound: false,
                     players: {
                         player1: { uid: player1UID, name: player1Name, coins: 0, shelf: [], shelfLimit: 4, potionsReady: [], activePotions: {}, fervorBonusThisTurn: false, currentPull: [], personalPhase: 'PRODUCTION', explosionEvent: null, unguentoSavedColorThisTurn: null },
                         player2: { uid: null, name: 'Aguardando...', coins: 0, shelf: [], shelfLimit: 4, potionsReady: [], activePotions: {}, fervorBonusThisTurn: false, currentPull: [], personalPhase: 'PRODUCTION', explosionEvent: null, unguentoSavedColorThisTurn: null }
@@ -2381,8 +2387,19 @@
                 player1ScoreEl.textContent = `${p1.name}: ${p1.coins} 💰`;
                 player2ScoreEl.textContent = `${p2.name}: ${p2.coins} 💰`;
                 
-                const clientsCountEl = document.getElementById('clients-count');
-                if (clientsCountEl) { clientsCountEl.textContent = localGameState.clientsServed || 0; }
+                // Atualização do Indicador de quem inicia a rodada
+                const roundStarterDisplay = document.getElementById('round-starter-display');
+                if (roundStarterDisplay && localGameState.roundStarter) {
+                    const starterName = localGameState.players[localGameState.roundStarter].name;
+                    
+                    if (localGameState.isFinalRound) {
+                        roundStarterDisplay.innerHTML = `ÚLTIMA RODADA! <span class="text-white">(${starterName} começa)</span>`;
+                        roundStarterDisplay.className = "text-[10px] md:text-xs text-red-500 font-bold mt-1 uppercase tracking-widest animate-pulse";
+                    } else {
+                        roundStarterDisplay.innerHTML = `1º na Ação: <span class="text-white">${starterName}</span>`;
+                        roundStarterDisplay.className = "text-[10px] md:text-xs text-yellow-500 font-bold mt-1 uppercase tracking-widest";
+                    }
+                }
                 
                 const myActionPhase = localGameState.phase === `ACTION_${localPlayerId.toUpperCase()}`;
         
@@ -3323,7 +3340,7 @@
             <div class="overflow-y-auto pr-2 space-y-6 text-sm md:text-base leading-relaxed">
                 <section>
                     <h3 class="font-bold text-purple-800 border-l-4 border-purple-800 pl-2 mb-2">1. O Objetivo</h3>
-                    <p>Você é um mercador disputando clientes. O jogo termina quando <strong>6 poções</strong> forem vendidas no total. Quem tiver mais moedas de ouro (💰) ao final vence a partida!</p>
+                    <p>Você é um mercador disputando clientes e fama. O gatilho de fim de jogo é ativado quando alguém atinge <strong>40 moedas</strong> (💰). Após isso, os jogadores jogam uma <strong>Última Rodada</strong>. Quem tiver mais moedas no final, vence!</p>
                 </section>
 
                 <section>
@@ -3400,8 +3417,8 @@
                     <span id="player1-score" class="text-blue-400 drop-shadow">J1: 0 💰</span>
                     <span id="player2-score" class="text-red-400 drop-shadow">J2: 0 💰</span>
                 </div>
-                <div class="text-[10px] md:text-xs text-yellow-500 font-bold mt-1 uppercase tracking-widest">
-                    Vendas: <span id="clients-count" class="text-white">0</span>/6
+                <div id="round-starter-display" class="text-[10px] md:text-xs text-yellow-500 font-bold mt-1 uppercase tracking-widest">
+                    1º na Ação: <span class="text-white">...</span>
                 </div>
             </div>
 
