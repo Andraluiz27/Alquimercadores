@@ -2195,7 +2195,11 @@
                         break;
                     case "Mão do Mago":
                         if (opponentState.activePotions["Barreira de Bolhas"]) { opponentState.activePotions["Barreira de Bolhas"] = false; showBarrierBlockMessage("Mão do Mago"); break; }
-                        if (opponentState.shelf.length === 0) { logMessage(`Mão do Mago falhou! A prateleira de ${opponentState.name} está vazia.`); break; }
+                        if (opponentState.shelf.length === 0) { 
+                            showMessage("A prateleira do oponente está vazia! Não há o que roubar."); 
+                            playerState.potionsReady.unshift("Mão do Mago"); 
+                            break; 
+                        }
                         if (playerState.shelf.length >= playerState.shelfLimit) { playerState.potionsReady.unshift("Mão do Mago"); break; }
                         triggerMageHandDecision(playerId); break;
                     case "Parasita Mortífero": 
