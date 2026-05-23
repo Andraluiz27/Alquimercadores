@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alquimercadores-v1';
+const CACHE_NAME = 'alquimercadores-v2';
 const assets = ['./', './index.html'];
 
 self.addEventListener('install', (e) => {
