@@ -1,9 +1,9 @@
 {
-  "id": "/alquimercadores/",
+  "id": "/Alquimercadores/",
   "name": "Alquimercadores",
   "short_name": "Alquimercadores",
-  "start_url": "/alquimercadores/index.html",
-  "scope": "/alquimercadores/",
+  "start_url": "/Alquimercadores/index.html",
+  "scope": "/Alquimercadores/",
   "display": "fullscreen",
   "background_color": "#000000",
   "theme_color": "#000000",
