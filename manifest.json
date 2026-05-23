@@ -1,0 +1,15 @@
+{
+  "name": "Alquimercadores",
+  "short_name": "Alquimercadores",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "Alquimercadores.png", 
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
